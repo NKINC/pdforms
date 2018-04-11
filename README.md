@@ -1,2 +1,2 @@
 # pdforms
-An open-source .net application for PDF Forms
+An open-source PDF Forms .net application
