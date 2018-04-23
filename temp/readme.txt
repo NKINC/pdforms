@@ -1,0 +1,1 @@
+﻿Safely delete all files in this folder.

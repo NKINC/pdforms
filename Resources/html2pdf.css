@@ -1,0 +1,20 @@
+﻿.style1
+{
+    width: 15%;
+}
+.style2
+{
+    width: 100%;
+    text-align: center;
+}
+.style3
+{
+    width: 15%;
+}
+body 
+{
+    line-height:110%;
+}
+h1{font-size:20px;}
+h2{font-size:20px; margin-bottom:5px; margin-top:25px; padding-bottom:0px;}
+p{font-size:12px;text-align:justify; margin-bottom:7px;}
