@@ -1,0 +1,8 @@
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\bin\Debug_woDrawing\itextsharp.xmlworker.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\bin\Debug_woDrawing\itextsharp.xmlworker.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\bin\Debug_woDrawing\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\bin\Debug_woDrawing\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\bin\Debug_woDrawing\itextsharp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\obj\Debug_woDrawing\itextsharp.xmlworker.csprojResolveAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\obj\Debug_woDrawing\itextsharp.xmlworker.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\itextsharp-src-xmlworker\obj\Debug_woDrawing\itextsharp.xmlworker.pdb
