@@ -1,0 +1,745 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{03106B22-DEC7-4A50-855A-81DF0719A7BF}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>PDFormsNet.My.MyApplication</StartupObject>
+    <RootNamespace>PDFormsNet</RootNamespace>
+    <AssemblyName>PDFormsNet</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>Off</OptionInfer>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <SignManifests>false</SignManifests>
+    <SignAssembly>false</SignAssembly>
+    <TargetZone>LocalIntranet</TargetZone>
+    <GenerateManifests>false</GenerateManifests>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <SupportUrl>http://www.nk-inc.com</SupportUrl>
+    <ProductName>PDFEditor.NET</ProductName>
+    <PublisherName>NK-INC.COM</PublisherName>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>PDFormsNet.xml</DocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42353,42354,42355</NoWarn>
+    <WarningsAsErrors>
+    </WarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>PDFormsNet.xml</DocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42353,42354,42355</NoWarn>
+    <WarningsAsErrors>
+    </WarningsAsErrors>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="adodb, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>packages\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="nQuant.Core, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\philjones.nQuant.Core.1.0.3\lib\net45\nQuant.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Saraff.Twain, Version=1.0.27.606, Culture=neutral, PublicKeyToken=467d7c56f22cafb6, processorArchitecture=MSIL">
+      <HintPath>packages\Saraff.Twain.1.0.27.606\lib\net40\Saraff.Twain.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="zxing, Version=0.16.2.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>packages\ZXing.Net.0.16.2\lib\net45\zxing.dll</HintPath>
+    </Reference>
+    <Reference Include="zxing.presentation, Version=0.16.2.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>packages\ZXing.Net.0.16.2\lib\net45\zxing.presentation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationEvents.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsAutocomplete.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsBruteForcePw.vb" />
+    <Compile Include="App_Code\clsEmail.vb" />
+    <Compile Include="App_Code\clsEncryption.vb" />
+    <Compile Include="App_Code\clsHTML2Image.vb" />
+    <Compile Include="App_Code\clsImageRenderListener.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsImageRenderListenerCoordinates.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsLinks.vb" />
+    <Compile Include="App_Code\clsMAPI.vb" />
+    <Compile Include="App_Code\clsGetImageSize.vb" />
+    <Compile Include="App_Code\clsPdfDirectory2Csv.vb" />
+    <Compile Include="App_Code\clsPdfEdit.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsPDFOptimization.vb">
+    </Compile>
+    <Compile Include="App_Code\clsPdfSizeReduction.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsScan.vb" />
+    <Compile Include="App_Code\clsTextRenderListener.vb" />
+    <Compile Include="App_Code\clsThreads.vb" />
+    <Compile Include="App_Code\clsUserRect.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\FolderSelect.vb" />
+    <Compile Include="App_Code\iTextHTMLParser.vb" />
+    <Compile Include="App_Code\listbox.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\MergePrint.vb" />
+    <Compile Include="App_Code\modWIA.vb" />
+    <Compile Include="App_Code\System.Byte.vb" />
+    <Compile Include="App_Code\System.String.vb" />
+    <Compile Include="App_Code\userpromptdialog.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="App_Code\clsFileXML.vb">
+    </Compile>
+    <Compile Include="App_Code\Utilities.vb" />
+    <Compile Include="App_Code\clsLogs.vb" />
+    <Compile Include="App_Code\WIA_DPS_DOCUMENT_HANDLING_SELECT.vb" />
+    <Compile Include="App_Code\WIA_DPS_DOCUMENT_HANDLING_STATUS.vb" />
+    <Compile Include="App_Code\WIA_ERRORS.vb" />
+    <Compile Include="App_Code\WIA_PROPERTIES.vb" />
+    <Compile Include="dialogBruteForcePassword.Designer.vb">
+      <DependentUpon>dialogBruteForcePassword.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogBruteForcePassword.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogMultChoiceDropdown.Designer.vb">
+      <DependentUpon>dialogMultChoiceDropdown.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogMultChoiceDropdown.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogPrint.Designer.vb">
+      <DependentUpon>dialogPrint.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogPrint.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogRecentFiles.Designer.vb">
+      <DependentUpon>dialogRecentFiles.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogRecentFiles.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogWatermark.Designer.vb">
+      <DependentUpon>dialogWatermark.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogWatermark.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogBarCodesZXING.Designer.vb">
+      <DependentUpon>dialogBarCodesZXING.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogBarCodesZXING.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogBarCodes.Designer.vb">
+      <DependentUpon>dialogBarCodes.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogBarCodes.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogListOpenWith.Designer.vb">
+      <DependentUpon>dialogListOpenWith.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogListOpenWith.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogRotatePage.Designer.vb">
+      <DependentUpon>dialogRotatePage.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogRotatePage.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAttachments.Designer.vb">
+      <DependentUpon>frmAttachments.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmAttachments.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmEmailScriptsClient.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogDataSource.Designer.vb">
+      <DependentUpon>dialogDataSource.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogDataSource.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogListFields.Designer.vb">
+      <DependentUpon>dialogListFields.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogListFields.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogFTP.Designer.vb">
+      <DependentUpon>dialogFTP.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogFTP.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogImageOptimization.Designer.vb">
+      <DependentUpon>dialogImageOptimization.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogImageOptimization.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogDocumentProperties.Designer.vb">
+      <DependentUpon>dialogDocumentProperties.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogDocumentProperties.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogListFiles.Designer.vb">
+      <DependentUpon>dialogListFiles.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogListFiles.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogMultiChoice.Designer.vb">
+      <DependentUpon>dialogMultiChoice.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogMultiChoice.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogSecurityPassword.Designer.vb">
+      <DependentUpon>dialogSecurityPassword.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogSecurityPassword.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="dialogWebBrowser.Designer.vb">
+      <DependentUpon>dialogWebBrowser.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogWebBrowser.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmGraphPaper.Designer.vb">
+      <DependentUpon>frmGraphPaper.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmGraphPaper.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmFlashObject.Designer.vb">
+      <DependentUpon>frmFlashObject.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmFlashObject.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain.Designer.vb">
+      <DependentUpon>frmMain.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMerge.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmEmail.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmImageRotation.Designer.vb">
+      <DependentUpon>frmImageRotation.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmImageRotation.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="App_Code\modADOConn.vb" />
+    <Compile Include="App_Code\modSources.vb" />
+    <Compile Include="frmSaveAs.Designer.vb">
+      <DependentUpon>frmSaveAs.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmSaveAs.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmScanPDFs.Designer.vb">
+      <DependentUpon>frmScanPDFs.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmScanPDFs.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSignature.Designer.vb">
+      <DependentUpon>frmSignature.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmSignature.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="App_Code\clsPictureBox1_DrawSignature.vb" />
+    <Compile Include="dialogMergeFiles.Designer.vb">
+      <DependentUpon>dialogMergeFiles.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogMergeFiles.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="resourceScripts.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>resourceScripts.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="dialogBruteForcePassword.resx">
+      <DependentUpon>dialogBruteForcePassword.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogMultChoiceDropdown.resx">
+      <DependentUpon>dialogMultChoiceDropdown.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogPrint.resx">
+      <DependentUpon>dialogPrint.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogRecentFiles.resx">
+      <DependentUpon>dialogRecentFiles.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogWatermark.resx">
+      <DependentUpon>dialogWatermark.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogBarCodesZXING.resx">
+      <DependentUpon>dialogBarCodesZXING.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogBarCodes.resx">
+      <DependentUpon>dialogBarCodes.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogListOpenWith.resx">
+      <DependentUpon>dialogListOpenWith.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogRotatePage.resx">
+      <DependentUpon>dialogRotatePage.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmAttachments.resx">
+      <DependentUpon>frmAttachments.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmEmailScriptsClient.resx">
+      <DependentUpon>frmEmailScriptsClient.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogDataSource.resx">
+      <DependentUpon>dialogDataSource.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogListFields.resx">
+      <DependentUpon>dialogListFields.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogFTP.resx">
+      <DependentUpon>dialogFTP.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogImageOptimization.resx">
+      <DependentUpon>dialogImageOptimization.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogDocumentProperties.resx">
+      <DependentUpon>dialogDocumentProperties.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogListFiles.resx">
+      <DependentUpon>dialogListFiles.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogMultiChoice.resx">
+      <DependentUpon>dialogMultiChoice.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogSecurityPassword.resx">
+      <DependentUpon>dialogSecurityPassword.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogWebBrowser.resx">
+      <DependentUpon>dialogWebBrowser.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmGraphPaper.resx">
+      <DependentUpon>frmGraphPaper.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmFlashObject.resx">
+      <DependentUpon>frmFlashObject.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMain.resx">
+      <DependentUpon>frmMain.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMerge.resx">
+      <DependentUpon>frmMerge.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmEmail.resx">
+      <DependentUpon>frmEmail.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmImageRotation.resx">
+      <DependentUpon>frmImageRotation.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSaveAs.resx">
+      <DependentUpon>frmSaveAs.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmScanPDFs.resx">
+      <DependentUpon>frmScanPDFs.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSignature.resx">
+      <DependentUpon>frmSignature.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogMergeFiles.resx">
+      <DependentUpon>dialogMergeFiles.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="resourceScripts.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>resourceScripts.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bar-button.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="COPYING.LESSER.txt" />
+    <Content Include="COPYING.txt" />
+    <Content Include="folder.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="GNU General Public License v3.0.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gsdll32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gsdll64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gswin32.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gswin32c.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gswin64.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gswin64c.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="html\downloadFDF.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="icon.ico" />
+    <Content Include="licenses.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="notes\!notes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="notes\!iT3XT-Release-Notes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="notes\FDFApp-Release-Notes.txt" />
+    <Content Include="notes\license.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="open-history.txt" />
+    <Content Include="Resources\icon.ico" />
+    <Content Include="Resources\icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\locales\be-nl.min.js" />
+    <Content Include="Resources\locales\bg.min.js" />
+    <Content Include="Resources\locales\chs.min.js" />
+    <Content Include="Resources\locales\cs.min.js" />
+    <Content Include="Resources\locales\da-dk.min.js" />
+    <Content Include="Resources\locales\de-ch.min.js" />
+    <Content Include="Resources\locales\de.min.js" />
+    <Content Include="Resources\locales\en-au.min.js" />
+    <Content Include="Resources\locales\en-gb.min.js" />
+    <Content Include="Resources\locales\en-za.min.js" />
+    <Content Include="Resources\locales\es-es.min.js" />
+    <Content Include="Resources\locales\es.min.js" />
+    <Content Include="Resources\locales\et.min.js" />
+    <Content Include="Resources\locales\fi.min.js" />
+    <Content Include="Resources\locales\fr-ca.min.js" />
+    <Content Include="Resources\locales\fr-ch.min.js" />
+    <Content Include="Resources\locales\fr.min.js" />
+    <Content Include="Resources\locales\hu.min.js" />
+    <Content Include="Resources\locales\it.min.js" />
+    <Content Include="Resources\locales\ja.min.js" />
+    <Content Include="Resources\locales\lv.min.js" />
+    <Content Include="Resources\locales\nl-be.min.js" />
+    <Content Include="Resources\locales\nl-nl.min.js" />
+    <Content Include="Resources\locales\no.min.js" />
+    <Content Include="Resources\locales\pl.min.js" />
+    <Content Include="Resources\locales\pt-br.min.js" />
+    <Content Include="Resources\locales\pt-pt.min.js" />
+    <Content Include="Resources\locales\ru-ua.min.js" />
+    <Content Include="Resources\locales\ru.min.js" />
+    <Content Include="Resources\locales\sk.min.js" />
+    <Content Include="Resources\locales\sl.min.js" />
+    <Content Include="Resources\locales\th.min.js" />
+    <Content Include="Resources\locales\tr.min.js" />
+    <Content Include="Resources\locales\uk-ua.min.js" />
+    <Content Include="Resources\locales\vi.min.js" />
+    <Content Include="Resources\html2pdf.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html2pdf.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html2pdf.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html2pdf.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="readme.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html2pdf.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="settings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="settings_template.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="signaturebar.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="temp\readme.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="acro.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app.config" />
+    <Content Include="gsdll32.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gsdll64.lib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="My Project\app.manifest" />
+    <Content Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\html2pdf.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="transparent.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="ADOX">
+      <Guid>{00000600-0000-0010-8000-00AA006D2EA4}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="WIA">
+      <Guid>{94A0E92D-43C0-494E-AC29-FD45948A5221}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <Private>True</Private>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="FDFApp Source\FDFApp.vbproj">
+      <Project>{15f56e2e-a27f-48c4-a315-e5f0ef655424}</Project>
+      <Name>FDFApp</Name>
+    </ProjectReference>
+    <ProjectReference Include="FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\Library.csproj">
+      <Project>{6598a7cd-8f27-4d3f-a675-5ae63113a7c3}</Project>
+      <Name>Library</Name>
+    </ProjectReference>
+    <ProjectReference Include="iTextSharp Source\itextsharp%28VS2010%29.csproj">
+      <Project>{84c4fdd9-3ed7-453b-b9da-b3ed52cb071c}</Project>
+      <Name>itextsharp%28VS2010%29</Name>
+    </ProjectReference>
+    <ProjectReference Include="itextsharp-src-xmlworker\itextsharp.xmlworker.csproj">
+      <Project>{96647204-4a3e-41d7-bc74-b1608d6d1857}</Project>
+      <Name>itextsharp.xmlworker</Name>
+    </ProjectReference>
+    <ProjectReference Include="PDF2HTMLnet Source\PDF2HTMLnet.vbproj">
+      <Project>{478AC0AE-3249-4A46-824A-E0C2D8353B69}</Project>
+      <Name>PDF2HTMLnet</Name>
+    </ProjectReference>
+    <ProjectReference Include="PdfToImage Source\PdfToImage.csproj">
+      <Project>{0AC963ED-4835-41D8-9BE2-57623402819D}</Project>
+      <Name>PdfToImage</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Debug\" />
+    <Folder Include="bin\Release\" />
+    <Folder Include="CosEdit\" />
+    <Folder Include="signatures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

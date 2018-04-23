@@ -1,0 +1,54 @@
+<?xml version="1.0" standalone="yes"?>
+<Ds_Settings>
+  <xs:schema id="Ds_Settings" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="Ds_Settings" msdata:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="Setting">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="From_Name" type="xs:string" />
+                <xs:element name="From_Email" type="xs:string" />
+                <xs:element name="Server_Name" type="xs:string" />
+                <xs:element name="Server_Port" type="xs:integer" />
+                <xs:element name="User_Name" type="xs:string" />
+                <xs:element name="Password" type="xs:string" />
+                <xs:element name="Message_Body" type="xs:string" />
+                <xs:element name="Message_Subject" type="xs:string" />
+                <xs:element name="Attachment_Format" type="xs:string" />
+                <xs:element name="Exchange_Server" type="xs:string" />
+                <xs:element name="FDFToolkit_Installed" type="xs:string" />
+                <xs:element name="Modify_PDF" type="xs:string" />
+                <xs:element name="Open_PDF" type="xs:string" />
+                <xs:element name="Flatten_PDF" type="xs:string" />
+	              <xs:element name="SMTP_Authentication" type="xs:integer" />
+	              <xs:element name="To_Email" type="xs:string" />
+	              <xs:element name="Credential_User_Name" type="xs:string" />
+	              <xs:element name="Credential_Password" type="xs:string" />
+	              <xs:element name="Sent_URL" type="xs:string" />
+	              <xs:element name="Error_URL" type="xs:string" />
+	              <xs:element name="Sent_Msg" type="xs:string" />
+	              <xs:element name="Error_Msg" type="xs:string" />
+	              <xs:element name="PDF_URL" type="xs:string" />
+	              <xs:element name="SMTP_SSL" type="xs:string" />
+	              <xs:element name="Setting_Name" type="xs:string" />
+	              <xs:element name="Attachment_Filename" type="xs:string"/>
+	              <xs:element name="BCC_Email" type="xs:string"/>
+	              <xs:element name="CC_Email" type="xs:string"/>
+	              <xs:element name="Credential_Domain" type="xs:string"/>
+	              <xs:element name="MSG_TO_FIELD" type="xs:string"/>
+	              <xs:element name="Target_Frame" type="xs:string"/>
+                <xs:element name="SMTP_Delivery" type="xs:int" default="0" minOccurs="0" />
+                <xs:element name="SMTP_Delivery_Specify" type="xs:string" default="" minOccurs="0" />
+	          </xs:sequence>
+	      </xs:complexType>
+      </xs:element>
+  </xs:choice>
+</xs:complexType>
+<xs:unique name="Constraint1" msdata:PrimaryKey="true">
+  <xs:selector xpath=".//Setting" />
+  <xs:field xpath="Setting_Name" />
+</xs:unique>
+    </xs:element>
+  </xs:schema>
+</Ds_Settings>
