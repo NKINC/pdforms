@@ -1,0 +1,68 @@
+﻿<script type="text/javascript">
+        //onclick="JavaScript: downloadFDF('fdfdata.fdf');"
+        function generateFDF(pdfPath) {
+            var str = '';
+            var strVals = '';
+            var elem = document.getElementById('form').elements;
+            for (var i = 0; i < elem.length; i++) {
+                //str += "<b>Type:</b>" + elem[i].type + "&nbsp&nbsp";
+                //str += "<b>Name:</b>" + elem[i].name + "&nbsp;&nbsp;";
+                //str += "<b>Value:</b><i>" + elem[i].value + "</i>&nbsp;&nbsp;";
+                //str += "<BR>";
+               //str += "" + elem[i].type + "&nbsp&nbsp";
+                if (elem[i].type == null) { }
+                else if (elem[i].type == 'text') { }
+                else if (elem[i].type == 'number') { }
+                else if (elem[i].type == 'date') { }
+                else if (elem[i].type == 'time') { }
+                else if (elem[i].type == 'file') { }
+                else if (elem[i].type == 'image') { }
+                strVals += " << ";
+                if (elem[i].name != null){
+                    strVals += " /T(" + elem[i].name + ") ";
+                } else if (elem[i].id != null) {
+                    strVals += " /T(" + elem[i].id + ")";
+                }
+                strVals += " /V(" + elem[i].value + ")";
+                strVals += " >> ";
+            }
+            str += "%FDF-1.2\r\n";
+            str += "1 0 obj\r\n";
+            str += "<< /FDF <<  /Fields[";
+            str += strVals;
+            str += "]  /F (" + pdfPath + ") >> >>\r\n";
+            str += "endobj\r\n";
+            str += "trailer\r\n";
+            str += "<< /Root 1 0 R>>\r\n";
+            str += "%%EOF";
+            //document.getElementById('lblValues').innerHTML = str;
+            //downloadFDF(str);
+            return (str + "")
+        }
+        function downloadFDF(fileName) {
+            var fdfdata = generateFDF("F:\\\\Data\\\\PROGRAMMING\\\\VS.Net\\\\2017\\\\PDForms.net\\\\bin\\\\Release\\\\pe.pdf");
+            try {
+                var dataUri = "data:application/vnd.fdf;charset=utf-8," + encodeURIComponent(fdfdata);
+                //var filename = "data.fdf"
+                //F:\\Data\\PROGRAMMING\\VS.Net\\2017\\PDForms.net\\bin\\Release\\pe.pdf
+                $("<a download='" + fileName + "' href='" + dataUri + "'></a>")[0].click();
+                //var ele = document.createElement("a");
+                //a.setAttribute("id", 'downloadFDF').setAttribute("download", filename).setAttribute("href", dataUri);
+                //a.click = new function () {
+                //    //document.removeChild(document.getElementById("downloadFDF"));
+                //    //this.preventDefault();
+                //    setTimeout("document.removeChild(document.getElementById('downloadFDF'));", 1000);                   
+                //};
+                //a.onload = new function (e) {
+                //    //document.getElementById("downloadFDF").click()
+                //    this.click();
+                //};
+                
+            } catch (dl) {
+                alert(dl.description);
+                document.location = 'data:Application/octet-stream,' + encodeURIComponent(fdfdata);
+                //alert(dl.description); 
+            }
+            //iframe.src = url;
+        };
+    </script>
