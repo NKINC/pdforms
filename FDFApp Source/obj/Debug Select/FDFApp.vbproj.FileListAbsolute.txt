@@ -1,0 +1,15 @@
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\FDFApp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\FDFApp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\FDFApp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\itextsharp.xmlworker.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\Newtonsoft.Json.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\itextsharp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\itextsharp.xmlworker.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\Newtonsoft.Json.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\bin\Debug Select\Newtonsoft.Json.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\obj\Debug Select\FDFApp.vbprojResolveAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\obj\Debug Select\FDFApp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\obj\Debug Select\FDFApp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FDFApp Source\obj\Debug Select\FDFApp.pdb

@@ -1,0 +1,4166 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+FDFApp
+</name>
+</assembly>
+<members>
+<member name="T:Encryption.Hash">
+ <summary>
+ Hash functions are fundamental to modern cryptography. These functions map binary 
+ strings of an arbitrary length to small binary strings of a fixed length, known as 
+ hash values. A cryptographic hash function has the property that it is computationally
+ infeasible to find two distinct inputs that hash to the same value. Hash functions 
+ are commonly used with digital signatures and for data integrity.
+ </summary>
+</member>
+<member name="T:Encryption.Hash.Provider">
+ <summary>
+ Type of hash; some are security oriented, others are fast and simple
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.CRC32">
+ <summary>
+ Cyclic Redundancy Check provider, 32-bit
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.SHA1">
+ <summary>
+ Secure Hashing Algorithm provider, SHA-1 variant, 160-bit
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.SHA256">
+ <summary>
+ Secure Hashing Algorithm provider, SHA-2 variant, 256-bit
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.SHA384">
+ <summary>
+ Secure Hashing Algorithm provider, SHA-2 variant, 384-bit
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.SHA512">
+ <summary>
+ Secure Hashing Algorithm provider, SHA-2 variant, 512-bit
+ </summary>
+</member>
+<member name="F:Encryption.Hash.Provider.MD5">
+ <summary>
+ Message Digest algorithm 5, 128-bit
+ </summary>
+</member>
+<member name="M:Encryption.Hash.#ctor(Encryption.Hash.Provider)">
+ <summary>
+ Instantiate a new hash of the specified type
+ </summary>
+</member>
+<member name="P:Encryption.Hash.Value">
+ <summary>
+ Returns the previously calculated hash
+ </summary>
+</member>
+<member name="M:Encryption.Hash.Calculate(System.IO.Stream@)">
+ <summary>
+ Calculates hash on a stream of arbitrary length
+ </summary>
+</member>
+<member name="M:Encryption.Hash.Calculate(Encryption.Data)">
+ <summary>
+ Calculates hash for fixed length <see cref="T:Encryption.Data"/>
+ </summary>
+</member>
+<member name="M:Encryption.Hash.Calculate(Encryption.Data,Encryption.Data)">
+ <summary>
+ Calculates hash for a string with a prefixed salt value. 
+ A "salt" is random data prefixed to every hashed value to prevent 
+ common dictionary attacks.
+ </summary>
+</member>
+<member name="M:Encryption.Hash.CalculatePrivate(System.Byte[])">
+ <summary>
+ Calculates hash for an array of bytes
+ </summary>
+</member>
+<member name="T:Encryption.Symmetric">
+ <summary>
+ Symmetric encryption uses a single key to encrypt and decrypt. 
+ Both parties (encryptor and decryptor) must share the same secret key.
+ </summary>
+</member>
+<member name="F:Encryption.Symmetric.Provider.DES">
+ <summary>
+ The Data Encryption Standard provider supports a 64 bit key only
+ </summary>
+</member>
+<member name="F:Encryption.Symmetric.Provider.RC2">
+ <summary>
+ The Rivest Cipher 2 provider supports keys ranging from 40 to 128 bits, default is 128 bits
+ </summary>
+</member>
+<member name="F:Encryption.Symmetric.Provider.Rijndael">
+ <summary>
+ The Rijndael (also known as AES) provider supports keys of 128, 192, or 256 bits with a default of 256 bits
+ </summary>
+</member>
+<member name="F:Encryption.Symmetric.Provider.TripleDES">
+ <summary>
+ The TripleDES provider (also known as 3DES) supports keys of 128 or 192 bits with a default of 192 bits
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.#ctor(Encryption.Symmetric.Provider,System.Boolean)">
+ <summary>
+ Instantiates a new symmetric encryption object using the specified provider.
+ </summary>
+</member>
+<member name="P:Encryption.Symmetric.KeySizeBytes">
+ <summary>
+ Key size in bytes. We use the default key size for any given provider; if you 
+ want to force a specific key size, set this property
+ </summary>
+</member>
+<member name="P:Encryption.Symmetric.KeySizeBits">
+ <summary>
+ Key size in bits. We use the default key size for any given provider; if you 
+ want to force a specific key size, set this property
+ </summary>
+</member>
+<member name="P:Encryption.Symmetric.Key">
+ <summary>
+ The key used to encrypt/decrypt data
+ </summary>
+</member>
+<member name="P:Encryption.Symmetric.IntializationVector">
+ <summary>
+ Using the default Cipher Block Chaining (CBC) mode, all data blocks are processed using
+ the value derived from the previous block; the first data block has no previous data block
+ to use, so it needs an InitializationVector to feed the first block
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.RandomInitializationVector">
+ <summary>
+ generates a random Initialization Vector, if one was not provided
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.RandomKey">
+ <summary>
+ generates a random Key, if one was not provided
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.ValidateKeyAndIv(System.Boolean)">
+ <summary>
+ Ensures that _crypto object has valid Key and IV
+ prior to any attempt to encrypt/decrypt anything
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Encrypt(Encryption.Data,Encryption.Data)">
+ <summary>
+ Encrypts the specified Data using provided key
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Encrypt(Encryption.Data)">
+ <summary>
+ Encrypts the specified Data using preset key and preset initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Encrypt(System.IO.Stream,Encryption.Data,Encryption.Data)">
+ <summary>
+ Encrypts the stream to memory using provided key and provided initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Encrypt(System.IO.Stream,Encryption.Data)">
+ <summary>
+ Encrypts the stream to memory using specified key
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Encrypt(System.IO.Stream)">
+ <summary>
+ Encrypts the specified stream to memory using preset key and preset initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Decrypt(Encryption.Data,Encryption.Data)">
+ <summary>
+ Decrypts the specified data using provided key and preset initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Decrypt(System.IO.Stream,Encryption.Data)">
+ <summary>
+ Decrypts the specified stream using provided key and preset initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Decrypt(System.IO.Stream)">
+ <summary>
+ Decrypts the specified stream using preset key and preset initialization vector
+ </summary>
+</member>
+<member name="M:Encryption.Symmetric.Decrypt(Encryption.Data)">
+ <summary>
+ Decrypts the specified data using preset key and preset initialization vector
+ </summary>
+</member>
+<member name="T:Encryption.Asymmetric">
+ <summary>
+ Asymmetric encryption uses a pair of keys to encrypt and decrypt.
+ There is a "public" key which is used to encrypt. Decrypting, on the other hand, 
+ requires both the "public" key and an additional "private" key. The advantage is 
+ that people can send you encrypted messages without being able to decrypt them.
+ </summary>
+ <remarks>
+ The only provider supported is the <see cref="T:System.Security.Cryptography.RSACryptoServiceProvider"/>
+ </remarks>
+</member>
+<member name="T:Encryption.Asymmetric.PublicKey">
+ <summary>
+ Represents a public encryption key. Intended to be shared, it 
+ contains only the Modulus and Exponent.
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.LoadFromConfig">
+ <summary>
+ Load public key from App.config or Web.config file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.ToConfigSection">
+ <summary>
+ Returns *.config file XML section representing this public key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.ExportToConfigFile(System.String)">
+ <summary>
+ Writes the *.config file representation of this public key to a file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.LoadFromXml(System.String)">
+ <summary>
+ Loads the public key from its XML string
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.ToParameters">
+ <summary>
+ Converts this public key to an RSAParameters object
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.ToXml">
+ <summary>
+ Converts this public key to its XML string representation
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PublicKey.ExportToXmlFile(System.String)">
+ <summary>
+ Writes the Xml representation of this public key to a file
+ </summary>
+</member>
+<member name="T:Encryption.Asymmetric.PrivateKey">
+ <summary>
+ Represents a private encryption key. Not intended to be shared, as it 
+ contains all the elements that make up the key.
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.LoadFromConfig">
+ <summary>
+ Load private key from App.config or Web.config file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.ToParameters">
+ <summary>
+ Converts this private key to an RSAParameters object
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.ToConfigSection">
+ <summary>
+ Returns *.config file XML section representing this private key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.ExportToConfigFile(System.String)">
+ <summary>
+ Writes the *.config file representation of this private key to a file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.LoadFromXml(System.String)">
+ <summary>
+ Loads the private key from its XML string
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.ToXml">
+ <summary>
+ Converts this private key to its XML string representation
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.PrivateKey.ExportToXmlFile(System.String)">
+ <summary>
+ Writes the Xml representation of this private key to a file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.#ctor">
+ <summary>
+ Instantiates a new asymmetric encryption session using the default key size; 
+ this is usally 1024 bits
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.#ctor(System.Int32)">
+ <summary>
+ Instantiates a new asymmetric encryption session using a specific key size
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.KeyContainerName">
+ <summary>
+ Sets the name of the key container used to store this key on disk; this is an 
+ unavoidable side effect of the underlying Microsoft CryptoAPI. 
+ </summary>
+ <remarks>
+ http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/q322/3/71.asp&amp;NoWebContent=1
+ </remarks>
+</member>
+<member name="P:Encryption.Asymmetric.KeySizeBits">
+ <summary>
+ Returns the current key size, in bits
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.KeySizeMaxBits">
+ <summary>
+ Returns the maximum supported key size, in bits
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.KeySizeMinBits">
+ <summary>
+ Returns the minimum supported key size, in bits
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.KeySizeStepBits">
+ <summary>
+ Returns valid key step sizes, in bits
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.DefaultPublicKey">
+ <summary>
+ Returns the default public key as stored in the *.config file
+ </summary>
+</member>
+<member name="P:Encryption.Asymmetric.DefaultPrivateKey">
+ <summary>
+ Returns the default private key as stored in the *.config file
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.GenerateNewKeyset(Encryption.Asymmetric.PublicKey@,Encryption.Asymmetric.PrivateKey@)">
+ <summary>
+ Generates a new public/private key pair as objects
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.GenerateNewKeyset(System.String@,System.String@)">
+ <summary>
+ Generates a new public/private key pair as XML strings
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Encrypt(Encryption.Data)">
+ <summary>
+ Encrypts data using the default public key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Encrypt(Encryption.Data,Encryption.Asymmetric.PublicKey)">
+ <summary>
+ Encrypts data using the provided public key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Encrypt(Encryption.Data,System.String)">
+ <summary>
+ Encrypts data using the provided public key as XML
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Decrypt(Encryption.Data)">
+ <summary>
+ Decrypts data using the default private key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Decrypt(Encryption.Data,Encryption.Asymmetric.PrivateKey)">
+ <summary>
+ Decrypts data using the provided private key
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.Decrypt(Encryption.Data,System.String)">
+ <summary>
+ Decrypts data using the provided private key as XML
+ </summary>
+</member>
+<member name="M:Encryption.Asymmetric.GetRSAProvider">
+ <summary>
+ gets the default RSA provider using the specified key size; 
+ note that Microsoft's CryptoAPI has an underlying file system dependency that is unavoidable
+ </summary>
+ <remarks>
+ http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/q322/3/71.asp&amp;NoWebContent=1
+ </remarks>
+</member>
+<member name="T:Encryption.Data">
+ <summary>
+ represents Hex, Byte, Base64, or String data to encrypt/decrypt;
+ use the .Text property to set/get a string representation 
+ use the .Hex property to set/get a string-based Hexadecimal representation 
+ use the .Base64 to set/get a string-based Base64 representation 
+ </summary>
+</member>
+<member name="F:Encryption.Data.DefaultEncoding">
+ <summary>
+ Determines the default text encoding across ALL Data instances
+ </summary>
+</member>
+<member name="F:Encryption.Data.Encoding">
+ <summary>
+ Determines the default text encoding for this Data instance
+ </summary>
+</member>
+<member name="M:Encryption.Data.#ctor">
+ <summary>
+ Creates new, empty encryption data
+ </summary>
+</member>
+<member name="M:Encryption.Data.#ctor(System.Byte[])">
+ <summary>
+ Creates new encryption data with the specified byte array
+ </summary>
+</member>
+<member name="M:Encryption.Data.#ctor(System.String)">
+ <summary>
+ Creates new encryption data with the specified string; 
+ will be converted to byte array using default encoding
+ </summary>
+</member>
+<member name="M:Encryption.Data.#ctor(System.String,System.Text.Encoding)">
+ <summary>
+ Creates new encryption data using the specified string and the 
+ specified encoding to convert the string to a byte array.
+ </summary>
+</member>
+<member name="P:Encryption.Data.IsEmpty">
+ <summary>
+ returns true if no data is present
+ </summary>
+</member>
+<member name="P:Encryption.Data.StepBytes">
+ <summary>
+ allowed step interval, in bytes, for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.StepBits">
+ <summary>
+ allowed step interval, in bits, for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.MinBytes">
+ <summary>
+ minimum number of bytes allowed for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.MinBits">
+ <summary>
+ minimum number of bits allowed for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.MaxBytes">
+ <summary>
+ maximum number of bytes allowed for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.MaxBits">
+ <summary>
+ maximum number of bits allowed for this data; if 0, no limit
+ </summary>
+</member>
+<member name="P:Encryption.Data.Bytes">
+ <summary>
+ Returns the byte representation of the data; 
+ This will be padded to MinBytes and trimmed to MaxBytes as necessary!
+ </summary>
+</member>
+<member name="P:Encryption.Data.Text">
+ <summary>
+ Sets or returns text representation of bytes using the default text encoding
+ </summary>
+</member>
+<member name="P:Encryption.Data.Hex">
+ <summary>
+ Sets or returns Hex string representation of this data
+ </summary>
+</member>
+<member name="P:Encryption.Data.Base64">
+ <summary>
+ Sets or returns Base64 string representation of this data
+ </summary>
+</member>
+<member name="M:Encryption.Data.ToString">
+ <summary>
+ Returns text representation of bytes using the default text encoding
+ </summary>
+</member>
+<member name="M:Encryption.Data.ToBase64">
+ <summary>
+ returns Base64 string representation of this data
+ </summary>
+</member>
+<member name="M:Encryption.Data.ToHex">
+ <summary>
+ returns Hex string representation of this data
+ </summary>
+</member>
+<member name="T:Encryption.Utils">
+ <summary>
+ Friend class for shared utility methods used by multiple Encryption classes
+ </summary>
+</member>
+<member name="M:Encryption.Utils.ToHex(System.Byte[])">
+ <summary>
+ converts an array of bytes to a string Hex representation
+ </summary>
+</member>
+<member name="M:Encryption.Utils.FromHex(System.String)">
+ <summary>
+ converts from a string Hex representation to an array of bytes
+ </summary>
+</member>
+<member name="M:Encryption.Utils.FromBase64(System.String)">
+ <summary>
+ converts from a string Base64 representation to an array of bytes
+ </summary>
+</member>
+<member name="M:Encryption.Utils.ToBase64(System.Byte[])">
+ <summary>
+ converts from an array of bytes to a string Base64 representation
+ </summary>
+</member>
+<member name="M:Encryption.Utils.GetXmlElement(System.String,System.String)">
+ <summary>
+ retrieve an element from an XML string
+ </summary>
+</member>
+<member name="M:Encryption.Utils.GetConfigString(System.String,System.Boolean)">
+ <summary>
+ Returns the specified string value from the application .config file
+ </summary>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeTXT">
+ <summary>
+ MimeTxt is the string variable representing the TEXT MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>text/plain</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeXDP">
+ <summary>
+ MimeXDP is the string variable representing the XDP Mime Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>application/vnd.adobe.xdp+xml</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeHTML">
+ <summary>
+ MimeHTML is the string variable representing the HTML MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeXML">
+ <summary>
+ MimeXML is the string variable representing the XML MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>text/xml</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeFDF">
+ <summary>
+ MimeFDF is the string variable representing the FDF MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>application/vnd.fdf</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeXFDF">
+ <summary>
+ MimeXFDF is the string variable representing the XFDF MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>application/vnd.adobe.xfdf</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimeJSON">
+ <summary>
+ MimeXFDF is the string variable representing the XFDF MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>application/vnd.adobe.xfdf</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.MimePDF">
+ <summary>
+ MimePDF is the string variable representing the PDF MIME Type for Response.ContentType objects
+ </summary>
+ <value></value>
+ <returns>application/pdf</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.ResetErrors">
+ <summary>
+ ResetErrors resets all errors in FDFApp.FDFApp_Class object
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFApp_Class.FDFAppErrors">
+ <summary>
+ FDFAppErrors() Returns an array of FDFError objects
+ </summary>
+ <value></value>
+ <returns>FDFAppError Object Array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFAppErrorsStr(System.Boolean)">
+ <summary>
+ FDFAppErrorStr returns FDFAppErrors in string format, Optional HTML Format
+ </summary>
+ <param name="HTMLFormat">Set to true to return with HTML line breaks</param>
+ <returns>String with FDFAppError Array content</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Determine_Type(System.String)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data (String) or PDF URL ir PDF Local File Path</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks>EDITED: 2011-06-27</remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Determine_Type(System.Byte[])">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Determine_Type(System.Byte[],System.String)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <param name="ownerPassword">OwnerPassword</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Determine_Type(System.IO.Stream)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromStream(System.IO.Stream,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromStream opens an FDF Document from a Stream Object
+ </summary>
+ <param name="varFDFData">FDF Data Stream to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromBuf(System.Byte[],System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromBuf opens an FDF Document from a Byte Array or Buffer
+ </summary>
+ <param name="varFDFData">FDF Data Byte Array to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpenFromBuf(System.Byte[],System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromBuf opens an PDF Document from a Byte Array or Buffer
+ </summary>
+ <param name="varPDFData">PDF Data Byte Array to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpenFromStream(System.IO.Stream,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromStream opens an PDF Document from a Stream
+ </summary>
+ <param name="varPDFData">PDF Stream to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromStr(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromStr opens an FDF Document from a String variable
+ </summary>
+ <param name="bstrFDFData">FDF Data String to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromFile(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromFile opens an FDF Document from a File Location or URL
+ </summary>
+ <param name="bstrFileName">FDF Data File or URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpen(System.IO.Stream,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromStream opens an FDF Document from a Stream Object
+ </summary>
+ <param name="varFDFData">FDF Data Stream to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpen(System.Byte[],System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromBuf opens an FDF Document from a Byte Array or Buffer
+ </summary>
+ <param name="varFDFData">FDF Data Byte Array to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpen(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromFile opens an FDF Document from a File Location or URL
+ </summary>
+ <param name="bstrFileName">FDF Data File or URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromFileiText(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ OPEN FILE WITH iText
+ </summary>
+ <param name="strFilePathOrURL">FDF URL, or Path String</param>
+ <param name="FDFInitialize">Intialize FDFDoc</param>
+ <param name="AppendSaves"></param>
+ <returns>FDFDoc</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenWithiText(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Parse FDF with iText
+ </summary>
+ <param name="strUrl">String URL or Path of FDF</param>
+ <param name="FDFInitialize">Initialize FDFDoc</param>
+ <param name="AppendSaves"></param>
+ <returns>FDFDoc</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.FDFOpenFromURL(System.String,System.Boolean,System.Boolean)">
+ <summary>
+ FDFOpenFromURL opens an FDF Document from a URL
+ </summary>
+ <param name="FDFURL">FDF Document URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpen(System.Byte[],System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromBuf opens an PDF Document from a Byte Array or Buffer
+ </summary>
+ <param name="varPDFData">PDF Data Byte Array to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpen(System.IO.Stream,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromStream opens an PDF Document from a Stream
+ </summary>
+ <param name="varPDFData">PDF Stream to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpen(System.String,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromFile opens an PDF Document from a File Location or URL
+ </summary>
+ <param name="bstrFileName">PDF Data File or URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpen(System.Uri,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromURL opens an PDF Document from a File Location or URL
+ </summary>
+ <param name="PDFURL">PDF Data URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpenFromFile(System.String,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromFile opens an PDF Document from a File Location or URL
+ </summary>
+ <param name="bstrFileName">PDF Data File or URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFOpenFromURL(System.String,System.Boolean,System.Boolean,System.String)">
+ <summary>
+ PDFOpenFromURL opens an PDF Document from a File Location or URL
+ </summary>
+ <param name="PDFURL">PDF Data URL to parse</param>
+ <param name="FDFInitialize">Initialize FDFDoc Object</param>
+ <param name="AppendSaves">Appends Saves</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>FDFDoc_Class</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.parseXML(System.String,System.String,System.Boolean)">
+ <summary>
+ GOOD VERSION
+ </summary>
+ <param name="FDF"></param>
+ <param name="PDFFileName"></param>
+ <param name="FDFInitialize"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Add_Submit_Button(System.Byte[],System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.String,System.Int32)">
+ <summary>
+ Adds a Submit Button to Existing PDF Form
+ </summary>
+ <param name="PDFForm">Byte Array containing Existing PDF Form to add a button to</param>
+ <param name="btnSubmitURL">URL the button submits to</param>
+ <param name="btnTop">Button's Top Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnRight">Button's Right Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnBottom">Button's Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnLeft">Button's Left Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnText">Visible Text of Button</param>
+ <param name="btnName">Button Field Name</param>
+ <param name="btnPage">Page of button to be located</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Add_Submit_Button(System.IO.Stream,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.String,System.Int32)">
+ <summary>
+ Adds a Submit Button to Existing PDF Form
+ </summary>
+ <param name="PDFForm">Stream containing Existing PDF Form to add a button to</param>
+ <param name="btnSubmitURL">URL the button submits to</param>
+ <param name="btnTop">Button's Top Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnRight">Button's Right Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnBottom">Button's Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnLeft">Button's Left Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnText">Visible Text of Button</param>
+ <param name="btnName">Button Field Name</param>
+ <param name="btnPage">Page of button to be located</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.Add_Submit_Button(System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.String,System.Int32)">
+ <summary>
+ Adds a Submit Button to Existing PDF Form
+ </summary>
+ <param name="PDFURL">URL location of Existing PDF Form to add a button to</param>
+ <param name="btnSubmitURL">URL the button submits to</param>
+ <param name="btnTop">Button's Top Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnRight">Button's Right Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnBottom">Button's Dimension - Page location in pixels (0 being top of page)</param>
+ <param name="btnLeft">Button's Left Dimension - Page location in pixels (0 being left side of page)</param>
+ <param name="btnText">Visible Text of Button</param>
+ <param name="btnName">Button Field Name</param>
+ <param name="btnPage">Page of button to be located</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFSave(System.String,System.String)">
+ <summary>
+ PDFSave saves the a PDF to a file path
+ </summary>
+ <param name="PDFPath">Path and File Name of PDF to input</param>
+ <param name="PDFOutputFileName">PDFOutputFileName is the file name to path and name to save the PDF</param>
+ <returns>True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFSavetoStream(System.String)">
+ <summary>
+ PDFSavetoStream outputs a PDF to a stream object
+ </summary>
+ <param name="PDFPath">Path and File Name of PDF to input</param>
+ <returns>PDF Document in a Stream Object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFSavetoBuf(System.String)">
+ <summary>
+ PDFSavetoBuf outputs a PDF to a byte array
+ </summary>
+ <param name="PDFPath">Path and File Name of PDF to output</param>
+ <returns>PDF Document in a Byte Array Object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PDFSavetoStr(System.String)">
+ <summary>
+ PDFSavetoStr outputs a PDF to a String Object
+ </summary>
+ <param name="PDFPath">Path and File Name of PDF to input</param>
+ <returns>PDF Document in a String Object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PrintPDF(System.String)">
+ <summary>
+ Prints a Document to the default printer using the default application using adobe products
+ </summary>
+ <param name="FileName">Path to PDF File</param>
+ <returns>TRUE if printing has started</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFApp_Class.PrintPDF(System.String,System.String,System.String)">
+ <summary>
+ Prints a Document to the specified printer using the specified application
+ </summary>
+ <param name="FileName">Path to PDF File</param>
+ <param name="PrinterName">Name of printer</param>
+ <param name="ApplicationPath">Application path to PDF reader</param>
+ <returns>TRUE if printing has finished</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.ThrowErrors">
+ <summary>
+ Throw Errors
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFType">
+ <summary>
+ FDFType enumerator
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.EncryptionStrength">
+ <summary>
+ Encryption strength for PDF Forms
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.PDFPermissions">
+ <summary>
+ PDF Permissions for PDF Form
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFActionTrigger">
+ <summary>
+ Action trigger types
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.XDPActionTrigger">
+ <summary>
+ XDP Action trigger types
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.ActionTypes">
+ <summary>
+ Action types
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FieldType">
+ <summary>
+ Field types
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFDocType">
+ <summary>
+ Doc types
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFField">
+ <summary>
+ Field Structure
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFField.Subform(System.Int32)">
+ <summary>
+ Gets/Sets XDP Subform
+ </summary>
+ <param name="index"></param>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFField.Subform(System.String)">
+ <summary>
+ Gets/Sets XDP Subform
+ </summary>
+ <param name="nameOrPathLevel"></param>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFTemplate">
+ <summary>
+ FDFTemplates
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFActions">
+ <summary>
+ FDF Actions
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.XDPActions">
+ <summary>
+ XDP Actions
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ResetActions">
+ <summary>
+ Reset actions
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.PDFDoc">
+ <summary>
+ PDF Document
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFDoc_Class">
+ <summary>
+ FDFDoc class
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFDoc_Class.XDPFields">
+ <summary>
+ FDFFields list
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFObjects">
+ <summary>
+ FDF Objects
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFScripts">
+ <summary>
+ FDF Scripts
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFImportScript">
+ <summary>
+ FDF Import script
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFHideAction">
+ <summary>
+ FDF Hide Action
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFNamedAction">
+ <summary>
+ FDF Named Action
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.FDFImportDataAction">
+ <summary>
+ FDF Import Data Action
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFBatchMergeDataset2PDFFiles(System.Data.DataSet,System.String[],System.String,System.String,System.Boolean)">
+ <summary>
+ Merges a dataset into PDF Files
+ </summary>
+ <param name="dsData">Dataset to merge</param>
+ <param name="FileName_FieldNames">File Names</param>
+ <param name="BlankPDFFormPath">Original Blank PDF File</param>
+ <param name="DataTableName">Table Name of dataset</param>
+ <param name="Flatten">Flatten PDF</param>
+ <returns>Returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2File(System.String,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges FDF with PDF, saves to a file
+ </summary>
+ <param name="newPDFFile">New PDF File name</param>
+ <param name="OriginalSourcePDFFormPath">Blank Original PDF Form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Stream(System.IO.Stream,System.Boolean,System.String)">
+ <summary>
+ Merges FDF and PDF to stream object
+ </summary>
+ <param name="PDFStream">Output Stream</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with Merged PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Stream(System.String,System.Boolean,System.String)">
+ <summary>
+ Merges FDF and PDF to stream
+ </summary>
+ <param name="PDFFormPath">Original Blank PDF path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with merged PDF and FDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.String,System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF Form to byte array (buffer)
+ </summary>
+ <param name="PDFFormPath">Original Blank PDF Form Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged PDF and data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.IO.Stream,System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF to byte array
+ </summary>
+ <param name="PDFStream">PDF Stream of original blank pdf</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Returns byte array with merged Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.IO.Stream,System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data with PDF Form and returns Byte array, allows encryption and permissions
+ </summary>
+ <param name="PDFStream">Original PDF Form Stream</param>
+ <param name="OpenPassword">New Open PDF password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array containing merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(FDFApp.FDFDoc_Class,System.Byte[],System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class document</param>
+ <param name="PDFForm">Original Blank PDF Form Bytes</param>
+ <param name="Flatten">Flatten</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(FDFApp.FDFDoc_Class,System.Byte[],System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data with PDF Form and returns Byte array, allows encryption and permissions
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class with data</param>
+ <param name="PDFForm">Original PDF Form Bytes</param>
+ <param name="OpenPassword">New Open PDF password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array containing merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.Byte[],System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form Bytes</param>
+ <param name="Flatten">Flatten</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.String,System.Boolean,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Merges FDF Data and PDF Form to byte array (buffer)
+ </summary>
+ <param name="PDFFormPath">Original Blank PDF Form Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <param name="preserveExtendedRights">Preserve Extended Reader Rights</param>
+ <param name="removeExtendedRights">Remove Extended Reader Rights</param>
+ <returns>Byte array with merged PDF and data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.Byte[],System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data with PDF Form and returns Byte array, allows encryption and permissions
+ </summary>
+ <param name="PDFForm">Original PDF Form Bytes</param>
+ <param name="OpenPassword">New Open PDF password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <returns>Byte array containing merged FDF Data and PDF</returns>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(FDFApp.FDFDoc_Class,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class document</param>
+ <param name="PDFFormPath">Original Blank PDF Form Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(FDFApp.FDFDoc_Class,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data with PDF Form and returns Byte array, allows encryption and permissions
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class with data</param>
+ <param name="OpenPassword">New Open PDF password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="PDFFormPath">Original PDF Form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array containing merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2File_PwProtected(System.String,System.String,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF Form with password protection and outputs to a file
+ </summary>
+ <param name="newPDFFile">New PDF file</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="PDFFormPath">Original PDF Form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2File(System.String,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF Form and outputs to a file
+ </summary>
+ <param name="newPDFFile">New PDF file</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">Permissions</param>
+ <param name="PDFFormPath">Original PDF Form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2File(System.String[],System.String,System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength)">
+ <summary>
+ Combines PDF Forms and then Merges with data and outputs to a file
+ </summary>
+ <param name="FileNames">PDF File names (String array)</param>
+ <param name="newPDFFile">New PDF Form path</param>
+ <param name="OpenPassword">Open PDF Password</param>
+ <param name="ModificationPassword">Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2Buf(System.String[],System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength)">
+ <summary>
+ Combines PDF Forms and then Merges with data and outputs to a byte array
+ </summary>
+ <param name="FileNames">PDF File names (String array)</param>
+ <param name="OpenPassword">Open PDF Password</param>
+ <param name="ModificationPassword">Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <returns>return Combined and merged PDF Form</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2File(System.String[],System.String)">
+ <summary>
+ Combines PDF Forms and then outputs to a file
+ </summary>
+ <param name="FileNames">PDF File names (String array)</param>
+ <param name="newPDFFile">New PDF File path</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2File(System.Byte[][],System.String)">
+ <summary>
+ Combines PDF Forms and then outputs to a file
+ </summary>
+ <param name="PDFFiles">PDF Files (Array of Byte array)</param>
+ <param name="newPDFFile">New PDF File path</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2Buf(System.String[])">
+ <summary>
+ Combines PDF Forms and then outputs to a byte array
+ </summary>
+ <param name="FileNames">PDF File names (String array)</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFConcatenateForms2Buf(System.Byte[][])">
+ <summary>
+ Combines PDF Forms and then outputs to a byte array
+ </summary>
+ <param name="PDFFiles">PDF Files (Array of Bytes Array)</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDFConcatenateForms2File(FDFApp.FDFDoc_Class[],System.String,System.Boolean)">
+ <summary>
+ Combines PDF Forms and merges the data and outputs to a file
+ </summary>
+ <param name="FDFDocs">PDFDoc_Classes array - FDFSetFile must be set for each</param>
+ <param name="newPDFFile">New PDF File</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDPConcatenateForms2File(FDFApp.FDFDoc_Class[],System.String,System.Boolean)">
+ <summary>
+ Combines PDF Forms and merges the XDP data and outputs to a file
+ </summary>
+ <param name="FDFDocs">PDFDoc_Classes array - FDFSetFile must be set for each</param>
+ <param name="newPDFFile">New PDF File</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDFConcatenateForms2File(System.String[],FDFApp.FDFDoc_Class[],System.String,System.Boolean)">
+ <summary>
+ Combines PDF Files and then merges with data and outputs to a file
+ </summary>
+ <param name="PDFFileNames">PDF File names array</param>
+ <param name="FDFDocs">FDFDoc_Class array</param>
+ <param name="newPDFFile">New PDF File</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDPConcatenateForms2File(System.String[],FDFApp.FDFDoc_Class[],System.String,System.Boolean)">
+ <summary>
+ Combines PDF Files and then merges with XDP data and outputs to a file
+ </summary>
+ <param name="PDFFileNames">PDF File names array</param>
+ <param name="FDFDocs">FDFDoc_Class array</param>
+ <param name="newPDFFile">New PDF File</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDFConcatenateForms2Buf(FDFApp.FDFDoc_Class[],System.Boolean)">
+ <summary>
+ Combines PDFs and merges with data and outputs to a byte array
+ </summary>
+ <param name="FDFDocs">FDFDoc_Class array - FDFSetFile must be set for each</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDPConcatenateForms2Buf(FDFApp.FDFDoc_Class[],System.Boolean)">
+ <summary>
+ Combines PDFs and merges with XDP data and outputs to a byte array
+ </summary>
+ <param name="FDFDocs">FDFDoc_Class array - FDFSetFile must be set for each</param>
+ <param name="Flatten">Flatten</param>
+ <returns>returns byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDFConcatenateForms2Buf(System.String[],FDFApp.FDFDoc_Class[],System.Boolean)">
+ <summary>
+ Combines PDFs and merges with data and outputs to a byte array
+ </summary>
+ <param name="PDFFileNames">PDF File names string array</param>
+ <param name="FDFDocs">FDFDoc_Class array</param>
+ <param name="Flatten">Flatten</param>
+ <returns>return byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDPConcatenateForms2Buf(System.String[],FDFApp.FDFDoc_Class[],System.Boolean)">
+ <summary>
+ Combines PDFs and merges with XDP data and outputs to a byte array
+ </summary>
+ <param name="PDFFileNames">PDF File names string array</param>
+ <param name="FDFDocs">FDFDoc_Class array</param>
+ <param name="Flatten">Flatten</param>
+ <returns>return byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Stream(System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges PDF Document and FDF Data and outputs to a stream
+ </summary>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Original blank PDF Form Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeFDF2Buf(System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges PDF Document with FDF Data and outputs to a byte array
+ </summary>
+ <param name="OpenPassword">New PDF Open Password</param>
+ <param name="ModificationPassword">New PDF Modify Password</param>
+ <param name="Permissions">New PDF Permissions</param>
+ <param name="PDFFormPath">Original Blank PDF Form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption Strength</param>
+ <param name="ownerPassword">Owner password for blank/original password protected documents</param>
+ <returns>byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFDocument">
+ <summary>
+ Current FDF Document
+ </summary>
+ <value></value>
+ <returns>FDFDoc_Class object</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFErrors">
+ <summary>
+ FDFErrors
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFHasErrors">
+ <summary>
+ FDF has errors
+ </summary>
+ <returns>true if it has errors</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ResetErrors">
+ <summary>
+ Resets errors
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFDocErrors">
+ <summary>
+ Returns FDFErrors array
+ </summary>
+ <value></value>
+ <returns>FDFErrors object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDocErrorsStr(System.Boolean)">
+ <summary>
+ Returns FDF Errors in a string
+ </summary>
+ <param name="HTMLFormat">If true it will return the string in html format</param>
+ <returns>String of errors</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFHasChanges">
+ <summary>
+ Has changes
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFAppendSaves">
+ <summary>
+ Gets/Sets Append saves (Currently not used)
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.Version">
+ <summary>
+ Gets/Sets FDF Version
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.Differences">
+ <summary>
+ Differences (Currently not used)
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.Annotations">
+ <summary>
+ Annotations (Currently not used)
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFData">
+ <summary>
+ Gets/Sets FDF Data String
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPData">
+ <summary>
+ Gets/Sets XDP Data byte array
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.PDFData">
+ <summary>
+ PDF Data Byte array
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFFileName">
+ <summary>
+ PDF File name referenced in the FDF Document
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetStatus(System.String,System.Boolean)">
+ <summary>
+ Set status response for FDF Document
+ </summary>
+ <param name="Value">Response to send to client</param>
+ <param name="ReplaceStatus">Replaces current status</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetFDFVersion(System.String)">
+ <summary>
+ Set FDF Version
+ </summary>
+ <param name="bstrVersion"></param>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFGetStatus">
+ <summary>
+ Get FDF status message
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFFieldCount">
+ <summary>
+ Returns FDF Documents field count
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPFieldCount">
+ <summary>
+ Returns XDP Documents field count
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFFields">
+ <summary>
+ Set or Gets FDFField Objects array
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFObjectCount">
+ <summary>
+ Returns FDF Object count
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFGetObjects">
+ <summary>
+ Return FDF Objects array (Currently not used)
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetObject(System.String)">
+ <summary>
+ Returns FDFobject
+ </summary>
+ <param name="objNum"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFSetTargetFrame">
+ <summary>
+ Sets the target frame for FDF Document, similar to HTML target object
+ </summary>
+ <value>_blank, _self, _top, _bottom, _(framename)</value>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFGetTargetFrame">
+ <summary>
+ Returns the current target frame
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetFile(System.String)">
+ <summary>
+ Sets PDF File path for FDF Document
+ </summary>
+ <param name="bstrNewFile"></param>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.FDFGetFile">
+ <summary>
+ Gets PDF File path for FDF Document
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetJavaScriptAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Set Javascript action
+ </summary>
+ <param name="FieldName">PDF Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="theScript">Script to set</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetSubmitFormAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Sets Submit Form Action for a field
+ </summary>
+ <param name="FieldName">PDF Field Name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="URL">Submit to url</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetValue(System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field
+ </summary>
+ <param name="FieldName">PDF Field name</param>
+ <param name="FieldValue">PDF Field value</param>
+ <param name="FDFEmpty">Leave empty or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetValue(System.String,System.String)">
+ <summary>
+ Set value of field
+ </summary>
+ <param name="FieldName">PDF Field name</param>
+ <param name="FieldValue">PDF Field value</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValue(System.String,System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field in a Live-Cycle Form
+ </summary>
+ <param name="FieldName">Live-Cycle PDF Form Field Name</param>
+ <param name="FieldValue">Live-Cycle PDF Form Field Value</param>
+ <param name="ParentFormNameOrLevel">Live-Cycle Form Level or Name</param>
+ <param name="FDFEmpty">Leave blank or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValue(System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field in a Live-Cycle Form
+ </summary>
+ <param name="FieldName">Live-Cycle PDF Form Field Name</param>
+ <param name="FieldValue">Live-Cycle PDF Form Field Value</param>
+ <param name="FDFEmpty">Leave blank or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPField(System.String)">
+ <summary>
+ Gets or Sets XDPField
+ </summary>
+ <param name="FieldNameOrLevelLong">Fieldname, Fieldname[Number], or Field Long Level</param>
+ <value>Field Value to Set</value>
+ <returns>FDFField object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValue(System.String,System.Int32,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field in a Live-Cycle Form
+ </summary>
+ <param name="FieldName">Live-Cycle PDF Form Field Name</param>
+ <param name="FieldValue">Live-Cycle PDF Form Field Value</param>
+ <param name="FDFEmpty">Leave blank or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValue(System.String,System.String,System.Int32,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field in a Live-Cycle Form
+ </summary>
+ <param name="FieldName">Live-Cycle PDF Form Field Name</param>
+ <param name="FieldValue">Live-Cycle PDF Form Field Value</param>
+ <param name="FormNumber">Form number</param>
+ <param name="FDFEmpty">Leave blank or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetAllSubformValues(System.String,System.String,System.String,System.Boolean,System.Boolean)">
+ <summary>
+ Set value of field in a Live-Cycle Form
+ </summary>
+ <param name="FieldName">Live-Cycle PDF Form Field Name</param>
+ <param name="FieldValue">Live-Cycle PDF Form Field Value</param>
+ <param name="FormLevel">Form level</param>
+ <param name="FDFEmpty">Leave blank or set to false</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetValues(System.String,System.String[],System.Boolean)">
+ <summary>
+ Sets values of list or multi-select form field
+ </summary>
+ <param name="FieldName">PDF Form Field name</param>
+ <param name="FieldValues">PDF Form field values array</param>
+ <param name="FieldEnabled">Set to true to enable form field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetOpt(System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Sets list form field display and values
+ </summary>
+ <param name="FieldName">PDF Form field name</param>
+ <param name="FieldValue">PDF Form field value</param>
+ <param name="DisplayName">Display array for items</param>
+ <param name="FieldEnabled">Set to true to enable</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetOpt(System.String,System.String[],System.String[],System.Boolean)">
+ <summary>
+ Sets list form field display and values
+ </summary>
+ <param name="FieldName">PDF Form field name</param>
+ <param name="FieldValue">PDF FOrm field values array</param>
+ <param name="DisplayName">PDF Form field display item array</param>
+ <param name="FieldEnabled">Set to true to enable field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetDataSetFromValues(System.Data.DataSet,System.Int32)">
+ <summary>
+ Populates a Dataset form PDF Form values
+ </summary>
+ <param name="Ds">Dataset to set</param>
+ <param name="Row_Number">DataRow number</param>
+ <returns>Populated dataset</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetDataRowFromValues(System.Data.DataRow@)">
+ <summary>
+ Sets a datarow with values from PDF Form values
+ </summary>
+ <param name="Dr">Datarow to populate</param>
+ <returns>Populated datarow</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetDataRowFromValues(System.Data.DataRow,System.String)">
+ <summary>
+ Sets datarow values with PDF Form field values, and excludes Auto Increment field
+ </summary>
+ <param name="Dr">Datarow to populate</param>
+ <param name="AutoIncrementField">Datarow column name to exclude</param>
+ <returns>Populated datarow</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetDataRowFromValues(System.Data.DataRow@)">
+ <summary>
+ Sets a datarow with values from PDF Form values
+ </summary>
+ <param name="Dr">Datarow to populate</param>
+ <returns>Populated datarow</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetDataRowFromValues(System.Data.DataRow,System.String)">
+ <summary>
+ Sets datarow values with PDF Form field values, and excludes Auto Increment field
+ </summary>
+ <param name="Dr">Datarow to populate</param>
+ <param name="AutoIncrementField">Datarow column name to exclude</param>
+ <returns>Populated datarow</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetValuesFromDataSet(System.Data.DataSet,System.String[])">
+ <summary>
+ Sets FDF Data values from Dataset values
+ </summary>
+ <param name="Ds">Data set to get data from</param>
+ <param name="OptionNames">Sets FDF Form fields as options fields</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.GetDataFromExcel(System.String,System.String)">
+ <summary>
+ Populates Data set from Excel spreadsheet document
+ </summary>
+ <param name="FileName">Excel document</param>
+ <param name="RangeName">Range Name of data</param>
+ <returns>Populated Dataset</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFCreateHTMLFormFromFDF(System.String,System.String,System.String,System.String)">
+ <summary>
+ Creates HTML form from FDF Data
+ </summary>
+ <param name="method">Post/Get</param>
+ <param name="action">Form action</param>
+ <param name="target">target frame of form</param>
+ <param name="runat">server</param>
+ <returns>HTML form populated with PDF Field values</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFCreateHTMLFormFromDataRow(System.Data.DataRow,System.String,System.String,System.String,System.String)">
+ <summary>
+ Creates HTML Form from Datarow
+ </summary>
+ <param name="Dr">Datarow with data</param>
+ <param name="method">Post/Get</param>
+ <param name="action">HTML form action</param>
+ <param name="target">HTML form target frame</param>
+ <param name="runat">server</param>
+ <returns>Populated HTML form with values from datarow</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFCreateFDFFromHTMLForm(System.Web.UI.Page,System.String[])">
+ <summary>
+ Creates FDF Form from HTML form submission data
+ </summary>
+ <param name="Page">Me.Page</param>
+ <param name="OptionNames">Option Names</param>
+ <returns>True</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFCreateXDPFromHTMLForm(System.Web.UI.Page,System.String[],System.String)">
+ <summary>
+ Creates XDP Form from HTML form submission data
+ </summary>
+ <param name="Page">Me.Page</param>
+ <param name="OptionNames">Option Names</param>
+ <returns>True</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetValuesFromDataRow(System.Data.DataRow,System.String[])">
+ <summary>
+ Sets FDF Data from Datarow
+ </summary>
+ <param name="Dr">Datarow with data</param>
+ <param name="ExcludeNames">Exclude names</param>
+ <returns>FDF Data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValuesFromDataRow(System.Data.DataRow,System.String[])">
+ <summary>
+ Sets FDF Data from Datarow
+ </summary>
+ <param name="Dr">Datarow with data</param>
+ <param name="ExcludeNames">Exclude names</param>
+ <returns>FDF Data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddRemoveField(System.String,System.Boolean)">
+ <summary>
+ Add / remove fdf field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldEnabled">True / False</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFNextFieldName(System.String,System.Boolean)">
+ <summary>
+ Iterates to the next field name
+ </summary>
+ <param name="bstrFieldName">Current Field name</param>
+ <param name="CaseSensitive">If True field name must match case</param>
+ <returns>next Field name</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValue(System.String,System.Boolean)">
+ <summary>
+ Gets value of FDF Field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="CaseSensitive">If true must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValue(System.String)">
+ <summary>
+ Gets value of FDF Field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String,System.String,System.Boolean)">
+ <summary>
+ Gets value of Live-Cycle Form Field 
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks>edited: 5/2/2015</remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue_FormLevel(System.String,System.String,System.Boolean)">
+ <summary>
+ Gets value of Live-Cycle Form Field 
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="xmlFormLevel">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String,System.Int32,System.String,System.Boolean)">
+ <summary>
+ Gets value of Live-Cycle Form Field 
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldNumber">Field Number</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String,System.Int32,System.Boolean)">
+ <summary>
+ Get value of Live-Cycle form field
+ </summary>
+ <param name="FieldName">Live-Cycle form field name</param>
+ <param name="xdpFormNumber">Live-Cycle form name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValueCharArray(System.String,System.Boolean)">
+ <summary>
+ Gets the value of an FDF Field in a character array
+ </summary>
+ <param name="FieldName">FDF Field name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value character array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValueByteArray(System.String,System.Boolean)">
+ <summary>
+ Gets the value of an FDF Field in a byte array
+ </summary>
+ <param name="FieldName">FDF Field name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValues(System.String,System.Boolean)">
+ <summary>
+ Get values array of FDF Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field values string array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValues(System.String,System.Int32,System.Boolean)">
+ <summary>
+ Get values array of FDF Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FormNumber">Form Number</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field values string array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetValues(System.String,System.String,System.Boolean)">
+ <summary>
+ Get values array of FDF Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FormName">Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field values string array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetFields(System.String)">
+ <summary>
+ Get FDFField object array
+ </summary>
+ <param name="FieldNames">Optional Field Names</param>
+ <returns>FDFField object array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetOnImportJavaScript(System.String,System.Boolean)">
+ <summary>
+ Sets On Import Javascript
+ </summary>
+ <param name="bstrScript">Script</param>
+ <param name="bBefore">Before page loads</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetHideAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String,System.Boolean)">
+ <summary>
+ Set Hide action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="bstrTheTarget">Target</param>
+ <param name="isHide">Hide (true/false)</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetImportDataAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Sets import data action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="bstrTheFile">File to import</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetNamedAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Sets named action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="theName">PDF Action name</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddJSAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Adds JS action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <param name="theScript">Script</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetResetFormAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger)">
+ <summary>
+ Sets reset form action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">Trigger</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSetURIAction(System.String,FDFApp.FDFDoc_Class.FDFActionTrigger,System.String)">
+ <summary>
+ Set URL action
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="whichTrigger">trigger</param>
+ <param name="URl">URL</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddDocJavaScript(System.String,System.String)">
+ <summary>
+ Adds Document Javascript
+ </summary>
+ <param name="bstrScriptName">Script name</param>
+ <param name="bstrScript">Document Script</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.GetDocJavaScripts(System.Boolean)">
+ <summary>
+ Gets Document Javascripts
+ </summary>
+ <returns>Document javascripts</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.HasDocOnImportJavaScripts">
+ <summary>
+ Has import javascripts
+ </summary>
+ <returns>True</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddOptField(System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Adds option field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="DisplayName">Display value</param>
+ <param name="FieldEnabled">True</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddOptField(System.String,System.String[],System.String[],System.Boolean)">
+ <summary>
+ Adds Option field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value array</param>
+ <param name="DisplayName">Display value array</param>
+ <param name="FieldEnabled">True</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddField(System.String,System.String,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds a field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">if true, Replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddField(System.String,System.String[],FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds a field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value array</param>
+ <param name="FieldType">field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If true, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddField(System.String,System.String[],System.String[],System.String[],FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds a field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldSelectionValues">Selection Values</param>
+ <param name="FieldDisplayNames">Display Names</param>
+ <param name="FieldExportValues">Export Values</param>
+ <param name="FieldType">field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If true, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFAddObject(System.String,System.String,System.String,System.String,System.String)">
+ <summary>
+ Adds Object
+ </summary>
+ <param name="objNum">Object number</param>
+ <param name="FDFObjectData">Object data</param>
+ <param name="Differences"></param>
+ <param name="Version"></param>
+ <param name="Annotations"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.GetChanges(System.Int32)">
+ <summary>
+ Gets changes
+ </summary>
+ <param name="intObjNum">Object number</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.DefaultEncoding">
+ <summary>
+ Default Encoding
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Determine_Type(System.String)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data (String) or PDF URL ir PDF Local File Path</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Determine_Type(System.Byte[])">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Determine_Type(System.Byte[],System.String)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <param name="ownerPassword">OwnerPassword</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Determine_Type(System.IO.Stream)">
+ <summary>
+ Determines what format the data is in.
+ </summary>
+ <param name="PDFData">PDF Data</param>
+ <returns>FDFType (XML/xFDF/XDP/PDF=Acrobat/XPDF=LiveCycle)</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSave(System.String,FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves FDF to File
+ </summary>
+ <param name="FileName">File path</param>
+ <param name="eFDFType">File type</param>
+ <param name="AppendSaves"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSavetoFile(System.String,FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves FDF Data to file
+ </summary>
+ <param name="FileName">File name</param>
+ <param name="eFDFType">File type</param>
+ <param name="AppendSaves"></param>
+ <returns>true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves FDF Document to byte array
+ </summary>
+ <param name="eFDFType">File type</param>
+ <param name="AppendSaves"></param>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toFile(System.String,FDFApp.FDFDoc_Class.FDFType)">
+ <summary>
+ Saves FDF Data to file
+ </summary>
+ <param name="FileName">File name</param>
+ <param name="eFDFType">File type</param>
+ <returns>true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toBuffer(FDFApp.FDFDoc_Class.FDFType)">
+ <summary>
+ Saves FDF Document to byte array
+ </summary>
+ <param name="eFDFType">File type</param>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toStream(FDFApp.FDFDoc_Class.FDFType)">
+ <summary>
+ Saves data to stream
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <returns>Stream with Data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toFDF">
+ <summary>
+ Returns FDF Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toPDF">
+ <summary>
+ Returns PDF Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toPDF(System.Boolean,System.Boolean)">
+ <summary>
+ Returns PDF Document to byte array
+ </summary>
+ <param name="preserveExtendedRights">Preserves Extended Reader Rights</param>
+ <param name="removeExtendedRights">Removes Extended Reader Rights</param>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXDP">
+ <summary>
+ Returns XDP Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXFDF">
+ <summary>
+ Returns XFDF Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXML">
+ <summary>
+ Returns XML Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXPDF">
+ <summary>
+ Returns XFA Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXPDF(System.Boolean,System.Boolean)">
+ <summary>
+ Returns XFA Document to byte array
+ </summary>
+ <param name="preserveExtendedRights">Preserves Extended Reader Rights</param>
+ <param name="removeExtendedRights">Removes Extended Reader Rights</param>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXFA">
+ <summary>
+ Returns XFA Document to byte array
+ </summary>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.toXFA(System.Boolean,System.Boolean)">
+ <summary>
+ Returns XFA Document to byte array
+ </summary>
+ <param name="preserveExtendedRights">Preserves Extended Reader Rights</param>
+ <param name="removeExtendedRights">Removes Extended Reader Rights</param>
+ <returns>Data Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSavetoStream(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves data to stream
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <param name="AppendSaves"></param>
+ <returns>Stream with Data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves PDF to byte array
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <param name="AppendSaves"></param>
+ <returns>PDF Document in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFSavetoStream(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves PDF to stream
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <param name="AppendSaves"></param>
+ <returns>PDF Document in stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSavetoStr(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves data to string
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <param name="AppendSaves"></param>
+ <returns>Data in string format</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFSavetoArray(FDFApp.FDFDoc_Class.FDFType,System.Boolean)">
+ <summary>
+ Saves data to character array
+ </summary>
+ <param name="eFDFType">File Type</param>
+ <param name="AppendSaves"></param>
+ <returns>Data in character array format</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.DocType">
+ <summary>
+ Document type
+ </summary>
+ <value>FDFDocType</value>
+ <returns>Document type of current FDFDoc_Class object</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.GetXDPForms">
+ <summary>
+ Gets XDP Forms
+ </summary>
+ <returns>XDP Form array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddForm(System.String,System.String)">
+ <summary>
+ Adds XDP form
+ </summary>
+ <param name="bstrFormName">Form name</param>
+ <param name="bstrFileName">Live-Cycle form path</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddSubForm(System.String[],System.String,System.String)">
+ <summary>
+ Adds XDP form
+ </summary>
+ <param name="ParentFormNames">Parent Form Names</param>
+ <param name="SubFormName">SubForm Name</param>
+ <param name="PDFFilePath">Live-Cycle form path</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddSubForm(System.String,System.String)">
+ <summary>
+ Adds XDP form
+ </summary>
+ <param name="SubFormName">SubForm Name</param>
+ <param name="PDFFilePath">Live-Cycle form path</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddSubForm(System.String[],System.String)">
+ <summary>
+ Adds XDP form
+ </summary>
+ <param name="SubFormNames">SubForm Names</param>
+ <param name="PDFFilePath">Live-Cycle form path</param>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPForm(System.Int32)">
+ <summary>
+ Gets/Sets XDP form
+ </summary>
+ <param name="intFormNumber">Form number</param>
+ <value></value>
+ <returns>XDP Form</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPForm(System.String)">
+ <summary>
+ Gets/Sets XDP Form/Subform
+ </summary>
+ <param name="FormNameOrLevel">Form name or level</param>
+ <value>XDP Form</value>
+ <returns>XDP Form</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPForm_FormLevel(System.String)">
+ <summary>
+ Gets/Sets XDPSubform based on Formlevel or Form Name
+ </summary>
+ <param name="FormNameOrLevel">Form name or level</param>
+ <value>XDP Form</value>
+ <returns>XDP Form</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPForm_FormLevel(System.Collections.Generic.List{FDFApp.FDFDoc_Class.FDFDoc_Class},System.String)">
+ <summary>
+ Gets/Set XDP Subform (Internal)
+ </summary>
+ <param name="_FDFDoc_Classes">FDFDoc Classes to search</param>
+ <param name="FormNameOrLevel"></param>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPFormName">
+ <summary>
+ Gets or sets current XDP Form name
+ </summary>
+ <value>XDP Form name</value>
+ <returns>XDP Form name</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPFileName">
+ <summary>
+ XDP File Name
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPFormNumber(System.String)">
+ <summary>
+ Return XDP Form Number
+ </summary>
+ <param name="FormName">XDP Form name</param>
+ <value></value>
+ <returns>XDP Form Number</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPFormNumber(System.String[])">
+ <summary>
+ Return XDP Form Number
+ </summary>
+ <param name="FormNames">XDP Form names</param>
+ <value></value>
+ <returns>XDP Form Number</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(System.String,System.String,System.String,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds XDP Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FormName">Form name</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If True, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(System.String,System.String,System.String,System.String[],FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds XDP Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FormName">Form name</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If True, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String,System.String[],System.Boolean,System.Boolean)">
+ <summary>
+ Add Field
+ </summary>
+ <param name="subFormValue">Subform</param>
+ <param name="FormName">Form name</param>
+ <param name="ParentFormNames">Parent form names</param>
+ <param name="FieldEnabled">Field enabled</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(System.String,System.String,System.Int32,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds XDP Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FormNumber">Form number</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If True, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(System.String,System.String,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds XDP Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If True, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(System.String,System.Int32,System.String,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Adds XDP Form field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldValue">Field value</param>
+ <param name="FieldType">Field type</param>
+ <param name="FieldEnabled">True</param>
+ <param name="ReplaceField">If True, replaces field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetLastFieldNumber(System.String)">
+ <summary>
+ Get last Field Number
+ </summary>
+ <param name="FieldName">Field name</param>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPGetFile">
+ <summary>
+ Get Live-Cycle form path or url
+ </summary>
+ <value></value>
+ <returns>Live-Cycle form path or url</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFForceDownload(System.Web.UI.Page@,System.Byte[],System.String)">
+ <summary>
+ Forces download of PDF file
+ </summary>
+ <param name="AspxPage">Me.Page</param>
+ <param name="FileBytes">Byte array of file</param>
+ <param name="FileName">PDF File name</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ForceDownload(System.Web.UI.Page@,System.Byte[],FDFApp.FDFDoc_Class.FDFType,System.String)">
+ <summary>
+ Forces download of file
+ </summary>
+ <param name="AspxPage">Me.Page</param>
+ <param name="FileBytes">Byte array of file</param>
+ <param name="FileName">File name</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ForceDownload(System.Web.UI.Page@,System.Byte[],System.String)">
+ <summary>
+ Forces download of file
+ </summary>
+ <param name="AspxPage">Me.Page</param>
+ <param name="FileBytes">Byte array of file</param>
+ <param name="FileName">File name</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPSubform(System.String)">
+ <summary>
+ Gets/Set XDPSubform 
+ </summary>
+ <param name="_formLevel">Form Level, Level Long, or Form Name</param>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to Byte array
+ </summary>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Live-Cycle form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.Byte[],System.Boolean,System.String,System.Boolean)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form Bytes</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.String,System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form URL or Local File Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.Byte[],System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form Bytes</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.String,System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form URL or Local File Path</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.IO.Stream,System.Boolean,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form Stream</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.IO.Stream,System.String,System.String,System.Int32,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to stream
+ </summary>
+ <param name="PDFForm">Original Blank PDF Form Stream</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.String,System.String,System.Int32,System.IO.Stream,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges FDF Data and PDF form to byte array
+ </summary>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFForm">Original Blank PDF Form Stream</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with merged FDF Data and PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(FDFApp.FDFDoc_Class,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to Byte array
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class object</param>
+ <param name="PDFFormPath">Live-Cycle PDF form path or url</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Buf(System.String,FDFApp.FDFDoc_Class,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to Byte array
+ </summary>
+ <param name="XDPData">XDP Data to Merge</param>
+ <param name="FDFDocument">FDFDoc_Class object</param>
+ <param name="PDFFormPath">Live-Cycle PDF form path or url</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in byte array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Stream(System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to stream
+ </summary>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Live-Cycle form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Stream(System.String,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to stream
+ </summary>
+ <param name="XDPData">XDP Data to merge</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Live-Cycle form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Stream(FDFApp.FDFDoc_Class,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to stream
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class object</param>
+ <param name="PDFFormPath">Live-Cycle PDF form path or url</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2Stream(System.String,FDFApp.FDFDoc_Class,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data to stream
+ </summary>
+ <param name="FDFDocument">FDFDoc_Class object</param>
+ <param name="PDFFormPath">Live-Cycle PDF form path or url</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Merged Live-Cycle form with data in stream</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2File(System.String,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data and outputs to a file
+ </summary>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Live-Cycle form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2File(System.String,System.String,System.String,System.String,System.Int32,System.String,System.Boolean,FDFApp.FDFDoc_Class.EncryptionStrength,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data and outputs to a file
+ </summary>
+ <param name="XDPData">XDP data to merge</param>
+ <param name="newPDFFile">New file path</param>
+ <param name="OpenPassword">New Open PDF Password</param>
+ <param name="ModificationPassword">New Modify PDF Password</param>
+ <param name="Permissions">PDF Permissions</param>
+ <param name="PDFFormPath">Live-Cycle form path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="EncryptionStrength">Encryption strength</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFMergeXDP2File(System.String,System.String,System.Boolean,System.String)">
+ <summary>
+ Merges XDP Live-Cycle form with data and outputs to a file
+ </summary>
+ <param name="newPDFFile">New PDF Form path</param>
+ <param name="OriginalSourcePDFFormPath">Live-Cycle PDF form path or url</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>true</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Buf(System.Byte[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the byte array
+ </summary>
+ <param name="PDFForm">PDF Form in byte array</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Buf(System.String,System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the byte array
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2File(System.String,System.String,System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and outputs to a file
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="NewPDFPath">Absolute Path for new Flattened PDF Form</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Boolean if Flattened PDF File</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2File(System.Byte[],System.String,System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and outputs to a file
+ </summary>
+ <param name="PDFForm">PDF Form byte array</param>
+ <param name="NewPDFPath">Absolute Path for new Flattened PDF Form</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Boolean if Flattened PDF File</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Stream(System.Byte[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the stream
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Stream(System.String,System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the stream
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Buf(System.Byte[],System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the byte array
+ </summary>
+ <param name="PDFForm">PDF Form in byte array</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Buf(System.String,System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the byte array
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Byte array with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2File(System.String,System.String,System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and outputs to a file
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="NewPDFPath">Absolute Path for new Flattened PDF Form</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Boolean if Flattened PDF File</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2File(System.Byte[],System.String,System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and outputs to a file
+ </summary>
+ <param name="PDFForm">PDF Form byte array</param>
+ <param name="NewPDFPath">Absolute Path for new Flattened PDF Form</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Boolean if Flattened PDF File</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Stream(System.Byte[],System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the stream
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.PDFFlatten2Stream(System.String,System.String[],System.Boolean,System.String)">
+ <summary>
+ Flattens PDF form fields and returns the stream
+ </summary>
+ <param name="PDFForm">PDF Form URL or Absolute Path</param>
+ <param name="ExcludedFields">PDF Form Fields to exclude from flattening</param>
+ <param name="Flatten">Flatten</param>
+ <param name="ownerPassword">Owner password for Original password protected documents</param>
+ <returns>Stream with Flattened PDF</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFields(System.String,System.String)">
+ <summary>
+ Get XDPField object array
+ </summary>
+ <param name="FormName">Optional Form Name</param>
+ <param name="FieldNames">Optional Field Name</param>
+ <returns>FDFField object array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetForms(System.String[])">
+ <summary>
+ Get FDFDoc_Class object array
+ </summary>
+ <param name="FormNames">Optional Form Names (=Nothing)</param>
+ <returns>FDFDoc_Class object array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetForm(System.String,System.Boolean)">
+ <summary>
+ Get FDFDoc_Class object
+ </summary>
+ <param name="FormNameOrLevel">Optional Form Path (=Nothing)</param>
+ <param name="Include_Subforms">Include Subform paths</param>
+ <returns>FDFDoc_Class object array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Download_RestrictedFile(System.String)">
+ <summary>
+ Downloads Restricted File into a Stream
+ </summary>
+ <param name="PDF_URL">Name of PDF or File to download</param>
+ <returns>Stream containing restricted file</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Download_RestrictedFile(System.String,System.String,System.String)">
+ <summary>
+ Downloads Restricted File into a Stream
+ </summary>
+ <param name="PDF_URL">Name of PDF or File to download</param>
+ <param name="Username">Credential Username</param>
+ <param name="Password">Credential Password</param>
+ <returns>Stream containing restricted file</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Download_RestrictedFile(System.String,System.String,System.String,System.String)">
+ <summary>
+ Downloads Restricted File into a Stream
+ </summary>
+ <param name="PDF_URL">Name of PDF or File to download</param>
+ <param name="Username">Credential Username</param>
+ <param name="Password">Credential Password</param>
+ <param name="Domain">Credential Domain</param>
+ <returns>Stream containing restricted file</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2String(System.String,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to String
+ </summary>
+ <param name="EncryptedFilePath">File Path of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns Encryped String</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2String(System.Byte[],System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to String
+ </summary>
+ <param name="EncryptedFile">Byte array of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns Encryped String</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2String(System.IO.Stream,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to String
+ </summary>
+ <param name="EncryptedFile">Stream of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns Encryped String</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2Bytes(System.String,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to Bytes
+ </summary>
+ <param name="EncryptedFilePath">File path of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns Encryped Bytes</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2Bytes(System.Byte[],System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to Bytes
+ </summary>
+ <param name="EncryptedFile">File byte array of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns Encryped Bytes</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2File(System.String,System.IO.Stream,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to new File
+ </summary>
+ <param name="FilePath">File path of new decrypted file</param>
+ <param name="EncryptedFile">Stream of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2File(System.String,System.String,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to byte array
+ </summary>
+ <param name="FilePath">File path of new decrypted file</param>
+ <param name="EncryptedFilePath">File path of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2File(System.String,System.Byte[],System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to byte array
+ </summary>
+ <param name="FilePath">File path of new decrypted file</param>
+ <param name="EncryptedFile">Byte array of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFDecryptData2Bytes(System.IO.Stream,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Decrypt Data to byte array
+ </summary>
+ <param name="EncryptedFile">Byte array of encrypted file</param>
+ <param name="EncryptionKey">Encryption key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Returns True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFEncryptData2String(FDFApp.FDFDoc_Class.FDFType,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Encrypt Data to String
+ </summary>
+ <param name="FileType">FDF/XML/XDP/xFDF</param>
+ <param name="EncryptionKey">Encryption Key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>String containing encrypted data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFEncryptData2Byte(FDFApp.FDFDoc_Class.FDFType,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Encrypt Data to String
+ </summary>
+ <param name="FileType">FDF/XML/XDP/xFDF</param>
+ <param name="EncryptionKey">Encryption Key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>Byte array containing encrypted data</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFEncryptData2File(System.String,FDFApp.FDFDoc_Class.FDFType,System.String,Encryption.Symmetric.Provider)">
+ <summary>
+ Encrypt Data to String
+ </summary>
+ <param name="FileType">FDF/XML/XDP/xFDF</param>
+ <param name="EncryptionKey">Encryption Key - String</param>
+ <param name="EncryptionProvider">Provider - Encryption Method</param>
+ <returns>True or False</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.SaveBytesToFile(System.String,System.Byte[])">
+ <summary>
+ Save byte array to file
+ </summary>
+ <param name="FilePath">New File Path</param>
+ <param name="FileBytes">File Bytes to write to the file</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ReadFileToBytes(System.String)">
+ <summary>
+ Read bytes from a file
+ </summary>
+ <param name="FilePath">Path of file to read</param>
+ <returns>Byte array containing file contents</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ReadStreamToBytes(System.IO.Stream)">
+ <summary>
+ Read bytes from a stream
+ </summary>
+ <param name="fs">Stream</param>
+ <returns>Byte array containing stream contents</returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.RemoveUsageRights">
+ <summary>
+ Remove usage rights during merge
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.PreserveUsageRights">
+ <summary>
+ Preserve usage rights during merge
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.RemoveUsageRights_Reader(iTextSharp.text.pdf.PdfReader)">
+ <summary>
+ Removes Usage Rights from an iTextSharp PDFReader Object
+ </summary>
+ <param name="reader"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.RemoveUsageRights_PDF(System.String)">
+ <summary>
+ Removes Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">Absolute File Path to PDF</param>
+ <returns>Returns the PDF without usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.RemoveUsageRights_PDF(System.Byte[])">
+ <summary>
+ Removes Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">PDF File Byte Array</param>
+ <returns>Returns the PDF without usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.RemoveUsageRights_PDF(System.IO.Stream)">
+ <summary>
+ Removes Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">PDF File Stream Object</param>
+ <returns>Returns the PDF without usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.HasUsageRights_PDF(System.String)">
+ <summary>
+ Checks Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">Absolute File Name</param>
+ <returns>Returns true if PDF has usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.HasUsageRights_PDF(System.IO.Stream)">
+ <summary>
+ Checks Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">PDF File Stream from a File Stream or Memory Stream</param>
+ <returns>Returns true if PDF has usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.HasUsageRights_PDF(System.Byte[])">
+ <summary>
+ Checks Usage Rights from a PDF
+ </summary>
+ <param name="PDFFile">PDF Byte Array</param>
+ <returns>Returns true if PDF has usage rights enabled</returns>
+ <remarks></remarks>
+</member>
+<member name="T:FDFApp.FDFDoc_Class.ImageFieldMime">
+ <summary>
+ IMAGE TYPE
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.Byte[],System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="FormName">Form Name (Ex: subform1)</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldBytes">Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.String,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="FormName">Form Name (Ex: subform1)</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldStringBase64">Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.Drawing.Image,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="FormName">Form Name (Ex: subform1)</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldBitmap">System.Drawing.BitMap Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="FormName">Form Name (Ex: subform1)</param>
+ <param name="ImageUrlOrAbsolutePath">Image File URL or Absolute Path</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_OpenImageToBuf(System.String,System.Boolean)">
+ <summary>
+ Open Image to buffer (byte array)
+ </summary>
+ <param name="ImagePathOrUrl">Image File URL or Absolute Path</param>
+ <param name="EncodeToBase64">Option to encode it to Base64 (compatible with XDP data)</param>
+ <returns>File in Byte Array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_OpenImageToBase64String(System.String)">
+ <summary>
+ Open Image to Base64 (string)
+ </summary>
+ <param name="ImagePathOrUrl">Image File URL or Absolute Path</param>
+ <returns>File in Base64 String format</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertToBase64String(System.Byte[])">
+ <summary>
+ Converts a byte array to base64 string
+ </summary>
+ <param name="Filebytes">File bytes array</param>
+ <returns>Base64 String</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertToBase64String(System.Drawing.Image,System.Drawing.Imaging.ImageFormat)">
+ <summary>
+ Converts an System.Drawing.Image to Base64 string
+ </summary>
+ <param name="image">System.Drawing.Image</param>
+ <param name="newFormat">System.Drawing.Imaging.ImageFormat (JPG/GIF/PNG/BMP/EMF only)</param>
+ <returns>Base64 string of Image</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertToBase64String(System.Drawing.Image)">
+ <summary>
+ Converts an System.Drawing.Image to Base64 string
+ </summary>
+ <param name="image">System.Drawing.Image</param>
+ <returns>Base64 string of Image</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertToBase64Byte(System.Byte[])">
+ <summary>
+ Converts an Byte Array to Base64 string
+ </summary>
+ <param name="FileBytes">System.Drawing.Image</param>
+ <returns>Base64 string</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertFromBase64ToString(System.String,System.Text.Encoding)">
+ <summary>
+ Converts a Base64 encoded string to a default enocoded string
+ </summary>
+ <param name="strEncodedBase64">Base64 encoded string to convert</param>
+ <param name="ToEncoding">To specific encoding (UTF-8)</param>
+ <returns>Encoded String</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.ConvertFromBase64ToByte(System.String,System.Text.Encoding)">
+ <summary>
+ Converts a Base64 encoded string to a default enocoded byte array
+ </summary>
+ <param name="strEncodedBase64">Base64 encoded string to convert</param>
+ <param name="ToEncoding">To specific encoding (UTF-8)</param>
+ <returns>Encoded Byte Array</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageBase64(System.String,System.String,System.Boolean)">
+ <summary>
+ Gets Image Base64 value of Live-Cycle form image field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageBase64(System.String,System.Int32,System.String,System.Boolean)">
+ <summary>
+ Gets Image Base64 value of Live-Cycle form image field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldNumber">Field Number</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageBase64(System.String,System.Int32,System.Boolean)">
+ <summary>
+ Gets Image Base64 value of Live-Cycle form image field
+ </summary>
+ <param name="FieldName">Live-Cycle form field name</param>
+ <param name="xdpFormNumber">Live-Cycle form name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageBase64(System.String,System.Boolean)">
+ <summary>
+ Gets Image Base64 value of Live-Cycle form image field, in any Live-Cycle form
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageMime(System.String,System.Boolean)">
+ <summary>
+ Gets MIME value of FDF Field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="CaseSensitive">If true must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageMime(System.String,System.String,System.Boolean)">
+ <summary>
+ Gets MIME value of FDF Field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageMime(System.String,System.Int32,System.String,System.Boolean)">
+ <summary>
+ Gets MIME value of FDF Field
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="FieldNumber">Field Number</param>
+ <param name="xdpFormName">Live-Cycle Form Name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_GetImageMime(System.String,System.Int32,System.Boolean)">
+ <summary>
+ Gets MIME value of FDF Field
+ </summary>
+ <param name="FieldName">Live-Cycle form field name</param>
+ <param name="xdpFormNumber">Live-Cycle form name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.Byte[],System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldBytes">Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.String,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldStringBase64">Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,FDFApp.FDFDoc_Class.ImageFieldMime,System.Drawing.Image,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="ImageMIME">Image Type</param>
+ <param name="ImageFieldBitmap">System.Drawing.BitMap Image File</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDP_Add_ImageField(System.String,System.String,System.Boolean)">
+ <summary>
+ ADD IMAGE TO XDP DATA
+ </summary>
+ <param name="FieldName">Image Field Name</param>
+ <param name="ImageUrlOrAbsolutePath">Image File URL or Absolute Path</param>
+ <param name="ReplaceField">Replace field</param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.Dispose">
+ <summary>
+ Disposes of managed objects
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFClose">
+ <summary>
+ Disposes of managed objects (Calls Dispose())
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddField(FDFApp.FDFDoc_Class.FDFField@,FDFApp.FDFDoc_Class.FieldType,System.Boolean,System.Boolean)">
+ <summary>
+ Add XDP Field
+ </summary>
+ <param name="_fdfField">Field to add</param>
+ <param name="FieldType">Field Type</param>
+ <param name="FieldEnabled"></param>
+ <param name="ReplaceField"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformFields(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField[])">
+ <summary>
+ Appends subform field to list of fields
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFFields_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformField(FDFApp.FDFDoc_Class@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField[])">
+ <summary>
+ Appends subform field to list of fields
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFFields_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformField(FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Appends subform field to list of fields
+ </summary>
+ <param name="_FDFSubform_Structure"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformField(FDFApp.FDFDoc_Class@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Appends subform field to list of fields
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFSubform_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformField(FDFApp.FDFDoc_Class.FDFDoc_Class@,FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Appends subform field to list of fields
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_FDFSubform_Structure"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubform(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField[])">
+ <summary>
+ Appends subform to subforms
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFFields_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubform(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Appends subform to subforms
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFSubformField_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubform(FDFApp.FDFDoc_Class.FDFDoc_Class)">
+ <summary>
+ Appends subform to forms
+ </summary>
+ <param name="_subformAdd"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubform(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFDoc_Class)">
+ <summary>
+ Appends subform to subforms
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_subformAdd"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPForms">
+ <summary>
+ Gets/Sets Forms at the root
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddSubformField(FDFApp.FDFDoc_Class@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField[])">
+ <summary>
+ Adds subform field
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFFields_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAddSubformField(FDFApp.FDFDoc_Class@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Adds subform field
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFSubform_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformToField(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField[])">
+ <summary>
+ Appends subform field
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFFields_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformToField(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFField)">
+ <summary>
+ Appends subform field
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_FDFSubformField_Structure"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAppendSubformToField(FDFApp.FDFDoc_Class.FDFField@,System.String,System.String,System.String,FDFApp.FDFDoc_Class.FDFDoc_Class)">
+ <summary>
+ Appends subform field
+ </summary>
+ <param name="_cfdfdoc"></param>
+ <param name="_formName"></param>
+ <param name="_formLevel"></param>
+ <param name="_pdfPath"></param>
+ <param name="_subformAdd"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.GetFormLevelsLong(System.String,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Returns form level long
+ </summary>
+ <param name="formLevel"></param>
+ <param name="lstFormLevels"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformNumbers(FDFApp.FDFDoc_Class@)">
+ <summary>
+ Adjust subform numbers
+ </summary>
+ <param name="_fdfDoc_Class"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformNumbers(System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform numbers
+ </summary>
+ <param name="lstFormNumber"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformNumbers(System.Collections.Generic.List{FDFApp.FDFDoc_Class.FDFDoc_Class}@,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform numbers
+ </summary>
+ <param name="_fdfDoc_Class2_List"></param>
+ <param name="lstFormNumber"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformLevelsLong(FDFApp.FDFDoc_Class@)">
+ <summary>
+ Adjust subform field level longs
+ </summary>
+ <param name="_xdpSubformField"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformLevelsLong(FDFApp.FDFDoc_Class@,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform field level longs
+ </summary>
+ <param name="_xdpSubform"></param>
+ <param name="lstFormNumber"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformLevelsLong(System.Collections.Generic.List{FDFApp.FDFDoc_Class.FDFDoc_Class}@,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform field level longs
+ </summary>
+ <param name="_xdpSubform"></param>
+ <param name="lstFormNumber"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubforms(FDFApp.FDFDoc_Class@)">
+ <summary>
+ Adjust subforms
+ </summary>
+ <param name="_fdfDoc_Class"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubforms">
+ <summary>
+ Adjust subforms, numbers and level longs
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubforms(FDFApp.FDFDoc_Class.FDFField@)">
+ <summary>
+ Adjust subforms
+ </summary>
+ <param name="_xdpSubformField"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubforms(FDFApp.FDFDoc_Class.FDFDoc_Class@)">
+ <summary>
+ Adjust subforms
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformFields(FDFApp.FDFDoc_Class.FDFField@)">
+ <summary>
+ Adjust subform fields
+ </summary>
+ <param name="_xdpSubformField"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformFields(FDFApp.FDFDoc_Class.FDFField@,System.Collections.Generic.Dictionary{System.String,System.Int32}@,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform fields
+ </summary>
+ <param name="_xdpSubformField"></param>
+ <param name="lstFormNumber"></param>
+ <param name="lstFieldCntr"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.getFieldNumber(System.String)">
+ <summary>
+ Parses XDP Field name and returns field number
+ </summary>
+ <param name="strFieldname"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.getFieldName(System.String)">
+ <summary>
+ Parses XDP Field name and returns field name
+ </summary>
+ <param name="strFieldname"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPAdjustSubformFields(FDFApp.FDFDoc_Class.FDFField@,System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+ <summary>
+ Adjust subform fields
+ </summary>
+ <param name="_xdpSubformField"></param>
+ <param name="lstFormNumber"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFieldLevelLongList">
+ <summary>
+ Loads All xdp fields at level or below into list
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFirstField">
+ <summary>
+ Get first field
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetNextField">
+ <summary>
+ Gets next fields
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetNthField(System.Int32)">
+ <summary>
+ Get's Nth(index) Fields
+ </summary>
+ <param name="index"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPRefreshFieldList">
+ <summary>
+ Refresh List of fields
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFieldsCount">
+ <summary>
+ Get the count of all fields
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFields(System.Boolean)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.FDFGetAllFields(System.String)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <param name="xFieldName"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFields(FDFApp.FDFDoc_Class.FDFDoc_Class)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFields(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFields(System.String,System.String)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <param name="_formLevel"></param>
+ <param name="_fieldNames"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllFields(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String,System.Int32)">
+ <summary>
+ Get all fields into array
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel"></param>
+ <param name="_subformNumber"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:FDFApp.FDFDoc_Class.XDPGetField(System.String)">
+ <summary>
+ Get/Sets all fields into array
+ </summary>
+ <param name="_fieldLevelLong">Field name or Level Long to get</param>
+ <returns>FDFField</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFieldValue(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String)">
+ <summary>
+ Gets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel">Form level long</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFieldValue(FDFApp.FDFDoc_Class,System.String)">
+ <summary>
+ Gets field value
+ </summary>
+ <param name="_fdfDoc_Class"></param>
+ <param name="_formLevel">Form level long</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFieldValues(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String)">
+ <summary>
+ Gets field values
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel">Form level long</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetFieldValue(FDFApp.FDFDoc_Class.FDFDoc_Class,System.String,System.Int32,System.Int32)">
+ <summary>
+ Gets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel">Form level</param>
+ <param name="_subformNumber">Form number</param>
+ <param name="_subformFieldNumber">Field number</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(System.String,System.String,System.String)">
+ <summary>
+ Set field value
+ </summary>
+ <param name="_formLevelParent"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValue"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String,System.String)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValue"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(System.String,System.String,System.Boolean)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fieldName"></param>
+ <param name="_fieldValue"></param>
+ <param name="_replaceAll"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValue"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String,System.Boolean)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValue"></param>
+ <param name="_replaceAll"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(System.String,System.String,System.String[])">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_formLevel"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValues"></param>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String,System.String[])">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevel"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValues"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(System.String,System.String[],System.Boolean)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fieldName"></param>
+ <param name="_fieldValues"></param>
+ <param name="_replaceAll"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String[])">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValues"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPSetValueFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String,System.String[],System.Boolean)">
+ <summary>
+ Sets field value
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_fieldName"></param>
+ <param name="_fieldValues"></param>
+ <param name="_replaceAll"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllSubformsFormLevel(FDFApp.FDFDoc_Class.FDFDoc_Class[],System.String)">
+ <summary>
+ Gets all subforms at level long
+ </summary>
+ <param name="_fdfDoc_Classes2"></param>
+ <param name="_formLevel"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetAllSubformsFormLevel(FDFApp.FDFDoc_Class,System.String)">
+ <summary>
+ Gets all subforms at level long
+ </summary>
+ <param name="_fdfDoc_Classes"></param>
+ <param name="_formLevel"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String)">
+ <summary>
+ Gets value of Live-Cycle form field, in any Live-Cycle form
+ </summary>
+ <param name="_fieldLevelLongOrFieldName">Field name or FieldLevelLong(Ex: ex: root[0]/topmostSubform[0]/FULLNAME[0])</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.Int32)">
+ <summary>
+ Gets value of Live-Cycle form field, in any Live-Cycle form
+ </summary>
+ <param name="_fieldIndex"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String,System.Boolean)">
+ <summary>
+ Gets value of Live-Cycle form field, in any Live-Cycle form
+ </summary>
+ <param name="FieldName">Field name</param>
+ <param name="CaseSensitive">If true, must match case</param>
+ <returns>Field value</returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPGetValue(System.String,System.Int32)">
+ <summary>
+ Gets value of form field
+ </summary>
+ <param name="FieldName"></param>
+ <param name="FieldNumber"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPRemoveField(System.String)">
+ <summary>
+ Removes field
+ </summary>
+ <param name="_formLevel"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:FDFApp.FDFDoc_Class.XDPRemoveField(FDFApp.FDFDoc_Class.FDFDoc_Class@,System.String)">
+ <summary>
+ Removes field
+ </summary>
+ <param name="_fdfDoc_Class2"></param>
+ <param name="_formLevelLongOrFieldName"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+</members>
+</doc>
