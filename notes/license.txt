@@ -1,0 +1,47 @@
+﻿GhostScript - GNU License:
+https://www.artifex.com/licensing/
+https://www.artifex.com/developers-ghostscript-download/ghostscript-current/
+
+iTextSharp - GNU AFFERO GENERAL PUBLIC LICENSE:
+https://itextpdf.com/AGPL
+https://github.com/itext/itextsharp
+
+iTextSharp.xmlworker - AGPL-3.0 License:
+http://www.gnu.org/licenses/agpl.html
+https://www.nuget.org/packages/itextsharp.xmlworker/
+
+Json.NET  - MIT license:
+https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md
+https://github.com/JamesNK/Newtonsoft.Json
+
+nQuant.Core - Apache License 2.0 (Apache):
+http://www.apache.org/licenses/LICENSE-2.0.html
+https://nquant.codeplex.com/
+
+How To Convert PDF to Image Using Ghostscript API [PdfToImage,PDFConvert] - The Code Project Open License (CPOL) 1.02:
+https://www.codeproject.com/info/cpol10.aspx
+http://www.codeproject.com/KB/cs/GhostScriptUseWithCSharp.aspx
+
+Saraff.Twain - GNU Lesser General Public License (LGPL):
+https://sarafftwain.codeplex.com/license
+https://sarafftwain.codeplex.com/
+
+DotNetZip - Zip and Unzip in C#, VB, any .NET language - Microsoft Public License (Ms-PL):
+http://dotnetzip.codeplex.com/license
+http://dotnetzip.codeplex.com/
+
+ZXing.Net - Apache License 2.0 (Apache):
+https://zxingnet.codeplex.com/license
+https://zxingnet.codeplex.com/
+
+FreeImage.NET - GNU General Public License, version 3 (GPL-3.0):
+https://freeimagenet.codeplex.com/license
+https://freeimagenet.codeplex.com/
+
+FDFToolkit.net(FDFApp.dll) 5.x - GNU AFFERO GENERAL PUBLIC LICENSE:
+http://www.mozilla.org/MPL/
+https://github.com/NKINC/fdftoolkit
+
+PDF2HTMLnet - Mozilla Public License Version 1.1 (MPL):
+http://www.mozilla.org/MPL/
+

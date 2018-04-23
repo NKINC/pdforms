@@ -1,0 +1,28 @@
+﻿SEARCH FOR COMMENTS:
+'[^''].*\n
+
+SEARCH FOR LINE BREAKS:
+\r\n\r\n
+REPLACE:
+\r\n
+
+// When document has finished loading
+// PdForms.net - An open source pdf form editor
+// Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+// PdForms.net utilizes iTextSharp technologies.
+// Email Contact: nick.kowalewicz [at] gmail.com
+// Website: www.pdforms.net,www.pdforms.com
+
+
+AcroRd32.exe <filename>
+The following switches are available:
+
+/n - Launch a new instance of Reader even if one is already open
+/s - Don't show the splash screen
+/o - Don't show the open file dialog
+/h - Open as a minimized window
+/p <filename> - Open and go straight to the print dialog
+/t <filename> <printername> <drivername> <portname> - Print the file the specified printer.
+
+/n /s /o /t <filename <printername>
+
