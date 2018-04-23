@@ -1,0 +1,10 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\bin\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\bin\Debug\FreeImageNET.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\obj\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\obj\Debug\FreeImageNET.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\bin\Debug\FreeImageNET.XML
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\bin\Debug\FreeImageNET.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\bin\Debug\FreeImageNET.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\obj\Debug\FreeImageNET.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Library\obj\Debug\FreeImageNET.pdb
