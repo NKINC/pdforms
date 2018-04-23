@@ -1,0 +1,11 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\Sample.jpg
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\Sample08.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\Sample08.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\FreeImageNET.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\bin\Debug\FreeImageNET.xml
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\obj\Debug\Sample08.SampleForm.resources
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\obj\Debug\Sample 08 - Creating a plugin.csproj.GenerateResource.Cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\obj\Debug\Sample08.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 08 - Creating a plugin\obj\Debug\Sample08.pdb

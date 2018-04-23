@@ -1,0 +1,10 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\bin\Debug\Sample10.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\bin\Debug\Sample10.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\bin\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\bin\Debug\FreeImageNET.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\bin\Debug\FreeImageNET.xml
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\obj\Debug\Sample10.MainForm.resources
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\obj\Debug\Sample 10 - Metadata.csproj.GenerateResource.Cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\obj\Debug\Sample10.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 10 - Metadata\obj\Debug\Sample10.pdb
