@@ -1,0 +1,10 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\Sample.jpg
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\Sample.tif
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\Sample05.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\Sample05.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\FreeImageNET.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\bin\Debug\FreeImageNET.xml
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\obj\Debug\Sample05.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 05 - Working with pixels\obj\Debug\Sample05.pdb

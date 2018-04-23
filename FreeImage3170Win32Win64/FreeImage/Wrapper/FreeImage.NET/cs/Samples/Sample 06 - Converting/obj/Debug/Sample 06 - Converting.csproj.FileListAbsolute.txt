@@ -1,0 +1,11 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\Sample.jpg
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\Sample06.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\Sample06.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\FreeImageNET.dll
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\FreeImageNET.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\bin\Debug\FreeImageNET.xml
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\obj\Debug\Sample06.MainForm.resources
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\obj\Debug\Sample 06 - Converting.csproj.GenerateResource.Cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\obj\Debug\Sample06.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\Samples\Sample 06 - Converting\obj\Debug\Sample06.pdb
