@@ -1,0 +1,6 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Debug\FreeImage.cs.template
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Debug\sourcefilemerger.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Debug\sourcefilemerger.pdb
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Debug\sourcefilemerger.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Debug\sourcefilemerger.pdb

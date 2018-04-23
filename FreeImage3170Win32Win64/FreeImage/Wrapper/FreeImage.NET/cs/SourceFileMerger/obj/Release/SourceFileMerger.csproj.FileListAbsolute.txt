@@ -1,0 +1,8 @@
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Release\FreeImage.cs.template
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Release\sourcefilemerger.exe
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Release\ResolveAssemblyReference.cache
+C:\Users\NICK\Downloads\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Release\sourcefilemerger.exe
+F:\Data\PROGRAMMING\VS.Net\2018\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Release\FreeImage.cs.template
+F:\Data\PROGRAMMING\VS.Net\2018\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\bin\Release\sourcefilemerger.exe
+F:\Data\PROGRAMMING\VS.Net\2018\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Release\SourceFileMerger.csprojResolveAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2018\PDForms.net\FreeImage3170Win32Win64\FreeImage\Wrapper\FreeImage.NET\cs\SourceFileMerger\obj\Release\sourcefilemerger.exe
