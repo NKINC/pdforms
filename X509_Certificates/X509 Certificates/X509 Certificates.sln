@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "X509 Certificates", "X509 Certificates.vbproj", "{535AE379-5097-4676-A04E-C56C9FA7734D}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{535AE379-5097-4676-A04E-C56C9FA7734D}.Debug.ActiveCfg = Debug|.NET
+		{535AE379-5097-4676-A04E-C56C9FA7734D}.Debug.Build.0 = Debug|.NET
+		{535AE379-5097-4676-A04E-C56C9FA7734D}.Release.ActiveCfg = Release|.NET
+		{535AE379-5097-4676-A04E-C56C9FA7734D}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
