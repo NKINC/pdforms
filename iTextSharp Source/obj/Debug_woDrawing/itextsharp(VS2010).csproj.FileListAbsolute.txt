@@ -1,0 +1,5 @@
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug_woDrawing\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug_woDrawing\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug_woDrawing\iTextSharp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\obj\Debug_woDrawing\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\obj\Debug_woDrawing\itextsharp.pdb

@@ -1,0 +1,14 @@
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\bin\Debug\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\bin\Debug\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\bin\Debug\iTextSharp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\bin\Debug\System.Drawing.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\obj\Debug\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\obj\Debug\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\iTextSharp Source\obj\Debug\itextsharp(VS2010).csprojResolveAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug\itextsharp.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug\iTextSharp.xml
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\bin\Debug\System.Drawing.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\obj\Debug\itextsharp(VS2010).csprojResolveAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\obj\Debug\itextsharp.dll
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\iTextSharp Source\obj\Debug\itextsharp.pdb
