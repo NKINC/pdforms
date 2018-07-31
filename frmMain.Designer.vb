@@ -513,6 +513,7 @@ Partial Class frmMain
         Me.ToolStripSeparator14 = New System.Windows.Forms.ToolStripSeparator()
         Me.OpenContainingFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenApplicationFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripMenuItemLicense = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator10 = New System.Windows.Forms.ToolStripSeparator()
         Me.UnlockDocumentSecurityToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ThisDocumentToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
@@ -690,7 +691,7 @@ Partial Class frmMain
         Me.CopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CancelCopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FieldPropertiesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ToolStripMenuItemLicense = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ComboBox4 = New System.Windows.Forms.ComboBox()
         Me.PDFEdit_Options_Textboxes.SuspendLayout()
         Me.PDFEdit_Options_SubmitButtons.SuspendLayout()
         Me.grpBoxPuchButton_IconAndLabel.SuspendLayout()
@@ -984,7 +985,7 @@ Partial Class frmMain
         'btnField_AddTextField
         '
         Me.btnField_AddTextField.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddTextField.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddTextField.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddTextField.Name = "btnField_AddTextField"
         Me.btnField_AddTextField.Size = New System.Drawing.Size(168, 41)
         Me.btnField_AddTextField.TabIndex = 176
@@ -1450,7 +1451,7 @@ Partial Class frmMain
         'btnField_AddButton
         '
         Me.btnField_AddButton.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddButton.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddButton.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddButton.Name = "btnField_AddButton"
         Me.btnField_AddButton.Size = New System.Drawing.Size(168, 40)
         Me.btnField_AddButton.TabIndex = 293
@@ -1463,7 +1464,7 @@ Partial Class frmMain
         Me.lblFieldType.FlatStyle = System.Windows.Forms.FlatStyle.System
         Me.lblFieldType.Font = New System.Drawing.Font("Microsoft Sans Serif", 18.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lblFieldType.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.lblFieldType.Location = New System.Drawing.Point(8, 75)
+        Me.lblFieldType.Location = New System.Drawing.Point(8, 122)
         Me.lblFieldType.Margin = New System.Windows.Forms.Padding(0)
         Me.lblFieldType.Name = "lblFieldType"
         Me.lblFieldType.Size = New System.Drawing.Size(436, 32)
@@ -1474,7 +1475,7 @@ Partial Class frmMain
         'btnField_AddListBox
         '
         Me.btnField_AddListBox.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddListBox.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddListBox.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddListBox.Name = "btnField_AddListBox"
         Me.btnField_AddListBox.Size = New System.Drawing.Size(168, 40)
         Me.btnField_AddListBox.TabIndex = 464
@@ -1828,7 +1829,7 @@ Partial Class frmMain
         'btnField_AddRadioButton
         '
         Me.btnField_AddRadioButton.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddRadioButton.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddRadioButton.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddRadioButton.Name = "btnField_AddRadioButton"
         Me.btnField_AddRadioButton.Size = New System.Drawing.Size(168, 40)
         Me.btnField_AddRadioButton.TabIndex = 842
@@ -1921,6 +1922,7 @@ Partial Class frmMain
         Me.pnlFields.AllowDrop = True
         Me.pnlFields.BackColor = System.Drawing.Color.White
         Me.pnlFields.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.pnlFields.Controls.Add(Me.ComboBox4)
         Me.pnlFields.Controls.Add(Me.ComboBox3)
         Me.pnlFields.Controls.Add(Me.ComboBox2)
         Me.pnlFields.Controls.Add(Me.chkLockPnlFields)
@@ -1939,7 +1941,7 @@ Partial Class frmMain
         Me.pnlFields.ForeColor = System.Drawing.Color.Black
         Me.pnlFields.Location = New System.Drawing.Point(575, 8)
         Me.pnlFields.Name = "pnlFields"
-        Me.pnlFields.Size = New System.Drawing.Size(451, 527)
+        Me.pnlFields.Size = New System.Drawing.Size(451, 576)
         Me.pnlFields.TabIndex = 186
         Me.pnlFields.Visible = False
         '
@@ -1949,7 +1951,7 @@ Partial Class frmMain
         Me.ComboBox3.ForeColor = System.Drawing.SystemColors.ControlText
         Me.ComboBox3.FormattingEnabled = True
         Me.ComboBox3.ItemHeight = 24
-        Me.ComboBox3.Location = New System.Drawing.Point(377, 46)
+        Me.ComboBox3.Location = New System.Drawing.Point(377, 93)
         Me.ComboBox3.Name = "ComboBox3"
         Me.ComboBox3.Size = New System.Drawing.Size(67, 32)
         Me.ComboBox3.TabIndex = 936
@@ -1961,7 +1963,7 @@ Partial Class frmMain
         Me.ComboBox2.ForeColor = System.Drawing.SystemColors.ControlText
         Me.ComboBox2.FormattingEnabled = True
         Me.ComboBox2.ItemHeight = 24
-        Me.ComboBox2.Location = New System.Drawing.Point(8, 46)
+        Me.ComboBox2.Location = New System.Drawing.Point(8, 93)
         Me.ComboBox2.Name = "ComboBox2"
         Me.ComboBox2.Size = New System.Drawing.Size(363, 32)
         Me.ComboBox2.TabIndex = 935
@@ -1981,7 +1983,7 @@ Partial Class frmMain
         '
         'btnRemoveField
         '
-        Me.btnRemoveField.Location = New System.Drawing.Point(200, 477)
+        Me.btnRemoveField.Location = New System.Drawing.Point(200, 524)
         Me.btnRemoveField.Name = "btnRemoveField"
         Me.btnRemoveField.Size = New System.Drawing.Size(112, 40)
         Me.btnRemoveField.TabIndex = 930
@@ -1990,7 +1992,7 @@ Partial Class frmMain
         '
         'btnCloseProperties
         '
-        Me.btnCloseProperties.Location = New System.Drawing.Point(328, 477)
+        Me.btnCloseProperties.Location = New System.Drawing.Point(328, 524)
         Me.btnCloseProperties.Name = "btnCloseProperties"
         Me.btnCloseProperties.Size = New System.Drawing.Size(112, 40)
         Me.btnCloseProperties.TabIndex = 929
@@ -2004,9 +2006,9 @@ Partial Class frmMain
         Me.ComboBox1.FormattingEnabled = True
         Me.ComboBox1.ItemHeight = 24
         Me.ComboBox1.Items.AddRange(New Object() {"Button", "Textbox", "ComboBox", "ListBox", "RadioButton", "CheckBox", "Signature", "Data"})
-        Me.ComboBox1.Location = New System.Drawing.Point(8, 8)
+        Me.ComboBox1.Location = New System.Drawing.Point(8, 55)
         Me.ComboBox1.Name = "ComboBox1"
-        Me.ComboBox1.Size = New System.Drawing.Size(408, 32)
+        Me.ComboBox1.Size = New System.Drawing.Size(436, 32)
         Me.ComboBox1.TabIndex = 0
         '
         'TabControl1
@@ -2024,7 +2026,7 @@ Partial Class frmMain
         Me.TabControl1.Controls.Add(Me.TabPage12)
         Me.TabControl1.Controls.Add(Me.TabPage13)
         Me.TabControl1.Controls.Add(Me.TabPage3)
-        Me.TabControl1.Location = New System.Drawing.Point(-1, 110)
+        Me.TabControl1.Location = New System.Drawing.Point(-1, 157)
         Me.TabControl1.Name = "TabControl1"
         Me.TabControl1.SelectedIndex = 0
         Me.TabControl1.Size = New System.Drawing.Size(449, 345)
@@ -4903,7 +4905,7 @@ Partial Class frmMain
         'btnField_AddSignatureField
         '
         Me.btnField_AddSignatureField.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddSignatureField.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddSignatureField.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddSignatureField.Name = "btnField_AddSignatureField"
         Me.btnField_AddSignatureField.Size = New System.Drawing.Size(168, 40)
         Me.btnField_AddSignatureField.TabIndex = 933
@@ -4913,7 +4915,7 @@ Partial Class frmMain
         'btnField_AddCombobox
         '
         Me.btnField_AddCombobox.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddCombobox.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddCombobox.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddCombobox.Name = "btnField_AddCombobox"
         Me.btnField_AddCombobox.Size = New System.Drawing.Size(168, 41)
         Me.btnField_AddCombobox.TabIndex = 931
@@ -4923,7 +4925,7 @@ Partial Class frmMain
         'btnField_AddCheckBox
         '
         Me.btnField_AddCheckBox.BackColor = System.Drawing.Color.Transparent
-        Me.btnField_AddCheckBox.Location = New System.Drawing.Point(8, 477)
+        Me.btnField_AddCheckBox.Location = New System.Drawing.Point(8, 524)
         Me.btnField_AddCheckBox.Name = "btnField_AddCheckBox"
         Me.btnField_AddCheckBox.Size = New System.Drawing.Size(168, 41)
         Me.btnField_AddCheckBox.TabIndex = 932
@@ -5278,7 +5280,7 @@ Partial Class frmMain
         Me.ContextMenuStrip1.Font = New System.Drawing.Font("Arial", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel)
         Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.ContextMenuStrip1.Name = "ContextMenuStrip1"
-        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 868)
+        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 846)
         '
         'PDFDocumentToolStripMenuItem
         '
@@ -5816,6 +5818,12 @@ Partial Class frmMain
         Me.OpenApplicationFolderToolStripMenuItem.Name = "OpenApplicationFolderToolStripMenuItem"
         Me.OpenApplicationFolderToolStripMenuItem.Size = New System.Drawing.Size(296, 22)
         Me.OpenApplicationFolderToolStripMenuItem.Text = "Open Application Folder"
+        '
+        'ToolStripMenuItemLicense
+        '
+        Me.ToolStripMenuItemLicense.Name = "ToolStripMenuItemLicense"
+        Me.ToolStripMenuItemLicense.Size = New System.Drawing.Size(296, 22)
+        Me.ToolStripMenuItemLicense.Text = "License Agreement"
         '
         'ToolStripSeparator10
         '
@@ -7349,11 +7357,16 @@ Partial Class frmMain
         Me.FieldPropertiesToolStripMenuItem.Size = New System.Drawing.Size(207, 22)
         Me.FieldPropertiesToolStripMenuItem.Text = "Field Properties"
         '
-        'ToolStripMenuItemLicense
+        'ComboBox4
         '
-        Me.ToolStripMenuItemLicense.Name = "ToolStripMenuItemLicense"
-        Me.ToolStripMenuItemLicense.Size = New System.Drawing.Size(296, 22)
-        Me.ToolStripMenuItemLicense.Text = "License Agreement"
+        Me.ComboBox4.Font = New System.Drawing.Font("Microsoft Sans Serif", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ComboBox4.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.ComboBox4.FormattingEnabled = True
+        Me.ComboBox4.ItemHeight = 24
+        Me.ComboBox4.Location = New System.Drawing.Point(8, 8)
+        Me.ComboBox4.Name = "ComboBox4"
+        Me.ComboBox4.Size = New System.Drawing.Size(410, 32)
+        Me.ComboBox4.TabIndex = 938
         '
         'frmMain
         '
@@ -8155,4 +8168,5 @@ Partial Class frmMain
     Friend WithEvents PrintDialogToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ScanPDFsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ToolStripMenuItemLicense As ToolStripMenuItem
+    Friend WithEvents ComboBox4 As ComboBox
 End Class

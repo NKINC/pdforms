@@ -146,6 +146,8 @@ Public Class frmMain
     Public ComboBoxSignatureAppearanceRenderMode As Integer
     Public pauseBtnTextChanged As Boolean
     Public sign_reason As String, sign_location As String, sign_lineColor As System.Drawing.Color, sign_AppearanceRenderModeIndex As Integer, sign_lineWidthIndex As Integer, sign_contact As String, sign_pfxPath As String, sign_pfxBytes() As Byte, sign_pfxPassword As String, sign_datetime As String, sign_creator As String
+    Public comboBox4Selected As Boolean = False
+
     Private _pdfURI As String
     Private _pdfData() As Byte
     Private _fdfData() As Byte
@@ -4383,6 +4385,54 @@ CloseUp:
         End Try
         Return False
     End Function
+    Public Sub A0_LoadAllFieldsOnPageCombo(selName As String)
+        'Dim cmbselTemp = comboBox4Selected
+        Dim selIdx As Integer = -1
+        Try
+            selIdx = ComboBox4.SelectedIndex
+            Dim fldsCombo As New List(Of String)
+            fldsCombo.Add("Select a field")
+            fldsCombo.AddRange(GetAllFieldsOnPage(pdfReaderDoc.Clone, CInt(btnPage.SelectedIndex + 1), False, True).ToArray())
+            Dim fldsComboTemp(ComboBox4.Items.Count - 1) As String
+            ComboBox4.Items.CopyTo(fldsComboTemp, 0)
+            If Not fldsComboTemp.Length = fldsCombo.Count Then
+                ComboBox4.Items.Clear()
+                ComboBox4.Items.AddRange(fldsCombo.ToArray())
+            Else
+                For i As Integer = 0 To fldsCombo.Count - 1
+                    If Not fldsComboTemp(i) = fldsCombo(i) Then
+                        '.Add(ComboBox4.Items(i))
+                        ComboBox4.Items.Clear()
+                        ComboBox4.Items.AddRange(fldsCombo.ToArray())
+                        Exit For
+                    End If
+                Next
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        Finally
+            If Not selName = "" Then
+                If ComboBox4.Items.Contains(selName) Then
+                    Dim pd = cUserRect.pauseDraw
+                    If Not ComboBox4.SelectedItem = selName Then
+                        cUserRect.pauseDraw = True
+                        ComboBox4.SelectedItem = selName
+                        cUserRect.pauseDraw = pd
+                    End If
+
+                End If
+            Else
+                Dim pd = cUserRect.pauseDraw
+                If Not ComboBox4.SelectedIndex = selIdx Then
+                    cUserRect.pauseDraw = True
+                    ComboBox4.SelectedIndex = selIdx
+                    cUserRect.pauseDraw = pd
+                End If
+            End If
+            'comboBox4Selected = cmbselTemp
+        End Try
+    End Sub
+
     Public Function A0_PDFFormField_Modify(ByVal b() As Byte, ByVal fldname As String, ByVal newFldName As String, ByVal textcolor As iTextSharp.text.BaseColor, ByVal bgcolor As iTextSharp.text.BaseColor, ByVal bordercolor As iTextSharp.text.BaseColor, ByVal newRectScreen As iTextSharp.text.Rectangle, Optional ByVal pageNumber As Integer = -1, Optional ByVal removeKidFieldIdx As Integer = -1, Optional calculateOrder As Boolean = False) As Byte()
         Dim newRect As iTextSharp.text.Rectangle = cUserRect.rectPDFReversed
         Dim rectTmp As System.Drawing.RectangleF = cUserRect.rect
@@ -4467,8 +4517,10 @@ CloseUp:
                     End If
                 Else
                 End If
+                Dim pd As Boolean = cUserRect.pauseDraw
                 cUserRect.pauseDraw = True
-                cUserRect.pauseDraw = False
+                A0_LoadAllFieldsOnPageCombo(fldNameHighlighted & "[" & fldKidIndex & "]")
+                cUserRect.pauseDraw = pd
             Catch exLoadProps As Exception
                 TimeStampAdd(exLoadProps, debugMode)
             End Try
@@ -29302,16 +29354,36 @@ GOTO_RETURN_NOTHING:
     End Sub
     Private Sub PictureBox1_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles A0_PictureBox2.MouseDown
         cUserRect.mIsClick = True
+        Try
+            If Not comboBox4Selected = True Then
+                'fldNameHighlighted = ""
+                scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
+            Else
+                'comboBox4Selected = False
+                '_clickPoints.Clear()
+                'cUserRect._highLightFieldName = fldNameHighlighted
+                '_clickPoints.Add(New PointF(btnLeft.Text, btnTop.Text))
+                '_clickPoints.Add(New PointF(btnRight.Text, btnBottom.Text))
+                '_dragging = True
+                'cUserRect.mIsClick = True
+                'scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
+                'Return
+            End If
+            'pnlFields.Visible = False
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
         If isDimensionsChecked() Then
             mMove = True
         End If
+        'fldRectangles = getFieldRectangles(True)
         cUserRect.nodeSelectedTmp = cUserRect.GetNodeSelectable(e.Location, 4)
         If cUserRect.nodeSelectedTmp = clsUserRect.PosSizableRect.Middle Then
             cUserRect.mIsClick = True
             mMove = True
             _dragging = True
             preventDragging = False
-            A0_PictureBox2.Cursor = Cursors.SizeAll
+            A0_PictureBox2.Cursor = Cursors.SizeAll ' cUserRect.GetCursor(cUserRect.nodeSelectedTmp)
             lockCursor = True
             If Not String.IsNullOrEmpty(fldNameHighlighted) And fldKidIndex >= 0 Then
                 If fldNameHighlightedCopy = fldNameHighlighted Then
@@ -29327,24 +29399,44 @@ GOTO_RETURN_NOTHING:
         Else
             A0_PictureBox2.Cursor = Cursors.Default
         End If
-        fldNameHighlightedCopy = ""
+        Try
+            If comboBox4Selected = True Then
+                comboBox4Selected = False
+                cUserRect._highLightFieldName = fldNameHighlighted
+                PDFField_Name.Text = fldNameHighlighted
+                PDFField_Index.Text = fldKidIndex
+                _clickPoints.Clear()
+                _clickPoints.Add(New PointF(cUserRect.rect.Left, cUserRect.rect.Bottom))
+                _clickPoints.Add(New PointF(cUserRect.rect.Right, cUserRect.rect.Top))
+                _dragging = True
+                cUserRect.mIsClick = True
+                scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
+                _dragging = False
+                preventDragging = False
+                cUserRect.moveResize = True
+                cUserRect.rectBackup = cUserRect.rect
+                cUserRect.rectOld = cUserRect.rectBackup
+                fldNameHighlightedCopy = fldNameHighlighted
+                Return
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        fldNameHighlightedCopy = "" 'fldNameHighlighted
         If Not PDFField_Copy.Checked Then
-            PDFField_Name.Text = ""
-            PDFField_TabOrder.Text = ""
-            PDFField_Index.Text = "-1"
-            fldKidIndex = -1
+            If Not comboBox4Selected = True Then
+                PDFField_Name.Text = ""
+                PDFField_TabOrder.Text = ""
+                PDFField_Index.Text = "-1"
+                fldKidIndex = -1
+            End If
         End If
         If Not Session Is Nothing Then
             If Session.Length <= 0 Then
                 GoTo GoTo_RETURN
             End If
         End If
-        Try
-            fldNameHighlighted = ""
-            scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
-        Catch ex As Exception
-            TimeStampAdd(ex, debugMode)
-        End Try
+
         If pnlFields.Top + pnlFields.Height > Me.Height Or pnlFields.Top <= 0 Then
             If Me.Width >= A0_PictureBox1.Width + 10 Then
                 Try
@@ -29380,9 +29472,9 @@ GOTO_RETURN_NOTHING:
         Dim blnHL As Boolean = False
         PDFField_Index.Text = "-1".ToString
         fldKidIndex = -1
-        If PDFField_Copy.Checked = False Then
+        If PDFField_Copy.Checked = False And Not comboBox4Selected = True Then
             If cUserRect.GetNodeSelectable(pt) <> clsUserRect.PosSizableRect.None And Not String.IsNullOrEmpty(cUserRect._highLightFieldName) Then
-                fldNameHighlighted = cUserRect._highLightFieldName & ""
+                fldNameHighlighted = cUserRect._highLightFieldName & "" 'r.ToString
                 If fldNameHighlighted = "" Then
                     fldKidIndex = -1
                 End If
@@ -29392,11 +29484,11 @@ GOTO_RETURN_NOTHING:
                 If Not rects Is Nothing Then
                     If rects.Count > 0 Then
                         For Each r As KeyValuePair(Of String, RectangleF) In rects.ToArray
-                            Dim rect As System.Drawing.RectangleF = r.Value
+                            Dim rect As System.Drawing.RectangleF = r.Value 'getFieldRectangles(True)(r)
                             Try
                                 If Not pt = Nothing Then
                                     If getRectangleScreen(rect).Contains(pt) Then
-                                        Dim strTempfldNameHighlighted = r.Key.ToString.Trim()
+                                        Dim strTempfldNameHighlighted = r.Key.ToString.Trim() 'getFieldRectangles(True)(r).ToString
                                         _clickPoints.Clear()
                                         _clickPoints.Add(e.Location)
                                         If strTempfldNameHighlighted.IndexOf("#") > 0 Then
@@ -29461,7 +29553,7 @@ GOTO_RETURN_NOTHING:
                                             End If
                                             If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
                                                 btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
-                                            ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then
+                                            ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
                                                 btnWidth.Text = _dimensionsList(4) + 0
                                                 If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
                                                     btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
@@ -29483,7 +29575,7 @@ GOTO_RETURN_NOTHING:
                                                 Else
                                                     btnHeight.Text = CSng(btnBottom.Text) - CSng(btnTop.Text)
                                                 End If
-                                            ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then
+                                            ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then 'And (Not PDFField_Dimensions_Paste_3_Top_ury.Checked Or Not PDFField_Dimensions_Paste_1_Bottom_lly.Checked) Then
                                                 btnHeight.Text = _dimensionsList(5) + 0
                                                 If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
                                                     If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
@@ -29518,7 +29610,7 @@ GOTO_RETURN_NOTHING:
                     End If
                 End If
             End If
-        ElseIf PDFField_Copy.Checked Then
+        ElseIf PDFField_Copy.Checked And Not comboBox4Selected = True Then
             fldNameHighlighted = fldNameHighlightedCopy
         End If
         If fldNameHighlighted = "" Then
@@ -29528,10 +29620,10 @@ GOTO_RETURN_NOTHING:
         Else
             PDFField_Index.Text = fldKidIndex.ToString & ""
         End If
-        If cUserRect.rectScreen.Contains(pt) Then
+        If cUserRect.rectScreen.Contains(pt) Then 'And Not fldNameHighlighted = ""
             blnHL = True
         End If
-        If blnHL = False Then
+        If blnHL = False And Not comboBox4Selected = True Then
             If Not String.IsNullOrEmpty(fldNameHighlightedCopy & "") And Not fldNameHighlighted = cUserRect._highLightFieldName Then
             End If
             If Not fldNameHighlighted = "" Then
@@ -29572,7 +29664,7 @@ GOTO_RETURN_NOTHING:
         Else
             cUserRect.mIsClick = True
         End If
-        If PDFField_Copy.Checked Or (fldNameHighlighted = "" And _clickPoints.Count >= 0 And cUserRect.GetNodeSelectable(e.Location) = clsUserRect.PosSizableRect.None) Then
+        If PDFField_Copy.Checked Or (fldNameHighlighted = "" And _clickPoints.Count >= 0 And cUserRect.GetNodeSelectable(e.Location) = clsUserRect.PosSizableRect.None) Then '_dragging = False Or 
             If Not cUserRect.rectScreen = Nothing Then
                 If cUserRect.rectScreen.Contains(pt) Or cUserRect.GetNodeSelectable(pt) <> clsUserRect.PosSizableRect.None Then
                     GoTo GoTo_RETURN
@@ -29591,6 +29683,7 @@ GoTo_RETURN:
             If pnlFields.Visible Then pnlFields.Visible = False
         End If
         cUserRect.mIsClick = True
+        comboBox4Selected = False
         Return
     End Sub
     Public Property isDragingImage() As Boolean
@@ -29712,6 +29805,11 @@ GoTo_RETURN:
     Public Sub PictureBox1_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles A0_PictureBox2.MouseUp
         Try
             lockCursor = False
+            If comboBox4Selected Then
+                fldNameHighlightedCopy = fldNameHighlighted
+                cUserRect.fldKidIndexPrevious = fldKidIndex
+            End If
+
             If _clickPoints.Count = 1 Then
                 _clickPoints.Add(e.Location)
             End If
@@ -29723,6 +29821,7 @@ GoTo_RETURN:
                         cUserRect.rect = Nothing
                         cUserRect.rectBackup = Nothing
                         cUserRect.rectOld = Nothing
+                        comboBox4Selected = False
                         Exit Sub
                     End If
                 End If
@@ -29734,11 +29833,20 @@ GoTo_RETURN:
             End If
             cUserRect.mPictureBox_MouseUp(sender, e)
             lockCursor = False
+
             If cUserRect.moveResize Then
                 A0_PDFFormField_LoadProperties(Session, fldNameHighlighted, CInt(page), fldKidIndex)
                 PnlFields_Position(True, True)
+                comboBox4Selected = False
                 Return
+            Else
+                If comboBox4Selected Then
+                    fldNameHighlightedCopy = fldNameHighlighted
+                    cUserRect.fldKidIndexPrevious = fldKidIndex
+                End If
             End If
+            comboBox4Selected = False
+
             If Not Session Is Nothing Then
                 If Session.Length <= 0 Then
                     If pnlFields.Visible Then pnlFields.Visible = False
@@ -29800,6 +29908,7 @@ GoTo_RETURN:
                     cUserRect._highLightFieldName = fldNameHighlighted
                 End If
                 If Not PDFField_Copy.Checked And fldKidIndex >= 0 Then
+
                     Select Case GetFormFieldType(Session("output"), fldNameHighlighted)
                         Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_PUSHBUTTON
                             ComboBox1.SelectedIndex = 0
@@ -29860,9 +29969,10 @@ GoTo_RETURN:
                             End Try
                         Case Else
                             If Not ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 Then
-                                ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1
+                                ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 ' = "Data"
                             End If
                     End Select
+
                 End If
             Else
                 If PDFField_Copy.Checked Then
@@ -29879,33 +29989,33 @@ RedoFieldName:
                 If PDFField_Copy.Checked And Not String.IsNullOrEmpty(fldNameHighlightedCopy & "") Then
                     fldName = fldNameHighlightedCopy
                     fldNameHighlighted = fldNameHighlightedCopy
-                    PDFField_Name.Text = fldNameHighlightedCopy
+                    PDFField_Name.Text = fldNameHighlightedCopy '"ButtonField_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                     GoTo STARTHERE
                 Else
                     Select Case ComboBox1.SelectedIndex
                         Case 0
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"ButtonField_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 1
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"TextField_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 2
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"ComboBox_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 3
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"ListBox_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 4
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"RadioButton_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 5
                             PDFField_Name.Text = fldName
                             PDFField_Name.Focus()
                         Case 6
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"ListBox_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case 7
-                            PDFField_Name.Text = fldName
+                            PDFField_Name.Text = fldName '"ListBox_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
                             PDFField_Name.Focus()
                         Case Else
                     End Select
@@ -29921,11 +30031,14 @@ RedoFieldName:
             End If
 STARTHERE:
             Try
+
                 Dim h As Single = getPDFHeight()
                 If cUserRect.mIsClick And _clickPoints.Count > 1 Or (_clickPoints.Count > 1 And cUserRect.rect = Nothing) Then
                     If cUserRect.rect = Nothing Then
                         cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
+                        'cUserRect.rect = GetFieldPositionsReverse2(Session(), cUserRect.rect)
                         A0_PDFFormField_LoadFieldWithRectF(cUserRect.rect, fldNameHighlighted & "", Nothing)
+                        'If Not pnlFields.Visible Then pnlFields.Show()
                         GoTo GOTORETURN
                     Else
                         If _clickPoints.Count > 1 Then
@@ -29958,6 +30071,7 @@ STARTHERE:
                             cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
                             cUserRect.rect = GetFieldPositionsReverse2(Session(), cUserRect.rect)
                             A0_PDFFormField_LoadFieldWithRectF(cUserRect.rect, fldNameHighlighted & "", Nothing)
+                            'If Not pnlFields.Visible Then pnlFields.Show()
                             GoTo GOTORETURN
                         End If
                     End If
@@ -29973,7 +30087,7 @@ STARTHERE:
                         End If
                         If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
                             btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
-                        ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then
+                        ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
                             btnWidth.Text = _dimensionsList(4) + 0
                             If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
                                 btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
@@ -29995,7 +30109,7 @@ STARTHERE:
                             Else
                                 btnHeight.Text = CSng(btnBottom.Text) - CSng(btnTop.Text)
                             End If
-                        ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then
+                        ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then 'And (Not PDFField_Dimensions_Paste_3_Top_ury.Checked Or Not PDFField_Dimensions_Paste_1_Bottom_lly.Checked) Then
                             btnHeight.Text = _dimensionsList(5) + 0
                             If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
                                 If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
@@ -30051,13 +30165,14 @@ STARTHERE:
                             TimeStampAdd(ex, debugMode)
                         End Try
                     Catch exDimensions As Exception
-                        TimeStampAdd(exDimensions, debugMode)
+                        TimeStampAdd(exDimensions, debugMode) ' NK 2016-06-30exDimensions Else Err.Clear() 'NK DM
                     End Try
                 Else
                     If fldKidIndex < 0 And (Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing) Then
                         fldKidIndex = getKidFieldIndexByRectanglePDF(cUserRect.rect, fldNameHighlighted)
                     End If
                     If fldKidIndex >= 0 And Not String.IsNullOrEmpty(fldNameHighlighted) Then
+                        'A0_PDFFormField_LoadProperties(Session, fldNameHighlighted, Nothing, fldKidIndex)
                     End If
                 End If
             Catch ex As Exception
@@ -30076,6 +30191,7 @@ STARTHERE:
 GOTORETURN:
             Try
                 If Not PictureBox1_Panel.Focused Then
+                    'PictureBox1_Panel.Focus()
                 End If
                 If scrollValue > 0 Then
                     PictureBox1_Panel.VerticalScroll.Value = scrollValue
@@ -30088,10 +30204,17 @@ GOTORETURN:
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
             End Try
+
+            Return
+        Catch exMain As Exception
+            TimeStampAdd(exMain, debugMode)
+        Finally
+            comboBox4Selected = False
             Try
                 If Not (cUserRect.rect) = Nothing Then
                     If cUserRect.rect.Width > 1 And cUserRect.rect.Height > 1 Then
                         PnlFields_Position(True, True)
+                        'If pnlFields.Visible = False Then pnlFields.Visible = True
                     Else
                         If pnlFields.Visible Then pnlFields.Visible = False
                         If fldNameHighlighted = "" Then
@@ -30119,13 +30242,10 @@ GOTORETURN:
                     If pnlFields.Visible Then pnlFields.Visible = False
                 End If
             Catch exPosition As Exception
-                TimeStampAdd(exPosition, debugMode)
+                TimeStampAdd(exPosition, debugMode) ' NK 2016-06-30exPosition Else Err.Clear() 'NK DM
             End Try
+
             mMove = False
-            Return
-        Catch exMain As Exception
-            TimeStampAdd(exMain, debugMode)
-        Finally
             Try
                 If e.Button = Windows.Forms.MouseButtons.Right Then
                     If Not String.IsNullOrEmpty(fldNameHighlighted & "") Then
@@ -30161,6 +30281,7 @@ GOTORETURN:
                 Else
                     fldNameHighlightedCopy = fldNameHighlighted & ""
                 End If
+
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
             End Try
@@ -30169,6 +30290,25 @@ GOTORETURN:
             Catch ex As Exception
                 Err.Clear()
             End Try
+            Try
+                Dim pd As Boolean = cUserRect.pauseDraw = True
+                If Not fldNameHighlighted = "" Then
+                    cUserRect.pauseDraw = True
+                    A0_LoadAllFieldsOnPageCombo(fldNameHighlighted & "[" & fldKidIndex & "]")
+                Else
+                    If cUserRect.mIsClick Then
+                        cUserRect.pauseDraw = False
+                    Else
+                        cUserRect.pauseDraw = True
+                    End If
+                    A0_LoadAllFieldsOnPageCombo("Select a field")
+                End If
+                cUserRect.pauseDraw = pd
+                comboBox4Selected = False
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+
         End Try
     End Sub
     Private Sub btnHighLite_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHighLite.Click
@@ -49227,6 +49367,257 @@ OPENFILE_KNOWN_FILENAME:
             Process.Start(appPath & "GNU General Public License v3.0.txt")
         Catch ex As Exception
             Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub ComboBox4_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox4.SelectedIndexChanged
+        Dim rects As Dictionary(Of String, RectangleF) = getFieldRectangles(True)
+        Dim pd As Boolean = cUserRect.pauseDraw
+        Try
+            If cUserRect.pauseDraw = False Then
+                If ComboBox4.SelectedIndex > 0 Then
+                    If ComboBox4.Items(ComboBox4.SelectedIndex).ToString().ToString().Contains("[") Then
+                        cUserRect.pauseDraw = False
+                        Dim selName() As String = ComboBox4.Items(ComboBox4.SelectedIndex).ToString().Split("["c)
+                        Dim selIdx As Integer = CInt(selName(1).Trim("["c).Trim("]"c))
+                        fldNameHighlighted = selName(0)
+                        fldNameHighlightedCopy = ""
+                        fldKidIndex = selIdx
+                        PDFField_Name.Text = fldNameHighlighted
+                        cUserRect._highLightFieldName = fldNameHighlighted
+                        'A0_PDFFormField_LoadProperties(Session, selName(0).Trim("["c).Trim("]"c), CInt(btnPage.SelectedIndex + 1), selIdx)
+                        If Not rects Is Nothing Then
+                            If rects.Count > 0 Then
+                                Select Case GetFormFieldType(Session("output"), fldNameHighlighted)
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_PUSHBUTTON
+                                        ComboBox1.SelectedIndex = 0
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_TEXT
+                                        ComboBox1.SelectedIndex = 1
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        PDFField_DefaultText.Text = cFDFDoc.XDPGetValue(fldNameHighlighted)
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_COMBO
+                                        ComboBox1.SelectedIndex = 2
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST
+                                        ComboBox1.SelectedIndex = 3
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_RADIOBUTTON
+                                        ComboBox1.SelectedIndex = 4
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_CHECKBOX
+                                        ComboBox1.SelectedIndex = 5
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_SIGNATURE
+                                        ComboBox1.SelectedIndex = 6
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        cUserRect._highLightFieldName = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case Else
+                                        If Not ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 Then
+                                            ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 ' = "Data"
+                                        End If
+                                End Select
+
+
+                            End If
+                        End If
+                    ElseIf ComboBox4.Items(ComboBox4.SelectedIndex).ToString().ToString().Contains(".") Then
+                        cUserRect.pauseDraw = False
+                        Dim selName() As String = ComboBox4.Items(ComboBox4.SelectedIndex).ToString().Split("."c)
+                        Dim selIdx As Integer = CInt(selName(1).Trim("."c))
+                        fldNameHighlighted = selName(0)
+                        fldNameHighlightedCopy = selName(0)
+                        fldKidIndex = selIdx
+                        PDFField_Name.Text = fldNameHighlighted
+                        cUserRect._highLightFieldName = fldNameHighlighted
+                        'A0_PDFFormField_LoadProperties(Session, selName(0).Trim("["c).Trim("]"c), CInt(btnPage.SelectedIndex + 1), selIdx)
+                        If Not rects Is Nothing Then
+                            If rects.Count > 0 Then
+
+                                Select Case GetFormFieldType(Session("output"), fldNameHighlighted)
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_PUSHBUTTON
+                                        ComboBox1.SelectedIndex = 0
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_TEXT
+                                        ComboBox1.SelectedIndex = 1
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        PDFField_DefaultText.Text = cFDFDoc.XDPGetValue(fldNameHighlighted)
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_COMBO
+                                        ComboBox1.SelectedIndex = 2
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST
+                                        ComboBox1.SelectedIndex = 3
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_RADIOBUTTON
+                                        ComboBox1.SelectedIndex = 4
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_CHECKBOX
+                                        ComboBox1.SelectedIndex = 5
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_SIGNATURE
+                                        ComboBox1.SelectedIndex = 6
+                                        PDFField_Name.Text = fldNameHighlighted
+                                        Try
+                                            A0_PDFFormField_LoadProperties(Session("output"), fldNameHighlighted, CInt(btnPage.SelectedIndex + 1), selIdx)
+                                        Catch ex As Exception
+                                            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Throw Ex  ' NK2 '
+                                        End Try
+                                    Case Else
+                                        If Not ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 Then
+                                            ComboBox1.SelectedIndex = ComboBox1.Items.Count - 1 ' = "Data"
+                                        End If
+                                End Select
+
+                            End If
+                        End If
+                    End If
+                Else
+                    cUserRect.pauseDraw = False
+                    Dim selName As String = ComboBox4.Items(ComboBox4.SelectedIndex).ToString()
+                    Dim selIdx As Integer = 0
+                    fldNameHighlighted = selName
+                    fldNameHighlightedCopy = selName
+                    fldKidIndex = selIdx
+                    cUserRect._highLightFieldName = fldNameHighlighted
+                    PDFField_Name.Text = fldNameHighlighted
+                    A0_PDFFormField_LoadProperties(Session, selName.Trim("["c).Trim("]"c), CInt(btnPage.SelectedIndex + 1), selIdx)
+                    'PnlFields_Position(True, True)
+                    'cUserRect.DrawPictureBoxImageBox()
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        Finally
+            cUserRect.pauseDraw = False
+
+            'Dim newRect As iTextSharp.text.Rectangle = cUserRect.rectPDFReversed 'New iTextSharp.text.Rectangle(cUserRect.rect.Left, getPDFHeight() - cUserRect.rect.Bottom, cUserRect.rect.Right, getPDFHeight() - cUserRect.rect.Top) 'getRectanglePDF(newRectScreen)
+            For Each r As KeyValuePair(Of String, RectangleF) In rects.ToArray
+                If r.Key.ToString() = fldNameHighlighted & "#" & fldKidIndex Then
+                    cUserRect.rect = r.Value
+                    cUserRect.rectBackup = r.Value
+                    cUserRect.rectOld = r.Value
+                    PnlFields_Position(True, True)
+                    cUserRect.DrawPictureBoxImageBox()
+                    Dim rectTmp As System.Drawing.RectangleF = cUserRect.rect
+                    btnWidth.Text = rectTmp.Width
+                    btnHeight.Text = rectTmp.Height
+                    btnLeft.Text = rectTmp.Left
+                    btnRight.Text = rectTmp.Right
+                    btnTop.Text = rectTmp.Top
+                    btnBottom.Text = rectTmp.Bottom
+                    comboBox4Selected = True
+                    Exit For
+                ElseIf r.Key.ToString() = fldNameHighlighted & "." & fldKidIndex Then
+                    cUserRect.rect = r.Value
+                    cUserRect.rectBackup = r.Value
+                    cUserRect.rectOld = r.Value
+                    PnlFields_Position(True, True)
+                    cUserRect.DrawPictureBoxImageBox()
+
+                    Dim rectTmp As System.Drawing.RectangleF = cUserRect.rect
+                    btnWidth.Text = rectTmp.Width
+                    btnHeight.Text = rectTmp.Height
+                    btnLeft.Text = rectTmp.Left
+                    btnRight.Text = rectTmp.Right
+                    btnTop.Text = rectTmp.Top
+                    btnBottom.Text = rectTmp.Bottom
+                    comboBox4Selected = True
+                    Exit For
+                ElseIf r.Key.ToString() = ComboBox4.Items(ComboBox4.SelectedIndex).ToString() Then
+                    cUserRect.rect = r.Value
+                    cUserRect.rectBackup = r.Value
+                    cUserRect.rectOld = r.Value
+                    PnlFields_Position(True, True)
+                    cUserRect.DrawPictureBoxImageBox()
+                    Dim rectTmp As System.Drawing.RectangleF = cUserRect.rect
+                    btnWidth.Text = rectTmp.Width
+                    btnHeight.Text = rectTmp.Height
+                    btnLeft.Text = rectTmp.Left
+                    btnRight.Text = rectTmp.Right
+                    btnTop.Text = rectTmp.Top
+                    btnBottom.Text = rectTmp.Bottom
+                    comboBox4Selected = True
+                    Exit For
+                End If
+            Next
+            cUserRect.pauseDraw = False
         End Try
     End Sub
 
