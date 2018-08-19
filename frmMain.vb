@@ -33107,9 +33107,31 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
     Private Sub Form1_MaximumSizeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.MaximumSizeChanged
     End Sub
-    Private Sub Form1_Resize(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Resize
+    Public Sub clearImageCacheHistory()
+        Try
+            For i As Integer = 0 To mem.Count - 1
+                Try
+                    If mem.Keys(i).ToString.ToLower().StartsWith("image_cache_history_".ToLower()) Then
+                        mem.Remove(mem.Keys(i))
+                    End If
+                Catch ex2 As Exception
+                    Err.Clear()
+                End Try
+            Next
+        Catch ex As Exception
+            Err.Clear()
+        End Try
     End Sub
-    Private Sub Form1_ResizeEnd(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.ResizeEnd
+    Private Sub Form1_Resize(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Resize
+
+    End Sub
+
+    Private Sub Form1_ResizeEnd(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.ResizeEnd
+        Try
+            clearImageCacheHistory()
+        Catch ex As Exception
+            Err.Clear()
+        End Try
         ResizePictureBox1()
     End Sub
     Public Sub ResizePictureBox1()
@@ -35992,6 +36014,7 @@ GOTO_ENDSELECT:
         If Session Is Nothing Then Return
         If Session.Length <= 0 Then Return
         Try
+            clearImageCacheHistory()
             PictureBox1_Panel.Focus()
             tmpPercent = Nothing
             tmpPercent = getPercent()
@@ -45385,6 +45408,62 @@ goto_LinksStart:
                             DrawImageFieldPositions()
                             Return
                         End If
+                        Dim linkPopup As clsLinks.Link = Nothing
+                        linkPopup = cLinks.LinkClickedPopupLink(CInt(pageIndex), e.Location)
+                        If Not linkPopup.Link_Rect = Nothing Then
+                            Dim StickNote_PopupRect As System.Drawing.RectangleF = linkPopup.Link_StickNote_PopupLinkRect
+                            If Not StickNote_PopupRect = Nothing Then
+                                Dim strPopupText As String = linkPopup.Link_Text
+                                Dim dlg As New dialogPopup()
+                                dlg.setPopupText(strPopupText & "")
+                                dlg.Text = "Popup Annotation:"
+                                dlg.chkOpened.Checked = linkPopup.Link_StickNote_Open
+                                Select Case dlg.ShowDialog(Me)
+                                    Case DialogResult.OK 'save popup text
+                                        Dim reader As PdfReader = pdfReaderDoc.Clone
+                                        Dim pg As PdfDictionary = reader.GetPageN(CInt(btnPage.SelectedIndex + 1))
+                                        Dim annots As PdfArray = pg.GetAsArray(PdfName.ANNOTS)
+                                        Dim stickyLink As PdfDictionary = annots.GetAsDict(linkPopup.Link_AnnotationIndex)
+                                        stickyLink.Put(PdfName.OPEN, New PdfBoolean(dlg.chkOpened.Checked))
+                                        'Dim stickyRect As PdfArray = linkPopup 'sticky.GetAsArray(PdfName.RECT)
+                                        'dim stickyRectangle As PdfRectangle = New PdfRectangle(stickyRect.GetAsNumber(0).FloatValue() - 120, stickyRect.GetAsNumber(1).FloatValue() - 70,stickyRect.GetAsNumber(2).FloatValue(), stickyRect.GetAsNumber(3).FloatValue() - 30)
+                                        'sticky.Put(PdfName.RECT, stickyRectangle)
+                                        'Dim stickyPopup As PdfDictionary = stickyLink.GetAsDict(PdfName.PARENT) 'linkPopup.Link_StickyNoteDict '
+                                        'Dim stickyPopup As PdfDictionary = stickyLink.GetAsDict(PdfName.PARENT) 'linkPopup.Link_StickyNoteDict '
+                                        Dim stickyPopup As PdfDictionary = Nothing ' annots.GetAsDict(linkPopup.Link_AnnotationIndex + 1) 'pdfReaderDoc.GetPdfObject(linkPopup.Link_StickyNotePopupIndirectRef.Number)
+                                        stickyPopup = stickyLink.GetAsDict(PdfName.PARENT)
+                                        Dim annoIdx As Integer = -1
+                                        For annoIdx = 0 To annots.Size - 1
+                                            If annots(annoIdx).IsIndirect Then
+                                                If annots.GetAsIndirectObject(annoIdx).Number = stickyLink.GetAsIndirectObject(PdfName.PARENT).Number Then
+                                                    stickyPopup = annots.GetAsDict(annoIdx)
+                                                    Exit For
+                                                End If
+                                            End If
+                                        Next
+                                        'Dim popupRect As PdfArray = popup.GetAsArray(PdfName.RECT)
+                                        'Dim popupRectangle As PdfRectangle = New PdfRectangle(popupRect.GetAsNumber(0).FloatValue() - 250, popupRect.GetAsNumber(1).FloatValue(), popupRect.GetAsNumber(2).FloatValue(), popupRect.GetAsNumber(3).FloatValue() - 250)
+                                        'popup.Put(PdfName.RECT, popupRectangle)
+                                        If Not stickyPopup Is Nothing Then
+                                            Dim contentsRcXhtml As String = "<?xml version=""1.0""?><body xmlns=""http://www.w3.org/1999/xhtml"" xmlns:xfa=""http://www.xfa.org/schema/xfa-data/1.0/"" xfa:APIVersion=""Acrobat:8.0.0"" xfa:spec=""2.0.2"" ><p dir=""ltr""><span dir=""ltr"" style=""font-size:10.0pt;text-align:left;color:#000000;font-weight:normal;font-style:normal"">" & dlg.txtPopupText.Text & "</span></p></body>" '.Replace(Environment.NewLine, "&#13;")
+                                            stickyPopup.Put(PdfName.RC, New PdfString(contentsRcXhtml, PdfObject.TEXT_UNICODE))
+                                            'Dim contents As String = System.Text.Encoding.Unicode.GetString(System.Text.Encoding.UTF8.GetBytes(dlg.txtPopupText.Text))
+                                            Dim contents As String = dlg.txtPopupText.Text & ""
+                                            stickyPopup.Put(PdfName.CONTENTS, New PdfString(contents, PdfObject.TEXT_UNICODE))
+                                        End If
+                                        Dim m As New MemoryStream
+                                        Dim stamper As PdfStamper = getStamper(reader, m)
+                                        stamper.Writer.CloseStream = False
+                                        stamper.Close()
+                                        Session = m.ToArray
+                                        A0_LoadPDF()
+                                    Case Else
+
+                                End Select
+                                Return
+                            End If
+                        End If
+
                         Dim strDestUri As String = cLinks.LinkClickedDestinationUriString(CInt(pageIndex), e.Location) & ""
                         Dim lnk As clsLinks.Link = Nothing
                         If Not String.IsNullOrEmpty(strDestUri & "") Then

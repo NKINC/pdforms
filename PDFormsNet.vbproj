@@ -198,6 +198,12 @@
     <Compile Include="dialogMultChoiceDropdown.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="dialogPopup.Designer.vb">
+      <DependentUpon>dialogPopup.vb</DependentUpon>
+    </Compile>
+    <Compile Include="dialogPopup.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="dialogPrint.Designer.vb">
       <DependentUpon>dialogPrint.vb</DependentUpon>
     </Compile>
@@ -392,6 +398,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="dialogMultChoiceDropdown.resx">
       <DependentUpon>dialogMultChoiceDropdown.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="dialogPopup.resx">
+      <DependentUpon>dialogPopup.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="dialogPrint.resx">
       <DependentUpon>dialogPrint.vb</DependentUpon>

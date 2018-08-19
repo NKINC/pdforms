@@ -25,7 +25,6 @@ Partial Class dialogBruteForcePassword
         Me.TableLayoutPanel1 = New System.Windows.Forms.TableLayoutPanel()
         Me.OK_Button = New System.Windows.Forms.Button()
         Me.Cancel_Button = New System.Windows.Forms.Button()
-        Me.Button1 = New System.Windows.Forms.Button()
         Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.CheckBox2 = New System.Windows.Forms.CheckBox()
         Me.CheckBox3 = New System.Windows.Forms.CheckBox()
@@ -40,7 +39,7 @@ Partial Class dialogBruteForcePassword
         Me.CheckBox6 = New System.Windows.Forms.CheckBox()
         Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
         Me.ProgressBar2 = New System.Windows.Forms.ProgressBar()
-        Me.CheckBox7 = New System.Windows.Forms.CheckBox()
+        Me.TextBox3 = New System.Windows.Forms.TextBox()
         Me.TableLayoutPanel1.SuspendLayout()
         CType(Me.TrackBar1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -48,14 +47,12 @@ Partial Class dialogBruteForcePassword
         'TableLayoutPanel1
         '
         Me.TableLayoutPanel1.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.TableLayoutPanel1.ColumnCount = 3
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 68.33334!))
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 31.66667!))
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 74.0!))
+        Me.TableLayoutPanel1.ColumnCount = 2
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 68.89764!))
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 31.10236!))
         Me.TableLayoutPanel1.Controls.Add(Me.OK_Button, 0, 0)
-        Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 2, 0)
-        Me.TableLayoutPanel1.Controls.Add(Me.Button1, 1, 0)
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(12, 283)
+        Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 1, 0)
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(12, 248)
         Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
         Me.TableLayoutPanel1.RowCount = 1
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
@@ -67,7 +64,7 @@ Partial Class dialogBruteForcePassword
         Me.OK_Button.Anchor = System.Windows.Forms.AnchorStyles.None
         Me.OK_Button.Location = New System.Drawing.Point(3, 3)
         Me.OK_Button.Name = "OK_Button"
-        Me.OK_Button.Size = New System.Drawing.Size(127, 39)
+        Me.OK_Button.Size = New System.Drawing.Size(180, 39)
         Me.OK_Button.TabIndex = 0
         Me.OK_Button.Text = "CRACK PASSWORD"
         '
@@ -75,21 +72,11 @@ Partial Class dialogBruteForcePassword
         '
         Me.Cancel_Button.Anchor = System.Windows.Forms.AnchorStyles.None
         Me.Cancel_Button.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.Cancel_Button.Location = New System.Drawing.Point(199, 3)
+        Me.Cancel_Button.Location = New System.Drawing.Point(192, 3)
         Me.Cancel_Button.Name = "Cancel_Button"
-        Me.Cancel_Button.Size = New System.Drawing.Size(66, 39)
+        Me.Cancel_Button.Size = New System.Drawing.Size(71, 39)
         Me.Cancel_Button.TabIndex = 1
         Me.Cancel_Button.Text = "Cancel"
-        '
-        'Button1
-        '
-        Me.Button1.Enabled = False
-        Me.Button1.Location = New System.Drawing.Point(136, 3)
-        Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(56, 39)
-        Me.Button1.TabIndex = 2
-        Me.Button1.Text = "STOP"
-        Me.Button1.UseVisualStyleBackColor = True
         '
         'CheckBox1
         '
@@ -183,6 +170,7 @@ Partial Class dialogBruteForcePassword
         '
         Me.TextBox1.Location = New System.Drawing.Point(113, 93)
         Me.TextBox1.Name = "TextBox1"
+        Me.TextBox1.ReadOnly = True
         Me.TextBox1.Size = New System.Drawing.Size(163, 20)
         Me.TextBox1.TabIndex = 9
         '
@@ -197,12 +185,11 @@ Partial Class dialogBruteForcePassword
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Cursor = System.Windows.Forms.Cursors.Hand
         Me.Label3.Location = New System.Drawing.Point(108, 120)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(146, 13)
+        Me.Label3.Size = New System.Drawing.Size(48, 13)
         Me.Label3.TabIndex = 10
-        Me.Label3.Text = "FOUND: double-click to copy"
+        Me.Label3.Text = "FOUND:"
         Me.Label3.Visible = False
         '
         'CheckBox6
@@ -212,36 +199,33 @@ Partial Class dialogBruteForcePassword
         Me.CheckBox6.CheckState = System.Windows.Forms.CheckState.Checked
         Me.CheckBox6.Location = New System.Drawing.Point(111, 162)
         Me.CheckBox6.Name = "CheckBox6"
-        Me.CheckBox6.Size = New System.Drawing.Size(79, 17)
+        Me.CheckBox6.Size = New System.Drawing.Size(167, 17)
         Me.CheckBox6.TabIndex = 12
-        Me.CheckBox6.Text = "try trim start"
+        Me.CheckBox6.Text = "trim only (faster/less accurate)"
         Me.CheckBox6.UseVisualStyleBackColor = True
         '
         'ProgressBar1
         '
-        Me.ProgressBar1.Location = New System.Drawing.Point(15, 223)
+        Me.ProgressBar1.Location = New System.Drawing.Point(15, 191)
         Me.ProgressBar1.Name = "ProgressBar1"
         Me.ProgressBar1.Size = New System.Drawing.Size(261, 23)
         Me.ProgressBar1.TabIndex = 13
         '
         'ProgressBar2
         '
-        Me.ProgressBar2.Location = New System.Drawing.Point(15, 252)
+        Me.ProgressBar2.Location = New System.Drawing.Point(15, 220)
         Me.ProgressBar2.Name = "ProgressBar2"
         Me.ProgressBar2.Size = New System.Drawing.Size(261, 23)
         Me.ProgressBar2.TabIndex = 14
+        Me.ProgressBar2.Visible = False
         '
-        'CheckBox7
+        'TextBox3
         '
-        Me.CheckBox7.AutoSize = True
-        Me.CheckBox7.Checked = True
-        Me.CheckBox7.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.CheckBox7.Location = New System.Drawing.Point(12, 191)
-        Me.CheckBox7.Name = "CheckBox7"
-        Me.CheckBox7.Size = New System.Drawing.Size(55, 17)
-        Me.CheckBox7.TabIndex = 15
-        Me.CheckBox7.Text = "space"
-        Me.CheckBox7.UseVisualStyleBackColor = True
+        Me.TextBox3.Location = New System.Drawing.Point(113, 93)
+        Me.TextBox3.Name = "TextBox3"
+        Me.TextBox3.ReadOnly = True
+        Me.TextBox3.Size = New System.Drawing.Size(163, 20)
+        Me.TextBox3.TabIndex = 15
         '
         'dialogBruteForcePassword
         '
@@ -249,14 +233,12 @@ Partial Class dialogBruteForcePassword
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.Cancel_Button
-        Me.ClientSize = New System.Drawing.Size(294, 340)
-        Me.Controls.Add(Me.CheckBox7)
+        Me.ClientSize = New System.Drawing.Size(294, 305)
         Me.Controls.Add(Me.ProgressBar2)
         Me.Controls.Add(Me.ProgressBar1)
         Me.Controls.Add(Me.CheckBox6)
         Me.Controls.Add(Me.TextBox2)
         Me.Controls.Add(Me.Label3)
-        Me.Controls.Add(Me.TextBox1)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.CheckBox5)
         Me.Controls.Add(Me.TrackBar1)
@@ -266,9 +248,12 @@ Partial Class dialogBruteForcePassword
         Me.Controls.Add(Me.CheckBox2)
         Me.Controls.Add(Me.CheckBox1)
         Me.Controls.Add(Me.TableLayoutPanel1)
+        Me.Controls.Add(Me.TextBox3)
+        Me.Controls.Add(Me.TextBox1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.Name = "dialogBruteForcePassword"
+        Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Text = "Brute-Force password detection:"
         Me.TableLayoutPanel1.ResumeLayout(False)
@@ -294,6 +279,5 @@ Partial Class dialogBruteForcePassword
     Friend WithEvents CheckBox6 As CheckBox
     Friend WithEvents ProgressBar1 As ProgressBar
     Friend WithEvents ProgressBar2 As ProgressBar
-    Friend WithEvents CheckBox7 As CheckBox
-    Friend WithEvents Button1 As Button
+    Friend WithEvents TextBox3 As TextBox
 End Class
