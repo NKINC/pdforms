@@ -2,10 +2,11 @@ Imports System.Collections.Generic
 Imports iTextSharp.text.pdf
 Public Class clsLinks
     ''' <summary>
-    ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+    ''' PdForms.net- Created by Nicholas Kowalewicz (www.PdForms.net)
+    ''' Copyright 2017 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
-    ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
+    ''' Email Contact: support@nk-inc.ccom
+    ''' Website: www.pdforms.net
     ''' </summary>
 
     Public Structure Link
@@ -20,10 +21,40 @@ Public Class clsLinks
         Public Link_ImageFormat As System.Drawing.Imaging.ImageFormat
         Public Link_ImageSize_Pdf As System.Drawing.SizeF
         Public Link_Text As String
+        Public Link_StickNote As Boolean
+        Public Link_StickNote_Open As Boolean
+        Public Link_StickNote_XHTML As String
+        Public Link_StickNote_PopupRect As System.Drawing.RectangleF
+        Public Link_StickNote_PopupLinkRect As System.Drawing.RectangleF
+        Public Link_StickyNoteDict As PdfDictionary
+        Public Link_StickyNoteLinkDict As PdfDictionary
+        Public Link_StickyNotePopupIndirectRef As PdfIndirectReference
+        Public Link_AnnotationIndex As Integer
+        Function StripXHTMLTags(ByVal xhtml As String) As String
+            ' Remove HTML tags.
+            Return System.Text.Encoding.UTF8.GetString(System.Text.Encoding.Convert(System.Text.Encoding.ASCII, System.Text.Encoding.UTF8, System.Text.Encoding.ASCII.GetBytes(System.Text.RegularExpressions.Regex.Replace(xhtml, "<.*?>", ""))))
+            'Return System.Text.Encoding.UTF8.GetString(System.Text.Encoding.ASCII.GetBytes(System.Text.RegularExpressions.Regex.Replace(xhtml, "<.*?>", "")))
+            '.Replace("&#13;", Environment.NewLine())
+        End Function
         Sub New(ByVal LinkRect As System.Drawing.RectangleF, ByVal DestPage As Integer)
             Link_Rect = LinkRect
             Link_Destination_PageIndex = DestPage
             Link_Destination_URI = ""
+        End Sub
+        Sub New(ByVal LinkRect As System.Drawing.RectangleF, ByVal DestPage As Integer, ByVal PopupRect As System.Drawing.RectangleF, PopupXHTML As String, StickNote_Open As Boolean, ByRef StickyNote_Dict As PdfDictionary, ByRef StickyNotePopupIndirectRef As PdfIndirectReference, annotationIndex As Integer)
+            Link_StickNote = True
+            Link_Rect = LinkRect
+            Link_StickNote_PopupLinkRect = LinkRect
+            Link_StickNote_PopupRect = PopupRect
+            Link_StickyNoteDict = StickyNote_Dict
+            'Link_StickyNoteLinkDict = StickyNoteLinkDict
+            Link_StickyNotePopupIndirectRef = StickyNotePopupIndirectRef
+            Link_Destination_PageIndex = DestPage
+            Link_StickNote_Open = StickNote_Open
+            Link_StickNote_XHTML = PopupXHTML
+            Link_Text = StripXHTMLTags(PopupXHTML.ToString()).ToString().Replace("&#13;", Environment.NewLine())
+            Link_Destination_URI = ""
+            Link_AnnotationIndex = annotationIndex
         End Sub
         Sub New(ByVal LinkRect As System.Drawing.RectangleF, ByVal DestPage As Integer, ByVal LinkText As String)
             Link_Rect = LinkRect
@@ -99,7 +130,8 @@ Public Class clsLinks
     Public currentPageIndex As Integer = -1
     Public mouseCursor As Cursor = Cursors.Default
     Public pdfReaderInstance As PdfReader
-    Public Sub New(ByVal pdfReader1 As PdfReader, ByRef parent1 As frmMain) 'ByVal pageIndex As Integer, 
+    'Public frmMain1 As frmMain = Nothing
+    Public Sub New(ByRef pdfReader1 As PdfReader, ByRef parent1 As frmMain) 'ByVal pageIndex As Integer, 
         If pdfReader1 Is Nothing Then Return
         pdfReaderInstance = pdfReader1
         pages = DirectCast(PdfReader.GetPdfObject(pdfReader1.Catalog.GetAsDict(PdfName.PAGES)), PdfDictionary)
@@ -148,6 +180,48 @@ Public Class clsLinks
             End If
         Next
         Return ""
+    End Function
+    Public Function LinkClickedPopupText(ByVal pageIndex As Integer, ByVal ptScreen As PointF) As String
+        If Not currentPageIndex = pageIndex Then
+            currentPageIndex = pageIndex
+            LoadLinksOnPage(currentPageIndex)
+        End If
+        For Each l As Link In Links.ToArray
+            If l.Link_StickNote_PopupLinkRect.Contains(ptScreen) Then
+                Return l.Link_Text & ""
+            ElseIf l.Link_StickNote_PopupRect.Contains(ptScreen) Then
+                Return l.Link_Text & ""
+            End If
+        Next
+        Return ""
+    End Function
+    Public Function LinkClickedPopupLink(ByVal pageIndex As Integer, ByVal ptScreen As PointF) As clsLinks.Link
+        If Not currentPageIndex = pageIndex Then
+            currentPageIndex = pageIndex
+            LoadLinksOnPage(currentPageIndex)
+        End If
+        For Each l As Link In Links.ToArray
+            If l.Link_StickNote_PopupLinkRect.Contains(ptScreen) Then
+                Return l
+            ElseIf l.Link_StickNote_PopupRect.Contains(ptScreen) Then
+                Return l
+            End If
+        Next
+        Return Nothing
+    End Function
+    Public Function LinkClickedPopupLinkRect(ByVal pageIndex As Integer, ByVal ptScreen As PointF) As System.Drawing.RectangleF
+        If Not currentPageIndex = pageIndex Then
+            currentPageIndex = pageIndex
+            LoadLinksOnPage(currentPageIndex)
+        End If
+        For Each l As Link In Links.ToArray
+            If l.Link_StickNote_PopupLinkRect.Contains(ptScreen) Then
+                Return l.Link_StickNote_PopupLinkRect
+            ElseIf l.Link_StickNote_PopupRect.Contains(ptScreen) Then
+                Return l.Link_StickNote_PopupLinkRect
+            End If
+        Next
+        Return Nothing
     End Function
     Public Function ImageClicked(ByVal pageIndex As Integer, ByVal ptScreen As PointF) As Byte()
         If Not currentPageIndex = pageIndex Then
@@ -267,6 +341,14 @@ Public Class clsLinks
                                 End If
                             End If
                         End If
+                        'ElseIf Not l.Link_Destination_PageIndex = Nothing Then
+                        '    If Not l.Link_Destination_PageIndex >= 0 Then
+                        '        If Not parent Is Nothing Then
+                        '            If parent.GetType Is GetType(frmMain) Then
+                        '                parent.ToolStripStatusLabel2.Text = "Page Link: " & l.Link_Destination_PageIndex.ToString
+                        '            End If
+                        '        End If
+                        '    End If
                     ElseIf Not l.Link_IsImage = Nothing Then
                         If Not l.Link_ImageBytes.Length >= 0 Then
                             If Not parent Is Nothing Then
@@ -292,8 +374,10 @@ Public Class clsLinks
         Return False
     End Function
     Public Function LoadLinksOnPage(ByVal pageIndex As Integer) As List(Of Link)
+        ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & ")-start)")
         Dim pageHeight As Single = parent.getPDFHeight()
         Links = New List(Of Link)
+        ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & ")-ANNOTS-start)")
         Dim cntrX As Integer = -1
         Try
 
@@ -329,6 +413,38 @@ Public Class clsLinks
                                                         End If
                                                     End If
                                                 End If
+                                            ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.TEXT Then
+                                                'If annot.GetAsString(New PdfName("Subj")) Is Nothing Then
+                                                '    If annot.GetAsString(New PdfName("Subj")).ToUnicodeString = "Sticky Note" Then
+                                                '        'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                '    End If
+                                                'Else
+
+                                                If Not annot.Get(PdfName.RECT) Is Nothing Then
+                                                    If Not annot.Get(PdfName.A) Is Nothing Then
+                                                        If annot.Get(PdfName.A).IsDictionary Then
+                                                            Dim a As PdfDictionary = annot.GetAsDict(PdfName.A)
+                                                            If Not a Is Nothing Then
+                                                                If Not a.Get(PdfName.S) Is Nothing Then
+                                                                    If a.Get(PdfName.S).IsName Then
+                                                                        If a.GetAsName(PdfName.S) Is PdfName.URI Then
+                                                                            Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                                        ElseIf a.GetAsName(PdfName.S) Is PdfName.GOTO Then 'GoTo Destination
+
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.POPUP Then
+                                                'Dim stickyNote As PdfDictionary = DirectCast(annot.GetDirectObject(PdfName.PARENT), PdfDictionary)
+                                                Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(annot.GetAsIndirectObject(PdfName.PARENT).Number), PdfDictionary)
+                                                'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), stickyNote.GetAsString(PdfName.RC).ToUnicodeString(), annot.GetAsBoolean(PdfName.OPEN).BooleanValue, stickyNote, annot, annotIndex))
+                                                Dim stickyNoteRef As PdfIndirectReference = annot.GetAsIndirectObject(PdfName.PARENT)
+                                                'Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(stickyNoteRef.Number), PdfDictionary)
+                                                Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), CStr(stickyNote.GetAsString(PdfName.RC).ToUnicodeString()), CBool(annot.GetAsBoolean(PdfName.OPEN).BooleanValue), annot, stickyNoteRef, annotIndex))
                                             End If
                                         End If
                                     End If
@@ -360,7 +476,125 @@ Public Class clsLinks
                                                             End If
                                                         End If
                                                     End If
+                                                ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.POPUP Then
+                                                    'Dim stickyNote As PdfDictionary = DirectCast(annot.GetDirectObject(PdfName.PARENT), PdfDictionary)
+                                                    Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(annot.GetAsIndirectObject(PdfName.PARENT).Number), PdfDictionary)
+                                                    'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), stickyNote.GetAsString(PdfName.RC).ToUnicodeString(), annot.GetAsBoolean(PdfName.OPEN).BooleanValue, stickyNote, annot, annotIndex))
+                                                    Dim stickyNoteRef As PdfIndirectReference = annot.GetAsIndirectObject(PdfName.PARENT)
+                                                    'Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(stickyNoteRef.Number), PdfDictionary)
+                                                    Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), CStr(stickyNote.GetAsString(PdfName.RC).ToUnicodeString()), CBool(annot.GetAsBoolean(PdfName.OPEN).BooleanValue), annot, stickyNoteRef, annotIndex))
                                                 End If
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            End If
+
+                        End If
+                    Next
+                ElseIf pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).Get(PdfName.ANNOTS).IsIndirect Then
+                    For annotIndex As Integer = 0 To pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS).ArrayList.Count - 1
+                        cntrX += 1
+                        If cntrX = 18 Then
+                            cntrX = cntrX
+                        End If
+                        If pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS)(annotIndex).IsDictionary Then
+                            Dim annot As PdfDictionary = DirectCast(pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS).GetAsDict(annotIndex), PdfDictionary) '
+                            If Not annot Is Nothing Then
+                                If Not annot.Get(PdfName.SUBTYPE) Is Nothing Then
+                                    If Not annot.Get(PdfName.SUBTYPE) Is Nothing Then
+                                        If annot.Get(PdfName.SUBTYPE).IsName Then
+                                            If annot.GetAsName(PdfName.SUBTYPE) Is PdfName.LINK Then
+                                                If Not annot.Get(PdfName.RECT) Is Nothing Then
+                                                    If Not annot.Get(PdfName.A) Is Nothing Then
+                                                        If annot.Get(PdfName.A).IsDictionary Then
+                                                            Dim a As PdfDictionary = annot.GetAsDict(PdfName.A)
+                                                            If Not a Is Nothing Then
+                                                                If Not a.Get(PdfName.S) Is Nothing Then
+                                                                    If a.Get(PdfName.S).IsName Then
+                                                                        If a.GetAsName(PdfName.S) Is PdfName.URI Then
+                                                                            Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                                        ElseIf a.GetAsName(PdfName.S) Is PdfName.GOTO Then 'GoTo Destination
+
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.TEXT Then
+                                                'If annot.GetAsString(New PdfName("Subj")) Is Nothing Then
+                                                '    If annot.GetAsString(New PdfName("Subj")).ToUnicodeString = "Sticky Note" Then
+                                                '        'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                '    End If
+                                                'Else
+
+                                                If Not annot.Get(PdfName.RECT) Is Nothing Then
+                                                    If Not annot.Get(PdfName.A) Is Nothing Then
+                                                        If annot.Get(PdfName.A).IsDictionary Then
+                                                            Dim a As PdfDictionary = annot.GetAsDict(PdfName.A)
+                                                            If Not a Is Nothing Then
+                                                                If Not a.Get(PdfName.S) Is Nothing Then
+                                                                    If a.Get(PdfName.S).IsName Then
+                                                                        If a.GetAsName(PdfName.S) Is PdfName.URI Then
+                                                                            Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                                        ElseIf a.GetAsName(PdfName.S) Is PdfName.GOTO Then 'GoTo Destination
+
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.POPUP Then
+                                                'Dim stickyNote As PdfDictionary = DirectCast(annot.GetDirectObject(PdfName.PARENT), PdfDictionary)
+                                                Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(annot.GetAsIndirectObject(PdfName.PARENT).Number), PdfDictionary)
+                                                'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), stickyNote.GetAsString(PdfName.RC).ToUnicodeString(), annot.GetAsBoolean(PdfName.OPEN).BooleanValue, stickyNote, annot, annotIndex))
+                                                Dim stickyNoteRef As PdfIndirectReference = annot.GetAsIndirectObject(PdfName.PARENT)
+                                                'Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(stickyNoteRef.Number), PdfDictionary)
+                                                Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), CStr(stickyNote.GetAsString(PdfName.RC).ToUnicodeString()), CBool(annot.GetAsBoolean(PdfName.OPEN).BooleanValue), annot, stickyNoteRef, annotIndex))
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            End If
+                        ElseIf pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS)(annotIndex).IsIndirect Then
+                            If Not pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS).GetAsDict(annotIndex) Is Nothing Then
+                                Dim annot As PdfDictionary = DirectCast(pages.GetAsArray(PdfName.KIDS).GetAsDict(pageIndex).GetAsArray(PdfName.ANNOTS).GetAsDict(annotIndex), PdfDictionary) '
+                                If Not annot Is Nothing Then
+                                    If Not annot.Get(PdfName.SUBTYPE) Is Nothing Then
+                                        If Not annot.Get(PdfName.SUBTYPE) Is Nothing Then
+                                            If annot.Get(PdfName.SUBTYPE).IsName Then
+                                                If annot.GetAsName(PdfName.SUBTYPE) Is PdfName.LINK Then
+                                                    If Not annot.Get(PdfName.RECT) Is Nothing Then
+                                                        If Not annot.Get(PdfName.A) Is Nothing Then
+                                                            If annot.Get(PdfName.A).IsDictionary Then
+                                                                Dim a As PdfDictionary = annot.GetAsDict(PdfName.A)
+                                                                If Not a Is Nothing Then
+                                                                    If Not a.Get(PdfName.S) Is Nothing Then
+                                                                        If a.Get(PdfName.S).IsName Then
+                                                                            If a.GetAsName(PdfName.S) Is PdfName.URI Then
+                                                                                Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), a.GetAsString(PdfName.URI).ToUnicodeString()))
+                                                                            ElseIf a.GetAsName(PdfName.S) Is PdfName.GOTO Then 'GoTo Destination
+
+                                                                            End If
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                ElseIf annot.GetAsName(PdfName.SUBTYPE) Is PdfName.POPUP Then
+                                                    'Dim stickyNote As PdfDictionary = DirectCast(annot.GetDirectObject(PdfName.PARENT), PdfDictionary)
+                                                    Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(annot.GetAsIndirectObject(PdfName.PARENT).Number), PdfDictionary)
+                                                    'Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), stickyNote.GetAsString(PdfName.RC).ToUnicodeString(), annot.GetAsBoolean(PdfName.OPEN).BooleanValue, stickyNote, annot, annotIndex))
+                                                    Dim stickyNoteRef As PdfIndirectReference = annot.GetAsIndirectObject(PdfName.PARENT)
+                                                    'Dim stickyNote As PdfDictionary = DirectCast(pdfReaderInstance.GetPdfObject(stickyNoteRef.Number), PdfDictionary)
+                                                    Links.Add(New Link(parent.getRectangleScreen(annot.GetAsArray(PdfName.RECT), pageIndex + 1), pageIndex + 1, parent.getRectangleScreen(stickyNote.GetAsArray(PdfName.RECT), pageIndex + 1), CStr(stickyNote.GetAsString(PdfName.RC).ToUnicodeString()), CBool(annot.GetAsBoolean(PdfName.OPEN).BooleanValue), annot, stickyNoteRef, annotIndex))
+                                                End If
+
                                             End If
                                         End If
                                     End If
@@ -376,24 +610,31 @@ Public Class clsLinks
             Err.Clear()
         End Try
         Try
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadInternalLinksOnPage-start")
             Dim l As List(Of Link)
             l = LoadInternalLinksOnPage(pageIndex)
             If l.Count > 0 Then
                 Links.AddRange(l.ToArray())
             End If
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadInternalLinksOnPage-end")
             l.Clear()
             l = New List(Of Link)
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadInternalLinksOnPageNamedDestinations-start")
             l = LoadInternalLinksOnPageNamedDestinations(pageIndex)
             If l.Count > 0 Then
                 Links.AddRange(l.ToArray())
             End If
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadInternalLinksOnPageNamedDestinations-end")
             l.Clear()
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadImageCoordinatesOnPage-start")
             l = New List(Of Link)
             l = LoadImageCoordinatesOnPage(pageIndex)
             If l.Count > 0 Then
                 Links.AddRange(l.ToArray())
             End If
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadImageCoordinatesOnPage-end")
             l.Clear()
+            ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & "))-LoadImageCoordinatesOnPage-start")
             l = New List(Of Link)
             l = LoadTextCoordinatesOnPage(pageIndex)
             If l.Count > 0 Then
@@ -403,6 +644,7 @@ Public Class clsLinks
         Catch ex As Exception
             Err.Clear()
         End Try
+        ' parent.TimeStampAdd("OpenFile(cLinks.LoadLinksOnPage(" & pageIndex & ")-end)")
         Return Links
     End Function
     Public Function LoadInternalLinksOnPage(ByVal pageIndex As Integer) As List(Of Link)
@@ -428,10 +670,14 @@ Public Class clsLinks
     Public Function LoadImageCoordinatesOnPage(ByVal pageIndex As Integer) As List(Of Link)
         Dim lnks As New List(Of Link)
         Try
+            'Dim clsImageCoordinates As New clsImageCoordinateListener(parent, lnks)
             Dim parser As iTextSharp.text.pdf.parser.PdfReaderContentParser = New iTextSharp.text.pdf.parser.PdfReaderContentParser(pdfReaderInstance)
             Dim listener As clsImageCoordinateListener = New clsImageCoordinateListener(parent, lnks)
             Dim i As Integer = 1
+            'Do While (i <= pdfReaderInstance.NumberOfPages)
             parser.ProcessContent(pageIndex + 1, listener)
+            'i = (i + 1)
+            'Loop
         Catch ex As Exception
             Err.Clear()
         End Try
@@ -440,15 +686,38 @@ Public Class clsLinks
     Public Function LoadTextCoordinatesOnPage(ByVal pageIndex As Integer) As List(Of Link)
         Dim lnks As New List(Of Link)
         Try
+            'Dim clsImageCoordinates As New clsImageCoordinateListener(parent, lnks)
             Dim parser As iTextSharp.text.pdf.parser.PdfReaderContentParser = New iTextSharp.text.pdf.parser.PdfReaderContentParser(pdfReaderInstance)
             Dim listener As clsTextRenderListener = New clsTextRenderListener(parent, lnks)
             Dim i As Integer = 1
+            'Do While (i <= pdfReaderInstance.NumberOfPages)
             parser.ProcessContent(pageIndex + 1, listener)
+            'i = (i + 1)
+            'Loop
         Catch ex As Exception
             Err.Clear()
         End Try
         Return lnks
     End Function
+    'Public Function LoadTextCoordinatesOnPage(ByVal pageIndex As Integer) As List(Of Link)
+    '    Dim lnks As New List(Of Link)
+    '    Try
+    '        Dim parser As iTextSharp.text.pdf.parser.PdfReaderContentParser = New iTextSharp.text.pdf.parser.PdfReaderContentParser(pdfReaderInstance)
+    '        Dim strategy As iTextSharp.text.pdf.parser.ITextExtractionStrategy
+    '        Dim finder As iTextSharp.text.pdf.parser.TextMarginFinder
+    '        'For i As Integer = 1 To reader.NumberOfPages
+    '        finder = parser.ProcessContent(pageIndex + 1, New iTextSharp.text.pdf.parser.TextMarginFinder)
+    '        Dim area As New iTextSharp.text.Rectangle(finder.GetLlx(), finder.GetLly(), finder.GetWidth() / 2, finder.GetHeight() / 2)
+    '        Dim filter As iTextSharp.text.pdf.parser.RenderFilter = New iTextSharp.text.pdf.parser.RegionTextRenderFilter(area)
+    '        strategy = New iTextSharp.text.pdf.parser.FilteredTextRenderListener(New iTextSharp.text.pdf.parser.LocationTextExtractionStrategy(), filter)
+    '        'sw.WriteLine(PdfTextExtractor.GetTextFromPage(reader, i, strategy))
+    '        'Next
+
+    '    Catch ex As Exception
+    '        Err.Clear()
+    '    End Try
+    '    Return lnks
+    'End Function
     Public Function LoadInternalLinksOnPageNamedDestinations(ByVal pageIndex As Integer) As List(Of Link)
         Dim pageHeight As Single = parent.getPDFHeight()
         Dim lnks As New List(Of Link)

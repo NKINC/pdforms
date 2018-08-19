@@ -399,7 +399,7 @@ Public Class clsScan
                             Dim cDialogMultiChoice As New dialogMultiChoice
                             Dim cButtons As New List(Of dialogMultiChoice.clsButton)
                             cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
-                            cButtons.Add(New dialogMultiChoice.clsButton("RETRY", True, DialogResult.Retry))
+                            cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
                             If scanBacksideStartIndex < 0 Then
                                 cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
                             Else
@@ -445,7 +445,7 @@ Public Class clsScan
                                     Dim cDialogMultiChoice As New dialogMultiChoice
                                     Dim cButtons As New List(Of dialogMultiChoice.clsButton)
                                     cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
-                                    cButtons.Add(New dialogMultiChoice.clsButton("RETRY", True, DialogResult.Retry))
+                                    cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
                                     If scanBacksideStartIndex < 0 Then
                                         cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
                                     Else
@@ -489,7 +489,7 @@ Public Class clsScan
                             Dim cDialogMultiChoice As New dialogMultiChoice
                             Dim cButtons As New List(Of dialogMultiChoice.clsButton)
                             cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
-                            cButtons.Add(New dialogMultiChoice.clsButton("RETRY", True, DialogResult.Retry))
+                            cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
                             If scanBacksideStartIndex < 0 Then
                                 cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
                             Else
@@ -535,7 +535,7 @@ Public Class clsScan
                                     Dim cDialogMultiChoice As New dialogMultiChoice
                                     Dim cButtons As New List(Of dialogMultiChoice.clsButton)
                                     cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
-                                    cButtons.Add(New dialogMultiChoice.clsButton("RETRY", True, DialogResult.Retry))
+                                    cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
                                     If scanBacksideStartIndex < 0 Then
                                         cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
                                     Else
