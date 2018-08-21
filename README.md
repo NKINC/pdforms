@@ -1,3 +1,3 @@
 # pdforms
-An open-source PDF Forms .net application
-http://pdforms.com
+100% FREE open-source Advanced PDF Form software for Visual Studio .net
+  http://pdforms.net
