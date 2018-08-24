@@ -1,5 +1,5 @@
 # pdforms
-FREE open source pdf editor for Windows - pdForms.net
+Open source pdf editor for MS Windows - pdForms.net - Visual Studio .net
 <br/>Www: http://pdforms.com
 <br/>GitHub: http://pdforms.net
 <br/>Zip Download: http://zip.pdforms.net
