@@ -1,5 +1,5 @@
 # pdforms
-pdForms.net is a FREE - 100% open-source pdf form editor for Windows
+FREE open source pdf editor for Windows - pdForms.net
 <br/>Www: http://pdforms.com
 <br/>GitHub: http://pdforms.net
 <br/>Zip Download: http://zip.pdforms.net
