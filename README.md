@@ -1,5 +1,5 @@
 # pdforms
-100% FREE open-source - Advanced pdf form software for Visual Studio .net
+pdForms.net is a FREE - 100% open-source pdf form editor for Windows
 <br/>Www: http://pdforms.com
 <br/>GitHub: http://pdforms.net
 <br/>Zip Download: http://zip.pdforms.net
