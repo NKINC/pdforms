@@ -176,6 +176,31 @@ Public Class frmMain
     Private lv As List(Of clsAutocomplete)
     Private cfdf As FDFApp.FDFDoc_Class
     Private cpdf As FDFApp.FDFApp_Class
+    Public ReadOnly Property ApplicationDataFolder(Optional ByVal TrimEnd As Boolean = False, Optional subfolderName As String = "") As String
+        Get
+            Dim f As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+            If Not Directory.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\") Then
+                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
+                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\Resources\")
+                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\notes\")
+                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\temp\")
+                'AddEveryoneToPathACL(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
+            End If
+            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt") Then
+                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt", "")
+            End If
+            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt") Then
+                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt", "")
+            End If
+            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt") Then
+                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt", "")
+            End If
+            If Not Directory.Exists((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\")) Then
+                Directory.CreateDirectory((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\"))
+            End If
+            Return (f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\")
+        End Get
+    End Property
     Private WithEvents jsProcess As Dictionary(Of System.Windows.Forms.Control, Process)
     Public Function getStamper(ByRef reader As PdfReader, ByRef MemStream As MemoryStream) As PdfStamper
         If _PreserveUsageRights And reader.HasUsageRights() Then
@@ -510,7 +535,7 @@ GoTo_StartOver:
                     TimeStampAdd(ex, debugMode)
                 End Try
                 LoadImageGs_InUse = True
-                Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", appPath)
+                Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
             Catch ex As Exception
                 If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                     pdfRead = New PdfReader(pdfData, getBytes(pdfOwnerPassword & ""))
@@ -707,7 +732,7 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", appPath)
+                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfRead = New PdfReader(pdfData.ToArray, getBytes(pdfOwnerPassword & ""))
@@ -905,7 +930,7 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", appPath)
+                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfRead = New PdfReader(pdfData.ToArray, getBytes(pdfOwnerPassword & ""))
@@ -1659,14 +1684,14 @@ GoTo_StartOver:
                     Dim imgCache() As Byte = Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
                     Try
                         If Not forceNew Or imgCache Is Nothing Then
-                            Try
-                                If imgCache Is Nothing Then
-                                    imgCache = Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
-                                    blnSaveCache = False
-                                End If
-                            Catch ex As Exception
-                                TimeStampAdd(ex, debugMode)
-                            End Try
+                            'Try
+                            '    If imgCache Is Nothing Then
+                            '        imgCache = Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
+                            '        blnSaveCache = False
+                            '    End If
+                            'Catch ex As Exception
+                            '    TimeStampAdd(ex, debugMode)
+                            'End Try
                             Try
                                 If forceNew Or imgCache Is Nothing Then
                                     imgCache = A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
@@ -24893,14 +24918,14 @@ TRY_AA:
     Public Function DeleteTempFiles(Optional fp As String = "") As Boolean
         Try
             If String.IsNullOrEmpty(fp & "") Then
-                fp = appPathTemp
+                fp = ApplicationDataFolder(False,"temp")
             End If
             A0_PictureBox1.Image = Nothing
             A0_PictureBox2.Image = Nothing
             For Each f As String In Directory.GetFiles(fp)
                 Try
                     If Not Path.GetFileName(f).ToString.ToLower = ("readme.txt".ToLower()) Then
-                        If f.ToLower().StartsWith(appPathTemp.ToLower) Then
+                        If f.ToLower().StartsWith(ApplicationDataFolder(False,"temp").ToLower) Then
                             If File.Exists(f) Then File.Delete(f)
                         End If
                     End If
@@ -24917,13 +24942,13 @@ TRY_AA:
     Public Function DeleteTempSubFolders(Optional fp As String = "") As Boolean
         Try
             If String.IsNullOrEmpty(fp & "") Then
-                fp = appPathTemp
+                fp = ApplicationDataFolder(False,"temp")
             End If
             A0_PictureBox1.Image = Nothing
             A0_PictureBox2.Image = Nothing
             For Each f As String In Directory.GetDirectories(fp)
                 Try
-                    If f.ToLower().StartsWith(appPathTemp.ToLower) Then
+                    If f.ToLower().StartsWith(ApplicationDataFolder(False,"temp").ToLower) Then
                         If Directory.Exists(f) Then
                             If Not Directory.GetFiles(f) Is Nothing Then
                                 If Directory.GetFiles(f).Length > 0 Then
@@ -24949,7 +24974,7 @@ TRY_AA:
         Return True
     End Function
     Public Sub DeleteTempFilesImageCache()
-        Dim fp As String = appPathTemp
+        Dim fp As String = ApplicationDataFolder(False,"temp")
         A0_PictureBox1.Image = Nothing
         A0_PictureBox2.Image = Nothing
         For Each f As String In Directory.GetFiles(fp)
@@ -24986,7 +25011,7 @@ TRY_AA:
                             e.Cancel = True
                             Return
                         End If
-                        TimeStampSaveToFile(appPath & "log.txt")
+                        TimeStampSaveToFile(ApplicationDataFolder(False, "") & "log.txt")
                     Catch ex As Exception
                         TimeStampAdd(ex, debugMode)
                     End Try
@@ -25250,9 +25275,9 @@ Goto_END_APP:
         loadReaderCount = 0
         Try
             appPath = Application.StartupPath.ToString.TrimEnd("\"c) & "\"
-            appPathTemp = appPath & "temp\"
-            If Not Directory.Exists(appPathTemp & "") Then
-                Directory.CreateDirectory(appPathTemp & "")
+            appPathTemp = ApplicationDataFolder(False, "temp")
+            If Not Directory.Exists(ApplicationDataFolder(False,"temp") & "") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False,"temp") & "")
             End If
             FontFactory.RegisterDirectories()
         Catch ex As Exception
@@ -25285,7 +25310,7 @@ Goto_END_APP:
         changingPermissionRestrictionCombo = False
         customFormatScripts = New String() {"", ""}
         preventClickDialog = False
-        openHistoryListFile = appPath.ToString().TrimEnd(CStr("\"c)) & "\open-history.txt"
+        openHistoryListFile = ApplicationDataFolder(False, "") & "open-history.txt"
         fldKidIndex = 0
         scrollIndex = Nothing
         scrollValue = 0
@@ -27375,7 +27400,7 @@ GOTO_KNOWN_FILENAME:
                         Try
                             Dim url As New System.Uri(CStr(fpath))
                             b = wc.DownloadData(url)
-                            fn = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                            fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
                             Try
                                 Select Case cfdf.Determine_Type(b)
                                     Case FDFApp.FDFDoc_Class.FDFType.FDF
@@ -28547,7 +28572,7 @@ GOTO_END:
         Redo()
     End Sub
     Private Sub btnPreview_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPreview.Click
-        Dim tmpFn As String = appPath & "temp\_preview_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_preview_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
         If Not String.IsNullOrEmpty(tmpFn) Then
             File.WriteAllBytes(tmpFn, Session("output"))
             Process.Start(tmpFn)
@@ -30370,7 +30395,7 @@ GOTORETURN:
         pnlFields.Visible = False
     End Sub
     Private Sub btnCosEdit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCosEdit.Click
-        Dim tmpFn As String = appPath & "temp\_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
         If Not String.IsNullOrEmpty(tmpFn) Then
             File.WriteAllBytes(tmpFn, Session("output"))
             If FileExists(appPath & "CosEdit\CosEdit.exe") Then
@@ -30381,7 +30406,7 @@ GOTORETURN:
         End If
     End Sub
     Private Sub btnViewInAcrobat_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnViewInAcrobat.Click
-        Dim tmpFn As String = appPath & "temp\_acrobat_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_acrobat_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
         If Not String.IsNullOrEmpty(tmpFn) Then
             File.WriteAllBytes(tmpFn, Session("output"))
             If FileExists("C:\Program Files\Adobe\Acrobat 8.0\Acrobat\Acrobat.exe") Then
@@ -31582,7 +31607,7 @@ returnSub:
         Dim pdfDoc As iTextSharp.text.Document = Nothing
         Dim MemStream As New MemoryStream()
         Dim page As iTextSharp.text.pdf.PdfImportedPage = Nothing
-        Dim fp As String = appPath & "temp\concatenate.pdf"
+        Dim fp As String = ApplicationDataFolder(False, "temp") & "concatenate.pdf"
         Dim MemStreamStamper As New FileStream(fp, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite)
         Try
             If PDFFiles.Length > 0 Then
@@ -33917,7 +33942,7 @@ OPENFILE_KNOWN_FILENAME:
         End Try
     End Sub
     Private Sub AdobeAcrobatToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AdobeAcrobatToolStripMenuItem1.Click
-        Dim tmpFn As String = appPath & "temp\_acrobat_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_acrobat_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
         If Not String.IsNullOrEmpty(tmpFn) Then
             File.WriteAllBytes(tmpFn, Session("output"))
             If My.Computer.FileSystem.FileExists(tmpFn) Then
@@ -33945,7 +33970,7 @@ OPENFILE_KNOWN_FILENAME:
         End If
     End Sub
     Private Sub AdobeReaderToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AdobeReaderToolStripMenuItem.Click
-        Dim tmpFn As String = appPath & "temp\_preview_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_preview_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
         If Not String.IsNullOrEmpty(tmpFn) Then
             File.WriteAllBytes(tmpFn, Session("output"))
             If My.Computer.FileSystem.FileExists(tmpFn) Then
@@ -33980,7 +34005,7 @@ OPENFILE_KNOWN_FILENAME:
     Private Sub CosEditToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CosEditToolStripMenuItem1.Click
         If Directory.Exists(appPath & "\CosEdit\") Then
             If File.Exists(appPath & "\CosEdit\CosEdit.exe") Then
-                Dim tmpFn As String = appPath & "temp\_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                 If Not String.IsNullOrEmpty(tmpFn) Then
                     File.WriteAllBytes(tmpFn, Session("output"))
                     If FileExists(appPath & "CosEdit\CosEdit.exe") Then
@@ -36871,7 +36896,7 @@ GOTO_SAVE_FILE:
                 TimeStampAdd(exDoc, debugMode)
             End Try
             If baos.Length > 0 Then
-                fpath = appPath & "temp\blank.pdf"
+                fpath = ApplicationDataFolder(False, "temp") & "blank.pdf"
                 pdfOwnerPassword = ""
                 System.IO.File.WriteAllBytes(fpath, baos.ToArray())
                 Session = baos.ToArray()
@@ -40391,7 +40416,7 @@ GOTO_NewGuid:
                                     If cdoc.FDFFields Is Nothing Then
                                         Select Case MsgBox("Response Status: " & Environment.NewLine & response_status & "" & strHeaders.ToString(), MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.OkOnly, "Submit")
                                             Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                                Dim fn As String = appPath & "temp\response.fdf.txt"
+                                                Dim fn As String = ApplicationDataFolder(False, "temp") & "response.fdf.txt"
                                                 File.WriteAllBytes(fn, return_bytes)
                                                 Return
                                             Case Else
@@ -40403,7 +40428,7 @@ GOTO_NewGuid:
                                         If cdoc.FDFFields(0).FieldName.ToString.ToLower().Contains("F00BAR".ToLower) Then
                                             Select Case MsgBox("Response Status: " & Environment.NewLine & response_status & "" & strHeaders.ToString(), MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.OkOnly, "Submit")
                                                 Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                                    Dim fn As String = appPath & "temp\response.fdf.txt"
+                                                    Dim fn As String = ApplicationDataFolder(False, "temp") & "response.fdf.txt"
                                                     File.WriteAllBytes(fn, return_bytes)
                                                     Return
                                                 Case Else
@@ -40415,7 +40440,7 @@ GOTO_NewGuid:
                                     ElseIf cdoc.FDFFields.Count > 1 Then
                                         Select Case MsgBox("Response Status: " & Environment.NewLine & response_status & Environment.NewLine & "Open the response PDF file?", MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.YesNo, "Submit")
                                             Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                                Dim fn As String = appPath & "temp\response.fdf"
+                                                Dim fn As String = ApplicationDataFolder(False, "temp") & "response.fdf"
                                                 cdoc.FDFSavetoFile(fn, FDFApp.FDFDoc_Class.FDFType.FDF, True)
                                                 If A0_CloseDocument(False, False) Then
                                                     OpenFile(fn, False, True)
@@ -40429,7 +40454,7 @@ GOTO_NewGuid:
                                     Else
                                         Select Case MsgBox("Response Status: " & Environment.NewLine & response_status & "" & strHeaders.ToString(), MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.OkOnly, "Submit")
                                             Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                                Dim fn As String = appPath & "temp\response.fdf.txt"
+                                                Dim fn As String = ApplicationDataFolder(False, "temp") & "response.fdf.txt"
                                                 File.WriteAllBytes(fn, return_bytes)
                                                 Return
                                             Case Else
@@ -40448,7 +40473,7 @@ GOTO_NewGuid:
                                 If Not String.IsNullOrEmpty(response_status & "") Then
                                     Select Case MsgBox("Response Status: " & Environment.NewLine & FDFCheckCharReverse(cdoc.FDFGetStatus().Trim()) & Environment.NewLine & "Open the response PDF file?", MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.YesNo, "Submit")
                                         Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                            Dim fn As String = appPath & "temp\response.xfdf"
+                                            Dim fn As String = ApplicationDataFolder(False, "temp") & "response.xfdf"
                                             cdoc.FDFSetFile(fpath)
                                             cdoc.FDFSavetoFile(fn, FDFApp.FDFDoc_Class.FDFType.xFDF, True)
                                             OpenFile(fn, False, True)
@@ -40468,7 +40493,7 @@ GOTO_NewGuid:
                                 If Not String.IsNullOrEmpty(response_status & "") Then
                                     Select Case MsgBox("Response Status: " & Environment.NewLine & FDFCheckCharReverse(cdoc.FDFGetStatus().Trim()) & Environment.NewLine & "Open the response PDF file?", MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.YesNo, "Submit")
                                         Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                            Dim fn As String = appPath & "temp\response.xdp"
+                                            Dim fn As String = ApplicationDataFolder(False, "temp") & "response.xdp"
                                             cdoc.FDFSetFile(fpath)
                                             cdoc.FDFSavetoFile(fn, FDFApp.FDFDoc_Class.FDFType.XDP, True)
                                             OpenFile(fn, False, True)
@@ -40488,7 +40513,7 @@ GOTO_NewGuid:
                                 If Not String.IsNullOrEmpty(response_status & "") Then
                                     Select Case MsgBox("Response Status: " & Environment.NewLine & FDFCheckCharReverse(cdoc.FDFGetStatus().Trim()) & Environment.NewLine & "Open the response PDF file?", MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.YesNo, "Submit")
                                         Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                            Dim fn As String = appPath & "temp\response.xml"
+                                            Dim fn As String = ApplicationDataFolder(False, "temp") & "response.xml"
                                             cdoc.FDFSetFile(fpath)
                                             cdoc.FDFSavetoFile(fn, FDFApp.FDFDoc_Class.FDFType.XML, True)
                                             Process.Start(fn & "")
@@ -40503,7 +40528,7 @@ GOTO_NewGuid:
                                 Me.Hide()
                                 Select Case MsgBox("Response Status: Message Successfully Sent." & Environment.NewLine & "Open the response PDF file?", MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal + MsgBoxStyle.YesNo, "Submit")
                                     Case MsgBoxResult.Ok, MsgBoxResult.Yes
-                                        Dim fn As String = appPath & "temp\response.pdf"
+                                        Dim fn As String = ApplicationDataFolder(False, "temp") & "response.pdf"
                                         File.WriteAllBytes(fn, return_bytes)
                                         OpenFile(fn, False, True)
                                         Return
@@ -40520,7 +40545,7 @@ GOTO_NewGuid:
                         Dim return_bytes() As Byte = Nothing
                         If File.Exists(submit_url) Then
                             Try
-                                Dim tmpFilePath As String = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fpath) & "."c & PDFField_Action_Panel_SubmitForm_Format.SelectedItem.ToString.ToLower.TrimStart("."c)
+                                Dim tmpFilePath As String = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath) & "."c & PDFField_Action_Panel_SubmitForm_Format.SelectedItem.ToString.ToLower.TrimStart("."c)
                                 File.WriteAllBytes(tmpFilePath, submit_bytes)
                                 Dim p As New Process
                                 Process.Start(submit_url, """" & tmpFilePath & """")
@@ -44077,7 +44102,7 @@ nextField:
             Dim Item As WIA.Item = TryCast(WiaDev.Items(1), WIA.Item)
             Try
                 Me.Hide()
-                Dim fn As String = appPathTemp & "scanner-import" & DateTime.Now.ToFileTime() & ".bmp"
+                Dim fn As String = ApplicationDataFolder(False,"temp") & "scanner-import" & DateTime.Now.ToFileTime() & ".bmp"
                 img = WiaCommonDialog.ShowAcquireImage(WIA.WiaDeviceType.UnspecifiedDeviceType, WIA.WiaImageIntent.TextIntent, wiaImageQuality, wiaImageFormat, False, False, True)
                 Dim v As WIA.Vector = img.FileData
                 File.WriteAllBytes(fn, DirectCast(v.BinaryData(), Byte()))
@@ -44391,7 +44416,7 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
     Private Sub processAddStartProcess(c As Control, ext As String, text As String)
         Try
-            Dim fn As String = appPath & "temp\" & c.Name.ToString() & CStr(IIf(ext = "", ".txt", "." & ext.TrimStart("."c)))
+            Dim fn As String = ApplicationDataFolder(False, "temp") & "" & c.Name.ToString() & CStr(IIf(ext = "", ".txt", "." & ext.TrimStart("."c)))
             Dim p As New Process
             p.StartInfo.FileName = fn
             p.StartInfo.CreateNoWindow = True
@@ -45866,8 +45891,8 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Then
-                        fn = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        If fn = appPathTemp Then
+                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        If fn = ApplicationDataFolder(False,"temp") Then
                             fn &= "default"
                         End If
                         Try
@@ -46086,8 +46111,8 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Then
-                        fn = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        If fn = appPathTemp Then
+                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        If fn = ApplicationDataFolder(False,"temp") Then
                             fn &= "default"
                         End If
                         Try
@@ -46140,7 +46165,7 @@ GOTO_KNOWN_FILENAME:
                                             Throw ex2
                                         End Try
                                     End Try
-                                    fp = appPath & "temp\" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
+                                    fp = ApplicationDataFolder(False, "temp") & "" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
                                     OpenFile(fp, False, False)
@@ -46290,8 +46315,8 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If File.Exists(fpath.ToString.Replace("file://", "")) Then
-                        fn = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        If fn = appPathTemp Then
+                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        If fn = ApplicationDataFolder(False,"temp") Then
                             fn &= "default"
                         End If
                         Try
@@ -46357,7 +46382,7 @@ GOTO_KNOWN_FILENAME:
                                             Throw ex2
                                         End Try
                                     End Try
-                                    fp = appPath & "temp\" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
+                                    fp = ApplicationDataFolder(False, "temp") & "" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
                                     OpenFile(fp, False, False)
@@ -46473,8 +46498,8 @@ GOTO_KNOWN_FILENAME:
                     fn = fp
                     Dim b() As Byte = Nothing
                     If IsValidUrl(fp) Then
-                        fn = appPathTemp & System.IO.Path.GetFileNameWithoutExtension(fp & "").ToString().Replace(".", "-").Replace("_", "-")
-                        If fn = appPathTemp Then
+                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fp & "").ToString().Replace(".", "-").Replace("_", "-")
+                        If fn = ApplicationDataFolder(False,"temp") Then
                             fn &= "default"
                         End If
                         Try
@@ -46711,7 +46736,7 @@ GOTO_KNOWN_FILENAME:
                     If Not pdfReaderDoc Is Nothing Then
                         If pdfReaderDoc.NumberOfPages > 0 Then
                             StatusToolStrip = "Printing: please wait.."
-                            Dim fnTempPrint As String = appPath & "temp\print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
+                            Dim fnTempPrint As String = ApplicationDataFolder(False, "temp") & "print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
                             LoadPDFReaderDoc(pdfOwnerPassword, True)
                             Dim r As PdfReader = pdfReaderDoc.Clone
                             Dim bPDF() As Byte = getPDFBytes(r)
@@ -46868,7 +46893,7 @@ GoTo_PROCESS_WAIT_OVER:
                     If Not pdfReaderDoc Is Nothing Then
                         If pdfReaderDoc.NumberOfPages > 0 Then
                             StatusToolStrip = "Printing: please wait.."
-                            Dim fnTempPrint As String = appPath & "temp\print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
+                            Dim fnTempPrint As String = ApplicationDataFolder(False, "temp") & "print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
                             LoadPDFReaderDoc(pdfOwnerPassword, True)
                             Dim r As PdfReader = pdfReaderDoc.Clone
                             If r.NumberOfPages > 1 Then
@@ -47621,8 +47646,8 @@ GOTO_KNOWN_FILENAME:
         End Try
     End Sub
     Private Sub ShowLogToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowLogToolStripMenuItem.Click
-        File.WriteAllText(appPath & "temp\log.txt", TimeStampInfo() & "")
-        Process.Start(appPath & "temp\log.txt")
+        File.WriteAllText(ApplicationDataFolder(False, "temp") & "log.txt", TimeStampInfo() & "")
+        Process.Start(ApplicationDataFolder(False, "temp") & "log.txt")
     End Sub
     Private Sub tmrUpdateAddFieldButton_Tick_1(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles tmrUpdateAddFieldButton.Tick
     End Sub
@@ -48075,28 +48100,28 @@ GOTO_KNOWN_FILENAME:
                     Case 1
                         Select Case msg.ComboBox1.SelectedIndex
                             Case 0
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                                 attBytes = Session
                             Case 1
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".fdf"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".fdf"
                                 attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.FDF, True)
                             Case 2
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xfdf"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xfdf"
                                 attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.xFDF, True)
                             Case 3
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xdp"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xdp"
                                 attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XDP, True)
                             Case 4
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xml"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xml"
                                 attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XML, True)
                             Case 5
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".json"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".json"
                                 attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.Json, True)
                             Case 6
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".html"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".html"
                                 attBytes = System.Text.Encoding.UTF8.GetBytes(createHTMLFile("", True, True, "", Me, "", False, fn, True, 720))
                             Case Else
-                                fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                                fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                                 attBytes = Session
                         End Select
                         File.WriteAllBytes(fn, attBytes)
@@ -48133,40 +48158,40 @@ GOTO_KNOWN_FILENAME:
                 Case 1
                     Select Case msg.ComboBox1.SelectedIndex
                         Case 0
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                             attBytes = Session
                             File.WriteAllBytes(fn, attBytes)
                         Case 1
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".fdf"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".fdf"
                             attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.FDF, True)
                             File.WriteAllBytes(fn, attBytes)
                         Case 2
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xfdf"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xfdf"
                             attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.xFDF, True)
                             File.WriteAllBytes(fn, attBytes)
                         Case 3
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xdp"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xdp"
                             attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XDP, True)
                             File.WriteAllBytes(fn, attBytes)
                         Case 4
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".xml"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".xml"
                             attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XML, True)
                             File.WriteAllBytes(fn, attBytes)
                         Case 5
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".json"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".json"
                             attBytes = cFDFApp.PDFOpenFromBuf(Session, True, True, pdfOwnerPassword).FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.Json, True)
                             File.WriteAllBytes(fn, attBytes)
                         Case 6
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".html"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".html"
                             attBytes = System.Text.Encoding.UTF8.GetBytes(createHTMLFile("", True, True, "", Me, "", False, fn, True, 720))
-                            Dim zipPathNew As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".zip"
+                            Dim zipPathNew As String = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".zip"
                             Using zip As New Ionic.Zip.ZipFile(zipPathNew, System.Text.Encoding.UTF8)
                                 zip.AddEntry(System.IO.Path.GetFileName(fn), attBytes)
                                 zip.Save(zipPathNew)
                             End Using
                             fn = zipPathNew
                         Case Else
-                            fn = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                            fn = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                             attBytes = Session
                             File.WriteAllBytes(fn, attBytes)
                     End Select
@@ -48201,7 +48226,7 @@ GOTO_KNOWN_FILENAME:
     End Sub
     Private Sub ConvertToPDFToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ConvertToPDFToolStripMenuItem.Click
         Try
-            Dim dirPathTemp As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & "_extract\"
+            Dim dirPathTemp As String = ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & "_extract\"
             Dim fpathOld As String = fpath
             Dim sessionPDF() As Byte = Session.ToArray
             cUserRect.pauseDraw = True
@@ -48563,8 +48588,8 @@ GOTO_KNOWN_FILENAME:
                 strText.AppendLine(strategy.GetResultantText())
             Next
             reader.Close()
-            File.WriteAllText(appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".txt", strText.ToString())
-            Process.Start(appPathTemp & Path.GetFileNameWithoutExtension(fpath) & ".txt")
+            File.WriteAllText(ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".txt", strText.ToString())
+            Process.Start(ApplicationDataFolder(False,"temp") & Path.GetFileNameWithoutExtension(fpath) & ".txt")
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         End Try
@@ -48575,7 +48600,7 @@ GOTO_KNOWN_FILENAME:
             If Not pdfReaderDoc Is Nothing Then
                 If pdfReaderDoc.NumberOfPages > 0 Then
                     StatusToolStrip = "Printing: please wait.."
-                    Dim fnTemp As String = appPath & "temp\print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
+                    Dim fnTemp As String = ApplicationDataFolder(False, "temp") & "print-" & Path.GetFileName(fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
                     File.WriteAllBytes(fnTemp, Session.ToArray())
                     Dim exitCode As Integer = -1
                     Try
