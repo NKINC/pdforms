@@ -2,7 +2,7 @@
 // PdForms.net - An open source pdf form editor
 // Copyright 2018 Nicholas Kowalewicz All Rights reserved.
 // PdForms.net utilizes iTextSharp technologies.
-// Email Contact: nick.kowalewicz [at] gmail.com
+// Email Contact: hello@pdforms.net
 // Website: www.pdforms.net
 function generateFDF(pdfPath) {
     var str = '';
