@@ -1,7 +1,7 @@
 ﻿// PdForms.net - An open source pdf form editor
 // Copyright 2018 Nicholas Kowalewicz All Rights reserved.
 // PdForms.net utilizes iTextSharp technologies.
-// Email Contact: hello@pdforms.nethello@pdforms.nethello@pdforms.net
+// Email Contact: hello@pdforms.net
 // Website: www.pdforms.net,www.pdforms.com
 
 SEARCH FOR COMMENTS:
