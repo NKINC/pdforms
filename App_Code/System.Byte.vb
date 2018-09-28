@@ -38,4 +38,32 @@ Module ByteExtensions
     Function toMemoryStream(ByVal first As System.Byte()) As System.IO.MemoryStream
         Return New System.IO.MemoryStream(first)
     End Function
+    <Extension()>
+    Public Function toBase64Bytes(ByVal first As System.Byte()) As System.Byte()
+        If first Is Nothing Then
+            Return Nothing
+        End If
+        Return System.Convert.ToBase64String(first, Base64FormattingOptions.None).toBytesUTF8()
+    End Function
+    <Extension()>
+    Public Function toBase64Bytes(ByVal first As System.Byte(), encoding As System.Text.Encoding) As System.Byte()
+        If first Is Nothing Then
+            Return Nothing
+        End If
+        Return System.Convert.ToBase64String(first, Base64FormattingOptions.None).toBytes(encoding)
+    End Function
+    <Extension()>
+    Public Function toBase64String(ByVal first As System.Byte()) As System.String
+        If first Is Nothing Then
+            Return Nothing
+        End If
+        Return System.Convert.ToBase64String(first)
+    End Function
+    <Extension()>
+    Public Function toBase64String(ByVal first As System.Byte(), encoding As System.Text.Encoding) As System.String
+        If first Is Nothing Then
+            Return Nothing
+        End If
+        Return System.Convert.ToBase64String(first, Base64FormattingOptions.None)
+    End Function
 End Module
