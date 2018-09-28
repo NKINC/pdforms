@@ -47326,9 +47326,54 @@ GoTo_PROCESS_WAIT_OVER:
     Public Sub RemoveSignatureFlags()
         Try
             LoadPDFReaderDoc(pdfOwnerPassword, True)
+            Dim m As New MemoryStream()
             Dim r As PdfReader = pdfReaderDoc.Clone
-            r.AcroForm.Remove(PdfName.SIGFLAGS)
-            Session = getPDFBytes(r)
+            Dim s As PdfStamper = getStamper(r, m)
+            If Not s.AcroFields.GetSignatureNames Is Nothing Then
+                If s.AcroFields.GetSignatureNames.Count > 0 Then
+                    For Each sigName As String In s.AcroFields.GetSignatureNames
+                        Dim fld As iTextSharp.text.pdf.AcroFields.Item = s.AcroFields.GetFieldItem(sigName)
+                        fld.MarkUsed(s.AcroFields, AcroFields.Item.WRITE_VALUE + AcroFields.Item.WRITE_WIDGET)
+                        For k As Integer = 0 To fld.Size - 1
+                            fld.GetMerged(k).Remove(PdfName.AP)
+                            fld.GetMerged(k).Remove(PdfName.AS)
+                            fld.GetMerged(k).Remove(PdfName.V)
+                            fld.GetMerged(k).Remove(PdfName.DV)
+                            fld.GetMerged(k).Remove(PdfName.SV)
+                            fld.GetMerged(k).Remove(PdfName.FF)
+                            fld.GetMerged(k).Put(PdfName.F, New PdfNumber(PdfAnnotation.FLAGS_PRINT))
+
+                            fld.GetWidget(k).Remove(PdfName.AP)
+                            fld.GetWidget(k).Remove(PdfName.AS)
+                            fld.GetWidget(k).Remove(PdfName.V)
+                            fld.GetWidget(k).Remove(PdfName.DV)
+                            fld.GetWidget(k).Remove(PdfName.SV)
+                            fld.GetWidget(k).Remove(PdfName.FF)
+                            fld.GetWidget(k).Put(PdfName.F, New PdfNumber(PdfAnnotation.FLAGS_PRINT))
+
+                            fld.GetValue(k).Remove(PdfName.AP)
+                            fld.GetValue(k).Remove(PdfName.AS)
+                            fld.GetValue(k).Remove(PdfName.V)
+                            fld.GetValue(k).Remove(PdfName.DV)
+                            fld.GetValue(k).Remove(PdfName.SV)
+                            fld.GetValue(k).Remove(PdfName.FF)
+                            fld.GetValue(k).Put(PdfName.F, New PdfNumber(PdfAnnotation.FLAGS_PRINT))
+                        Next
+                    Next
+                    s.Writer.AcroForm.Remove(PdfName.SIGFLAGS)
+                    s.Writer.CloseStream = False
+                    s.Close()
+                    Session = m.ToArray()
+                    s.Dispose()
+                End If
+            End If
+            r.Dispose()
+            'Dim r As PdfReader = pdfReaderDoc.Clone
+            'r.AcroForm.Remove(PdfName.SIGFLAGS)
+            'Session = getPDFBytes(r, True)
+            'pdfReaderDoc = r.Clone
+            'r.Close()
+            'r.Dispose()
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         Finally
@@ -47928,7 +47973,8 @@ GOTO_KNOWN_FILENAME:
     End Function
     Public Sub SignDocument(ByVal srcBytes() As Byte)
         Session = Sign(fldNameHighlighted)
-        A0_LoadPDF()
+        A0_LoadPDF(True, True, True, page, True)
+        refreshPDFImage()
     End Sub
     Private Sub FieldBrowserToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FieldsBrowserToolStripMenuItem.Click
         Try
