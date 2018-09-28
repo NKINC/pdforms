@@ -953,7 +953,7 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(getPDFBytes(pdfReadTemp.Clone, False), "pdf", ".jpg", appPath)
+                    Return cPDF2Image.ConvertToBytes(getPDFBytes(pdfReadTemp.Clone, False), "pdf", ".jpg", ApplicationDataFolder(False, ""))
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfReadTemp = New PdfReader(getPDFBytes(pdfReadTemp.Clone), pdfOwnerPassword.toBytesPdfOwnerPassword)
@@ -1093,7 +1093,7 @@ GoTo_StartOver:
     End Function
     Public Function LoadFileGhostScript(ByVal pdfData() As Byte, ByVal inputFormatExtension As String) As Byte()
         Try
-            Dim x As String = appPath & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 8) & "\" 'Server.MapPath("/SubmitPDF/editPDF/")
+            Dim x As String = ApplicationDataFolder(False, "temp") & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 8) & "\" 'Server.MapPath("/SubmitPDF/editPDF/")
             If Not Directory.Exists(x) Then
                 Directory.CreateDirectory(x)
             End If
@@ -1288,6 +1288,8 @@ GoTo_StartOver:
                         Return Nothing
                     End If
                 Else
+                    mem = New Dictionary(Of String, Byte())
+                    mem.Add(name, Nothing)
                     Return Nothing
                 End If
                 If String.IsNullOrEmpty(name & "") Then
@@ -1297,22 +1299,29 @@ GoTo_StartOver:
                 Try
                     If name.ToLower = "output" Then
                         Try
-                            Dim x As Process = System.Diagnostics.Process.GetCurrentProcess()
-                            ToolStripStatusLabel3.Text = "MEMORY: " & getMegaBytesText(CSng(x.WorkingSet64)) & ""
-                            If Not mem(name) Is Nothing Then ToolStripStatusLabel4.Text = "FILE SIZE: " & getMegaBytesText(CSng(mem(name).Length)) & "" Else ToolStripStatusLabel4.Text = "FILE SIZE: " & "?"
+                            'Dim x As Process = System.Diagnostics.Process.GetCurrentProcess()
+                            'ToolStripStatusLabel3.Text = "MEMORY: " & getMegaBytesText(CSng(x.WorkingSet64)) & ""
+                            If Not mem(name) Is Nothing Then
+                                ToolStripStatusLabel4.Text = "FILE SIZE: " & getMegaBytesText(CSng(mem(name).Length)) & ""
+                            Else
+                                ToolStripStatusLabel4.Text = "FILE SIZE: " & "?"
+                            End If
                         Catch exMem As Exception
                             TimeStampAdd(exMem, debugMode)
                             Err.Clear()
                         End Try
-                        If mem.ContainsKey(name) Then
-                            If mem(name) Is Nothing Then
+                        If mem.ContainsKey(memName) Then
+                            If mem(memName) Is Nothing Then
                                 Return Nothing
-                            ElseIf mem(name).Length <= 0 Then
+                            ElseIf mem(memName).Length <= 0 Then
                                 Return Nothing
                             Else
                                 If A0_PictureBox1.Image Is Nothing Then
                                 Else
                                     If Not A0_PictureBox1.Visible Then A0_PictureBox1.Visible = True
+                                End If
+                                If mem.ContainsKey(memName) Then
+                                    If Not mem(memName) Is Nothing Then Return (mem(memName))
                                 End If
                             End If
                         Else
@@ -2605,8 +2614,8 @@ TRYELSE:
                 fs.Close()
                 fs.Dispose()
                 Return fBytes
-            ElseIf FileExists(appPath & (bstrFileName)) Then
-                Dim fs As New System.IO.FileStream(appPath & (bstrFileName), FileMode.Open, FileAccess.Read, FileShare.None)
+            ElseIf FileExists(ApplicationDataFolder(False, "") & (bstrFileName)) Then
+                Dim fs As New System.IO.FileStream(ApplicationDataFolder(False, "") & (bstrFileName), FileMode.Open, FileAccess.Read, FileShare.None)
                 ReDim fBytes(CInt(fs.Length))
                 fs.Read(fBytes, 0, CInt(fs.Length))
                 fs.Close()
@@ -4721,7 +4730,7 @@ CloseUp:
                 Dim pd As Boolean = cUserRect.pauseDraw
                 cUserRect.pauseDraw = True
                 A0_LoadAllFieldsOnPageCombo(fldNameHighlighted & "[" & fldKidIndex & "]")
-                cUserRect.pauseDraw = pd
+                cUserRect.pauseDraw = False
             Catch exLoadProps As Exception
                 TimeStampAdd(exLoadProps, debugMode)
             End Try
@@ -25665,9 +25674,9 @@ Goto_END_APP:
                         Dim folderpath1 As String = arg.ToString().Trim() & ""
                         Try
                             If folderpath1 = "" Then
-                                clsFF.txtFTPRoot.Text = appPath
+                                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
                                 clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(appPath, "", False)
+                                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
                             Else
                                 clsFF.txtFTPRoot.Text = folderpath1
                                 clsFF.txtFileName.Text = ""
@@ -25775,9 +25784,9 @@ Goto_END_APP:
                         Dim folderpath1 As String = oDataString.ToString().Trim() & ""
                         Try
                             If folderpath1 = "" Then
-                                clsFF.txtFTPRoot.Text = appPath
+                                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
                                 clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(appPath, "", False)
+                                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
                             Else
                                 clsFF.txtFTPRoot.Text = folderpath1
                                 clsFF.txtFileName.Text = ""
@@ -25835,9 +25844,9 @@ Goto_END_APP:
                         Dim folderpath1 As String = oDataString.ToString().Trim() & ""
                         Try
                             If folderpath1 = "" Then
-                                clsFF.txtFTPRoot.Text = appPath
+                                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
                                 clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(appPath, "", False)
+                                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
                             Else
                                 clsFF.txtFTPRoot.Text = folderpath1
                                 clsFF.txtFileName.Text = ""
@@ -25895,9 +25904,9 @@ Goto_END_APP:
                         Dim folderpath1 As String = oDataString.ToString().Trim() & ""
                         Try
                             If folderpath1 = "" Then
-                                clsFF.txtFTPRoot.Text = appPath
+                                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
                                 clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(appPath, "", False)
+                                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
                             Else
                                 clsFF.txtFTPRoot.Text = folderpath1
                                 clsFF.txtFileName.Text = ""
@@ -25959,7 +25968,7 @@ Goto_END_APP:
             SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = ""
         Else
             If String.IsNullOrEmpty(fpath & "") Then
-                SaveAsFileDialog1.o.InitialDirectory = appPath & ""
+                SaveAsFileDialog1.o.InitialDirectory = ApplicationDataFolder(False, "") & ""
             Else
                 SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
             End If
@@ -26927,7 +26936,7 @@ Goto_END_APP:
                     End If
                 Else
                     OpenFileDialog1.FileName = ""
-                    OpenFileDialog1.InitialDirectory = appPath
+                    OpenFileDialog1.InitialDirectory = ApplicationDataFolder(False, "")
                 End If
                 preventClickDialog = True
                 OpenFileDialog1.Filter = "All Formats|*.pdf;*.fdf;*.xfdf;*.xdp;*.json;*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tif;*.tiff;*.html;*.htm;*.txt|PDF|*.pdf|FDF|*.fdf|XFDF|*.xfdf|XDP|*.xdp|Json|*.json|JPG|*.jpg|JPEG|*.jpeg|BMP|*.bmp|GIF|*.gif|PNG|*.png|Tif|*.tif|TIFF|*.tiff|HTML|*.html|HTM|*.htm|TXT|*.txt|All Files|*.*"
@@ -28972,7 +28981,7 @@ GOTO_END:
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDataField_ImportImage.Click
         If btnDataFieldType.Text.ToString.ToLower = "FldLiveCycleImage".ToLower And cFDFDoc.Determine_Type(fpath) = FDFApp.FDFDoc_Class.FDFType.XPDF Then
             preventClickDialog = True
-            OpenFileDialog2.InitialDirectory = appPath
+            OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
             OpenFileDialog2.Filter = "Images|*.jpg;*.png;*.jpeg;*.gif;*.tif;*.tiff"
             OpenFileDialog2.FilterIndex = 0
             Try
@@ -29500,8 +29509,8 @@ GOTO_RETURN_NOTHING:
     Public Function GetFieldPosition(ByVal filename As String, ByVal fldname As String) As System.Drawing.RectangleF
         Dim b() As Byte = Nothing
         Try
-            If FileExists(appPath & (filename)) Then
-                b = File.ReadAllBytes(appPath & (filename))
+            If FileExists(ApplicationDataFolder(False, "") & (filename)) Then
+                b = File.ReadAllBytes(ApplicationDataFolder(False, "") & (filename))
             ElseIf FileExists(filename) Then
                 b = File.ReadAllBytes((filename))
             ElseIf filename.StartsWith("http://") Then
@@ -31469,8 +31478,8 @@ returnSub:
             For Each strA As String In a.ToArray
                 s.AppendLine(strA)
             Next
-            File.WriteAllText(appPath & "named.txt", s.ToString)
-            Process.Start(appPath & "named.txt")
+            File.WriteAllText(ApplicationDataFolder(False, "") & "named.txt", s.ToString)
+            Process.Start(ApplicationDataFolder(False, "") & "named.txt")
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         End Try
@@ -31716,7 +31725,7 @@ returnSub:
         Dim reader As iTextSharp.text.pdf.PdfReader = Nothing
         Dim stamp As iTextSharp.text.pdf.PdfStamper = Nothing
         Dim pdfDoc As iTextSharp.text.Document = Nothing
-        Dim MemStream As New MemoryStream(File.ReadAllBytes(appPath & "blank-usage-rights.pdf"))
+        Dim MemStream As New MemoryStream(File.ReadAllBytes(ApplicationDataFolder(False, "") & "blank-usage-rights.pdf"))
         Dim MemStreamStamper As New MemoryStream
         Dim page As iTextSharp.text.pdf.PdfImportedPage = Nothing
         Dim currentPDF As Integer = 0
@@ -31980,7 +31989,7 @@ returnSub:
             If Not String.IsNullOrEmpty(fn & "") Then
                 If FileExists(fn & "") Then GoTo OPENFILE_KNOWN_FILENAME
             End If
-            OpenFileDialog2.InitialDirectory = appPath
+            OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
             Select Case OpenFileDialog2.ShowDialog(Me)
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     If Not String.IsNullOrEmpty(OpenFileDialog2.FileName) Then
@@ -33256,7 +33265,7 @@ OPENFILE_KNOWN_FILENAME:
             OpenFileDialog3.Filter = "Image Formats|*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tif;*.tiff|JPG|*.jpg|JPEG|*.jpeg|BMP|*.bmp|GIF|*.gif|PNG|*.png|Tif|*.tif|TIFF|*.tiff|PDF|*.pdf|All Files|*.*"
             OpenFileDialog3.FilterIndex = 0
             OpenFileDialog3.FileName = Nothing
-            OpenFileDialog3.InitialDirectory = appPath
+            OpenFileDialog3.InitialDirectory = ApplicationDataFolder(False, "")
             OpenFileDialog3.AutoUpgradeEnabled = True
             If OpenFileDialog3.ShowDialog = Windows.Forms.DialogResult.OK Then
                 If Not String.IsNullOrEmpty(OpenFileDialog3.FileName & "") Then
@@ -33378,7 +33387,7 @@ OPENFILE_KNOWN_FILENAME:
         End If
     End Sub
     Private Sub ImportFileToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImportFileToolStripMenuItem.Click
-        OpenFileDialog2.InitialDirectory = appPath
+        OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
         OpenFileDialog2.Filter = "All Files|*.*"
         OpenFileDialog2.FilterIndex = 0
         OpenFileDialog2.FileName = ""
@@ -35138,7 +35147,7 @@ OPENFILE_KNOWN_FILENAME:
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     Dim appSel As String = OpenFileDialog4.FileName.ToString & ""
                     If FileExists(appSel) Then
-                        Dim tmpFn As String = appPath & "_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
+                        Dim tmpFn As String = ApplicationDataFolder(False, "temp") & "_cosedit_" & System.IO.Path.GetFileNameWithoutExtension(fpath) & ".pdf"
                         If Not String.IsNullOrEmpty(tmpFn) Then
                             File.WriteAllBytes(tmpFn, Session("output"))
                             Process.Start("" & appSel & "", """" & tmpFn & """")
@@ -35156,7 +35165,7 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
     Private Sub ImportDataToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImportDataToolStripMenuItem.Click
         preventClickDialog = True
-        OpenFileDialog2.InitialDirectory = appPath
+        OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
         OpenFileDialog2.Filter = "FDF|*.fdf|XFDF|*.xfdf|XDP|*.xdp|XML|*.xml|Json|*.json"
         OpenFileDialog2.FilterIndex = 0
         OpenFileDialog2.FileName = ""
@@ -35304,7 +35313,7 @@ OPENFILE_KNOWN_FILENAME:
                 TimeStampAdd(ex, debugMode)
             End Try
             preventClickDialog = True
-            OpenFileDialog1.InitialDirectory = appPath
+            OpenFileDialog1.InitialDirectory = ApplicationDataFolder(False, "")
             OpenFileDialog1.Filter = "PDF|*.pdf|FDF|*.fdf|XFDF|*.xfdf|XDP|*.xdp|All Files|*.*"
             OpenFileDialog1.AutoUpgradeEnabled = True
             OpenFileDialog1.DefaultExt = ".pdf"
@@ -36495,7 +36504,7 @@ TRYAGAIN:
     End Sub
     Private Sub NewDocumentToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
         preventClickDialog = True
-        OpenFileDialog1.InitialDirectory = appPath
+        OpenFileDialog1.InitialDirectory = ApplicationDataFolder(False, "")
         OpenFileDialog1.Filter = "PDF|*.pdf|All Files|*.*"
         OpenFileDialog1.AutoUpgradeEnabled = True
         OpenFileDialog1.DefaultExt = ".pdf"
@@ -39507,7 +39516,7 @@ GOTO_ADDFIELD:
                     Dim b() As Byte = GetUsedBytesOnly(MemStream, True)
                     preventClickDialog = True
                     If String.IsNullOrEmpty(fpath & "") Then
-                        SaveFileDialog1.InitialDirectory = appPath & ""
+                        SaveFileDialog1.InitialDirectory = ApplicationDataFolder(False, "") & ""
                     Else
                         SaveFileDialog1.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
                     End If
@@ -40303,7 +40312,7 @@ GOTO_NewGuid:
         Try
             If True = True Then
                 Dim fsel As New FolderSelect.FolderSelectDialog()
-                fsel.InitialDirectory = appPath
+                fsel.InitialDirectory = ApplicationDataFolder(False, "")
                 fsel.Title = "Select a folder with PDF forms:"
                 Select Case fsel.ShowDialog(Me.Handle)
                     Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
@@ -40343,7 +40352,7 @@ GOTO_NewGuid:
                     Dim b() As Byte = GetUsedBytesOnly(MemStream, True)
                     preventClickDialog = True
                     If String.IsNullOrEmpty(fpath & "") Then
-                        SaveFileDialog1.InitialDirectory = appPath & ""
+                        SaveFileDialog1.InitialDirectory = ApplicationDataFolder(False, "") & ""
                     Else
                         SaveFileDialog1.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
                     End If
@@ -42547,7 +42556,7 @@ nextField:
                     End If
                     strHTML &= "</script>" & Environment.NewLine
                     strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
-                    strHTML &= File.ReadAllText(appPath & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", fpath.ToString.Replace("\", "\\\\"))
+                    strHTML &= File.ReadAllText(ApplicationDataFolder(False, "") & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", fpath.ToString.Replace("\", "\\\\"))
                     strHTML &= "</script>"
                     strHTML &= Environment.NewLine & "</form>" & Environment.NewLine
                     strHTML &= "</body>" & Environment.NewLine
@@ -44564,7 +44573,7 @@ nextField:
                     OpenFileDialog2.FilterIndex = 0
                     OpenFileDialog2.FileName = ""
                     Dim fn As String = ""
-                    OpenFileDialog2.InitialDirectory = appPath
+                    OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
                     Select Case OpenFileDialog2.ShowDialog(Me)
                         Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                             If Not String.IsNullOrEmpty(OpenFileDialog2.FileName) Then
@@ -44695,7 +44704,7 @@ OPENFILE_KNOWN_FILENAME:
                     OpenFileDialog2.FilterIndex = 0
                     OpenFileDialog2.FileName = ""
                     Dim fn As String = ""
-                    OpenFileDialog2.InitialDirectory = appPath
+                    OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
                     Select Case OpenFileDialog2.ShowDialog(Me)
                         Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                             If Not String.IsNullOrEmpty(OpenFileDialog2.FileName) Then
@@ -45161,16 +45170,16 @@ goto_doOver:
     Private Sub AllPagesToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AllPagesToolStripMenuItem.Click
         Try
             Dim r As New PdfReader(Session, getBytes(pdfOwnerPassword & ""))
-            If Not Directory.Exists(appPath & "images\") Then
-                Directory.CreateDirectory(appPath & "images\")
+            If Not Directory.Exists(ApplicationDataFolder(False, "") & "images\") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False, "") & "images\")
             End If
-            If Not Directory.Exists(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "") Then
-                Directory.CreateDirectory(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
+            If Not Directory.Exists(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
             End If
             For pg As Integer = 1 To r.NumberOfPages
-                ExtractImages(r, appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "", Path.GetFileNameWithoutExtension(fpath) & "-" & pg, pg)
+                ExtractImages(r, ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "", Path.GetFileNameWithoutExtension(fpath) & "-" & pg, pg)
             Next
-            Process.Start(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
+            Process.Start(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         End Try
@@ -45178,16 +45187,16 @@ goto_doOver:
     Private Sub CurrentPageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CurrentPageToolStripMenuItem.Click
         Try
             Dim r As New PdfReader(Session, getBytes(pdfOwnerPassword & ""))
-            If Not Directory.Exists(appPath & "images\") Then
-                Directory.CreateDirectory(appPath & "images\")
+            If Not Directory.Exists(ApplicationDataFolder(False, "") & "images\") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False, "") & "images\")
             End If
-            If Not Directory.Exists(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "") Then
-                Directory.CreateDirectory(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
+            If Not Directory.Exists(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
             End If
             Dim pg As Integer = Me.page
             r.SelectPages(pg.ToString())
-            ExtractImages(r, appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "", Path.GetFileNameWithoutExtension(fpath) & "-" & pg, pg)
-            Process.Start(appPath & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
+            ExtractImages(r, ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "", Path.GetFileNameWithoutExtension(fpath) & "-" & pg, pg)
+            Process.Start(ApplicationDataFolder(False, "") & "images\" & Path.GetFileNameWithoutExtension(fpath) & "")
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         End Try
@@ -45898,7 +45907,7 @@ goto_LinksStart:
         Try
             StatusToolStrip = "Status: Importing images."
             Dim d As New FolderSelect.FolderSelectDialog()
-            If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = appPath Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+            If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = ApplicationDataFolder(False, "") Else d.InitialDirectory = Path.GetDirectoryName(fpath)
             d.Title = "Select Directory:"
             Dim errStr As String = ""
             StatusToolStrip = "Status: Importing images.."
@@ -45969,7 +45978,7 @@ goto_LinksStart:
             Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range", "Select page range:", Me, "1-" & r.NumberOfPages.ToString & "")
             If Not String.IsNullOrEmpty(pgImportedStr & "") Then
                 Dim d As New FolderSelect.FolderSelectDialog()
-                If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = appPath Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+                If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = ApplicationDataFolder(False, "") Else d.InitialDirectory = Path.GetDirectoryName(fpath)
                 d.Title = "Select Directory:"
                 Dim errStr As String = ""
                 Select Case d.ShowDialog(Me.Handle)
@@ -46068,8 +46077,8 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Then
-                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        If fn = ApplicationDataFolder(False,"temp") Then
+                        fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        If fn = ApplicationDataFolder(False, "temp") Then
                             fn &= "default"
                         End If
                         Try
@@ -46133,8 +46142,8 @@ GOTO_KNOWN_FILENAME:
                         End Using
                         bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         ImportImage(fn & "")
-                    ElseIf FileExists(appPath & fn) Then
-                        fn = appPath & fn & "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
+                    ElseIf FileExists(ApplicationDataFolder(False, "") & fn) Then
+                        fn = ApplicationDataFolder(False, "") & fn & "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
                         Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
                         Dim bitmp As Bitmap = Nothing
@@ -47365,6 +47374,7 @@ GoTo_PROCESS_WAIT_OVER:
                     s.Close()
                     Session = m.ToArray()
                     s.Dispose()
+                    pdfReaderDoc = r.Clone
                 End If
             End If
             r.Dispose()
@@ -47377,6 +47387,7 @@ GoTo_PROCESS_WAIT_OVER:
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         Finally
+            LoadPDFReaderDoc(pdfOwnerPassword, True)
             A0_LoadPDF(True, True, True)
             refreshPDFImage()
         End Try
@@ -47408,7 +47419,7 @@ GoTo_PROCESS_WAIT_OVER:
     End Sub
     Private Sub OpenDocumentToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OpenDocumentToolStripMenuItem.Click
         preventClickDialog = True
-        OpenFileDialog1.InitialDirectory = appPath
+        OpenFileDialog1.InitialDirectory = ApplicationDataFolder(False, "")
         OpenFileDialog1.Filter = "PDF|*.pdf|All Files|*.*"
         OpenFileDialog1.AutoUpgradeEnabled = True
         OpenFileDialog1.DefaultExt = ".pdf"
@@ -47497,7 +47508,7 @@ GOTO_KNOWN_FILENAME:
         Try
             If True = True Then
                 Dim fsel As New FolderSelect.FolderSelectDialog()
-                fsel.InitialDirectory = appPath
+                fsel.InitialDirectory = ApplicationDataFolder(False, "")
                 fsel.Title = "Select a folder with PDF forms:"
                 Select Case fsel.ShowDialog(Me.Handle)
                     Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
@@ -47537,7 +47548,7 @@ GOTO_KNOWN_FILENAME:
                     Dim b() As Byte = GetUsedBytesOnly(MemStream, True)
                     preventClickDialog = True
                     If String.IsNullOrEmpty(fpath & "") Then
-                        SaveFileDialog1.InitialDirectory = appPath & ""
+                        SaveFileDialog1.InitialDirectory = ApplicationDataFolder(False, "") & ""
                     Else
                         SaveFileDialog1.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
                     End If
@@ -47605,7 +47616,7 @@ GOTO_KNOWN_FILENAME:
         Try
             StatusToolStrip = "Status: Importing images."
             Dim d As New FolderSelect.FolderSelectDialog()
-            If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = appPath Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+            If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = ApplicationDataFolder(False, "") Else d.InitialDirectory = Path.GetDirectoryName(fpath)
             d.Title = "Select Directory:"
             Dim errStr As String = ""
             Select Case d.ShowDialog(Me.Handle)
@@ -47751,7 +47762,7 @@ GOTO_KNOWN_FILENAME:
     Private Sub DirectoryToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles DirectoryToolStripMenuItem.Click
         preventClickDialog = True
         Dim op As New FolderSelect.FolderSelectDialog()
-        op.InitialDirectory = appPath
+        op.InitialDirectory = ApplicationDataFolder(False, "")
         op.Title = "Select Directory:"
         Dim errStr As String = ""
         Select Case op.ShowDialog(Me.Handle)
@@ -47801,9 +47812,9 @@ GOTO_KNOWN_FILENAME:
         clsFF = New dialogListFiles(Me)
         Try
             If fpath = "" Then
-                clsFF.txtFTPRoot.Text = appPath
+                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
                 clsFF.txtFileName.Text = ""
-                clsFF.LoadDialog(appPath, "", False)
+                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
             Else
                 clsFF.txtFTPRoot.Text = Path.GetDirectoryName(fpath)
                 clsFF.txtFileName.Text = Path.GetFileName(fpath)
@@ -47946,6 +47957,7 @@ GOTO_KNOWN_FILENAME:
                     stamper.Writer.CloseStream = False
                     MakeSignature.SignDetached(appearance, pks, chain, crlList, ocspClient, tsaClient, estimatedSize, subfilter)
                     If reader IsNot Nothing Then
+                        pdfReaderDoc = reader.Clone
                         reader.Close()
                     End If
                     If stamper IsNot Nothing Then
@@ -47953,6 +47965,7 @@ GOTO_KNOWN_FILENAME:
                     End If
                     frmSign.Close()
                     frmSign.Dispose()
+                    'Session = os.ToArray()
                     Return os.ToArray
                 Case Else
                     SignatureImage = Nothing
@@ -47973,7 +47986,8 @@ GOTO_KNOWN_FILENAME:
     End Function
     Public Sub SignDocument(ByVal srcBytes() As Byte)
         Session = Sign(fldNameHighlighted)
-        A0_LoadPDF(True, True, True, page, True)
+        LoadPDFReaderDoc(pdfOwnerPassword, True)
+        A0_LoadPDF()
         refreshPDFImage()
     End Sub
     Private Sub FieldBrowserToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FieldsBrowserToolStripMenuItem.Click
@@ -47994,6 +48008,16 @@ GOTO_KNOWN_FILENAME:
 #Region "Encryption"
     Protected Shared _encryptionKeyVar As String = ""
     Protected Shared txtEncryptionKey As String = ""
+
+    Public Sub New()
+
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
+
+    End Sub
+
     Protected Shared Property _encryption_key() As String
         Get
             If Not String.IsNullOrEmpty(txtEncryptionKey & "") Then
@@ -48252,7 +48276,7 @@ GOTO_KNOWN_FILENAME:
         timeStamps.Add(DateTime.Now.Ticks, "Start")
     End Sub
     Private Sub AppendPDFDocumentToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AppendPDFDocumentToolStripMenuItem.Click
-        OpenFileDialog2.InitialDirectory = appPath
+        OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
         OpenFileDialog2.Filter = "PDF|*.pdf"
         OpenFileDialog2.FilterIndex = 0
         OpenFileDialog2.FileName = ""
@@ -48834,7 +48858,7 @@ GOTO_KNOWN_FILENAME:
                         sfd.Filter = "PDF|*.pdf"
                         sfd.CheckFileExists = False
                         sfd.CheckPathExists = True
-                        sfd.InitialDirectory = CStr(IIf(fpath = "", appPath, Path.GetDirectoryName(fpath)))
+                        sfd.InitialDirectory = CStr(IIf(fpath = "", ApplicationDataFolder(False, ""), Path.GetDirectoryName(fpath)))
                         sfd.FileName = CStr(IIf(fpath = "", "doc.pdf", Path.GetFileName(fpath)))
                         Select Case sfd.ShowDialog(Me)
                             Case Windows.Forms.DialogResult.Yes, Windows.Forms.DialogResult.OK
@@ -49281,8 +49305,8 @@ OPENFILE_KNOWN_FILENAME:
             Next
         End If
         s.AppendLine("</select>")
-        System.IO.File.WriteAllText(appPath & "select-list.txt", s.ToString)
-        Process.Start(appPath & "select-list.txt")
+        System.IO.File.WriteAllText(ApplicationDataFolder(False, "") & "select-list.txt", s.ToString)
+        Process.Start(ApplicationDataFolder(False, "") & "select-list.txt")
     End Sub
     Private Sub FieldPropertiesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles FieldPropertiesToolStripMenuItem.Click
         Try
@@ -49613,7 +49637,7 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
     Private Sub ShowRecentFilesDialogToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ShowRecentFilesDialogToolStripMenuItem.Click
         Try
-            Dim rf As New dialogRecentFiles(Me, appPath & "open-history.txt")
+            Dim rf As New dialogRecentFiles(Me, ApplicationDataFolder(False, "") & "open-history.txt")
             Select Case rf.ShowDialog(Me)
                 Case DialogResult.OK
                 Case Else
