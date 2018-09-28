@@ -47332,7 +47332,8 @@ GoTo_PROCESS_WAIT_OVER:
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         Finally
-            A0_LoadPDF(True, False, True)
+            A0_LoadPDF(True, True, True)
+            refreshPDFImage()
         End Try
     End Sub
     Private Sub RemoveSignatureFlagsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RemoveSignatureFlagsToolStripMenuItem.Click
