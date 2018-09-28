@@ -1477,7 +1477,7 @@ Public Class frmEmail
     End Sub
     Public ReadOnly Property ApplicationDataFolder(Optional ByVal TrimEnd As Boolean = False) As String
         Get
-            Return DirectCast(Me.Owner, frmMain).appPath.ToString()
+            Return DirectCast(Me.Owner, frmMain).ApplicationDataFolder(False, "").ToString()
         End Get
     End Property
     Public Sub AddEveryoneToPathACL(ByVal path As String)

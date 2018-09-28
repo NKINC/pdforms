@@ -46,7 +46,7 @@ Public Class dialogListFields
         Dim SaveAsFileDialog1 As New frmSaveAs()
         Try
             If String.IsNullOrEmpty(fpath & "") Then
-                SaveAsFileDialog1.o.InitialDirectory = frm.appPath & ""
+                SaveAsFileDialog1.o.InitialDirectory = frm.ApplicationDataFolder(True, "") & "\" & ""
             Else
                 SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
             End If
@@ -759,7 +759,7 @@ Public Class dialogListFields
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     Dim appSel As String = OpenFileDialog4.FileName.ToString & ""
                     If System.IO.File.Exists(appSel) Then
-                        Dim tmpFn As String = frm.appPath & "temp/" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
+                        Dim tmpFn As String = frm.ApplicationDataFolder(True, "temp") & "\" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
                         If Not String.IsNullOrEmpty(tmpFn) Then
                             Return
                         End If

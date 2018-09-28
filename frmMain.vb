@@ -182,10 +182,47 @@ Public Class frmMain
             Try
                 If Not Directory.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\") Then
                     Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
-                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\Resources\")
-                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\notes\")
-                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\temp\")
+                    'Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\Resources\")
+                    'Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\notes\")
+                    'Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\temp\")
+                    'Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\signatures\")
                     'AddEveryoneToPathACL(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not Directory.Exists(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\Resources\") Then
+                    Directory.CreateDirectory(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\Resources\")
+                    'If Directory.Exists(appPath & "Resources") Then
+                    For Each strFile As String In Directory.GetFiles(appPath & "Resources")
+                            File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\Resources\" & Path.GetFileName(strFile), True)
+                        Next
+                    'End If
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not Directory.Exists(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\notes\") Then
+                    Directory.CreateDirectory(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\notes\")
+                    'If Directory.Exists(appPath & "notes") Then
+                    For Each strFile As String In Directory.GetFiles(appPath & "notes")
+                            File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\notes\" & Path.GetFileName(strFile), True)
+                        Next
+                    'End If
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not Directory.Exists(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\temp\") Then
+                    Directory.CreateDirectory(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\temp\")
+                    'If Directory.Exists(appPath & "temp") Then
+                    For Each strFile As String In Directory.GetFiles(appPath & "temp")
+                            File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\temp\" & Path.GetFileName(strFile), True)
+                        Next
+                    'End If
                 End If
             Catch ex As Exception
                 Err.Clear()
@@ -193,11 +230,11 @@ Public Class frmMain
             Try
                 If Not Directory.Exists(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\signatures\") Then
                     Directory.CreateDirectory(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\signatures\")
-                    If Directory.Exists(appPath & "signaures") Then
-                        For Each strFile As String In Directory.GetFiles(appPath & "signaures")
-                            File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\signatures\" & Path.GetFileName(strFile), True)
-                        Next
-                    End If
+                    'If Directory.Exists(appPath & "signatures") Then
+                    For Each strFile As String In Directory.GetFiles(appPath & "signatures")
+                        File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\signatures\" & Path.GetFileName(strFile), True)
+                    Next
+                    'End If
                 End If
             Catch ex As Exception
                 Err.Clear()
@@ -48955,8 +48992,8 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
     Public Sub addPath2OpenWithDialog(ByVal path As String)
         Try
-            If System.IO.File.Exists(Me.appPath & "settings-openwith.txt") Then
-                Dim str As String = System.IO.File.ReadAllText(Me.appPath & "settings-openwith.txt")
+            If System.IO.File.Exists(ApplicationDataFolder(False, "") & "settings-openwith.txt") Then
+                Dim str As String = System.IO.File.ReadAllText(ApplicationDataFolder(False, "") & "settings-openwith.txt")
                 str = str.Replace(path, "")
                 str = path & Environment.NewLine & str
                 str = str.Replace(Environment.NewLine & Environment.NewLine, Environment.NewLine)
@@ -48965,9 +49002,9 @@ OPENFILE_KNOWN_FILENAME:
                 str = str.TrimEnd(Environment.NewLine)
                 str = str.TrimEnd(Environment.NewLine)
                 str = str.TrimEnd(Environment.NewLine)
-                System.IO.File.WriteAllText(Me.appPath & "settings-openwith.txt", str)
+                System.IO.File.WriteAllText(ApplicationDataFolder(False, "") & "settings-openwith.txt", str)
             Else
-                System.IO.File.WriteAllText(Me.appPath & "settings-openwith.txt", path)
+                System.IO.File.WriteAllText(ApplicationDataFolder(False, "") & "settings-openwith.txt", path)
             End If
         Catch ex As Exception
             Err.Clear()

@@ -401,7 +401,7 @@ GOTO_CLOSE:
         Dim SaveAsFileDialog1 As New frmSaveAs()
         Try
             If String.IsNullOrEmpty(fpath & "") Then
-                SaveAsFileDialog1.o.InitialDirectory = frm.appPath & ""
+                SaveAsFileDialog1.o.InitialDirectory = frm.ApplicationDataFolder(True, "") & "\" & ""
             Else
                 SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
             End If
@@ -1442,7 +1442,7 @@ GOTO_CLOSE:
             od.Filter = "All Files|*.*"
             od.FilterIndex = 0
             If od.InitialDirectory = "" Then
-                od.InitialDirectory = frm.appPath
+                od.InitialDirectory = frm.ApplicationDataFolder(True, "") & "\"
             End If
             od.Multiselect = False
             Select Case od.ShowDialog(Me)
@@ -1550,7 +1550,7 @@ GOTO_CLOSE:
         If DataGridView1.SelectedRows.Count <= 0 Then Return
         sfd.ShowNewFolderButton = True
         If sfd.SelectedPath = "" Then
-            sfd.SelectedPath = frm.appPath & "temp\"
+            sfd.SelectedPath = frm.ApplicationDataFolder(True, "temp") & "\"
         End If
         sfd.Description = "Select destination folder:"
         Select Case sfd.ShowDialog(Me)
@@ -1577,7 +1577,7 @@ GOTO_DOWNLOAD:
     End Sub
     Private Sub btnFileLoadPdfFileInPdfEditor_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFileLoadPdfFileIntoPdfEditor.Click
         If DataGridView1.SelectedRows.Count <= 0 Then Return
-        DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells(1).Value), frm.appPath & "temp\" & CStr(DataGridView1.SelectedRows(0).Cells(1).Value), False, False, True)
+        DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells(1).Value), frm.ApplicationDataFolder(True, "temp") & "\" & CStr(DataGridView1.SelectedRows(0).Cells(1).Value), False, False, True)
         frm.dlgValues.Clear()
         frm.dlgValues.Add(txtFileName.Text)
         frm.dlgValues.Add(txtFolderName.Text)
@@ -1751,7 +1751,7 @@ GOTO_DOWNLOAD:
     Private Sub btnFileOpen_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFileOpen.Click
         If DataGridView1.SelectedRows.Count <= 0 Then Return
         Try
-            Dim tmpFolderPath As String = frm.appPath & "temp\"
+            Dim tmpFolderPath As String = frm.ApplicationDataFolder(True, "temp") & "\"
             DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells(1).Value), tmpFolderPath & CStr(DataGridView1.SelectedRows(0).Cells(1).Value), False, True, False)
         Catch ex As Exception
             If frm.debugMode Then Throw ex Else Err.Clear()
@@ -1782,7 +1782,7 @@ GOTO_DOWNLOAD:
     End Sub
     Private Sub OpenWithPDFEditorToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles OpenWithPDFEditorToolStripMenuItem.Click
         If DataGridView1.SelectedRows.Count <= 0 Then Return
-        DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells(1).Value), frm.appPath & "temp\" & CStr(DataGridView1.SelectedRows(0).Cells(1).Value), False, False, True)
+        DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells(1).Value), frm.ApplicationDataFolder(True, "temp") & "\" & CStr(DataGridView1.SelectedRows(0).Cells(1).Value), False, False, True)
         frm.dlgValues.Clear()
         frm.dlgValues.Add(txtFileName.Text)
         frm.dlgValues.Add(txtFolderName.Text)
@@ -1809,7 +1809,7 @@ GOTO_DOWNLOAD:
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     Dim appSel As String = OpenFileDialog4.FileName.ToString & ""
                     If System.IO.File.Exists(appSel) Then
-                        Dim tmpFn As String = frm.appPath & "temp/" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
+                        Dim tmpFn As String = frm.ApplicationDataFolder(True, "temp") & "\" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
                         If Not String.IsNullOrEmpty(tmpFn) Then
                             File.WriteAllBytes(tmpFn, DownloadFile(txtFileName.Text, tmpFn, False, False))
                             Process.Start("" & appSel & "", """" & tmpFn & """")

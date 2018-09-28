@@ -38,7 +38,7 @@ Public Class dialogPrint
                             PrintDialog1.PrinterSettings.MinimumPage = 1
                             PrintDialog1.PrinterSettings.MaximumPage = pdfReaderDocClone.NumberOfPages
                             frm.StatusToolStrip = "Printing: please wait.."
-                            Dim fnTempPrint As String = frm.appPath & "temp\print-" & System.IO.Path.GetFileName(frm.fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
+                            Dim fnTempPrint As String = frm.ApplicationDataFolder(True, "temp") & "\print-" & System.IO.Path.GetFileName(frm.fpath & "").ToString().Replace(" ", "-").Replace("""", "").Replace("'"c, "") & ""
                             frm.LoadPDFReaderDoc(frm.pdfOwnerPassword, True)
                             r = pdfReaderDocClone.Clone
                             If r.NumberOfPages > 1 Then

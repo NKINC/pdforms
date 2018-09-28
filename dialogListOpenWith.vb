@@ -338,7 +338,7 @@ GOTO_CLOSE:
         Dim SaveAsFileDialog1 As New frmSaveAs()
         Try
             If String.IsNullOrEmpty(fpath & "") Then
-                SaveAsFileDialog1.o.InitialDirectory = frm.appPath & ""
+                SaveAsFileDialog1.o.InitialDirectory = frm.ApplicationDataFolder(True, "") & "\" & ""
             Else
                 SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
             End If
@@ -418,7 +418,7 @@ GOTO_CLOSE:
         If Not String.IsNullOrEmpty(txtFTPRoot.Text.ToString.Replace(Environment.NewLine, "") & "") Then
             ftpPath = CStr(txtFTPRoot.Text.ToString.Replace(Environment.NewLine, "") & "").ToString.TrimEnd("\"c) & "\"
         Else
-            ftpPath = frm.appPath & ""
+            ftpPath = frm.ApplicationDataFolder(True, "") & "\" & ""
             txtFTPRoot.Text = ftpPath
         End If
         Return ftpPath.ToString.TrimEnd("\"c) & "\"
@@ -533,8 +533,8 @@ GOTO_CLOSE:
     End Class
     Public Sub getOpenWithFrequent()
         Try
-            If System.IO.File.Exists(DirectCast(Me.Owner, frmMain).appPath & "settings-openwith.txt") Then
-                For Each line As String In System.IO.File.ReadAllLines(DirectCast(Me.Owner, frmMain).appPath & "settings-openwith.txt", System.Text.Encoding.UTF8).Reverse()
+            If System.IO.File.Exists(DirectCast(Me.Owner, frmMain).ApplicationDataFolder(False, "") & "settings-openwith.txt") Then
+                For Each line As String In System.IO.File.ReadAllLines(DirectCast(Me.Owner, frmMain).ApplicationDataFolder(False, "") & "settings-openwith.txt", System.Text.Encoding.UTF8).Reverse()
                     Dim fi As New System.IO.FileInfo(line)
                     Dim item As New FileSystemItemVB(frm, getFTPPath() & "", fi.Extension.ToString() & "", CInt("1"), "owner", "group", fi.Length.ToString & "", fi.LastWriteTime().Month.ToString & "", fi.LastWriteTime().Day.ToString & "", fi.LastWriteTime().Year.ToString & "", Path.GetFileName(line) & "")
                     fsItems.Insert(0, item)
@@ -1846,7 +1846,7 @@ GOTO_CLOSE:
             od.Filter = "All Files|*.*"
             od.FilterIndex = 0
             If od.InitialDirectory = "" Then
-                od.InitialDirectory = frm.appPath
+                od.InitialDirectory = frm.ApplicationDataFolder(True, "") & "\"
             End If
             od.Multiselect = False
             Select Case od.ShowDialog(Me)
@@ -1953,7 +1953,7 @@ GOTO_CLOSE:
         If DataGridView1.SelectedRows.Count <= 0 Then Return
         sfd.ShowNewFolderButton = True
         If sfd.SelectedPath = "" Then
-            sfd.SelectedPath = frm.appPath & "temp\"
+            sfd.SelectedPath = frm.ApplicationDataFolder(True, "temp") & "\"
         End If
         sfd.Description = "Select destination folder:"
         Select Case sfd.ShowDialog(Me)
@@ -2140,7 +2140,7 @@ GOTO_DOWNLOAD:
     Private Sub btnFileOpen_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFileOpen.Click
         If DataGridView1.SelectedRows.Count <= 0 Then Return
         Try
-            Dim tmpFolderPath As String = frm.appPath & "temp\"
+            Dim tmpFolderPath As String = frm.ApplicationDataFolder(True, "temp") & "\"
             DownloadFile(CStr(DataGridView1.SelectedRows(0).Cells("FileName").Value), tmpFolderPath & CStr(DataGridView1.SelectedRows(0).Cells("FileName").Value), False, True, False)
         Catch ex As Exception
             If frm.debugMode Then Throw ex Else Err.Clear()
@@ -2197,7 +2197,7 @@ GOTO_DOWNLOAD:
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     Dim appSel As String = OpenFileDialog4.FileName.ToString & ""
                     If System.IO.File.Exists(appSel) Then
-                        Dim tmpFn As String = frm.appPath & "temp/" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
+                        Dim tmpFn As String = frm.ApplicationDataFolder(True, "temp") & "\" & System.IO.Path.GetFileNameWithoutExtension(frm.fpath) & ".pdf"
                         If Not String.IsNullOrEmpty(tmpFn) Then
                             File.WriteAllBytes(tmpFn, DownloadFile(txtFileName.Text, tmpFn, False, False))
                             Process.Start("" & appSel & "", """" & tmpFn & """")

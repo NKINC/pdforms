@@ -163,8 +163,8 @@ Public Class dialogRecentFiles
     End Class
     Public Sub getOpenWithFrequent()
         Try
-            If System.IO.File.Exists(DirectCast(Me.Owner, frmMain).appPath & "settings-openwith.txt") Then
-                For Each line As String In System.IO.File.ReadAllLines(DirectCast(Me.Owner, frmMain).appPath & "settings-openwith.txt", System.Text.Encoding.UTF8).Reverse()
+            If System.IO.File.Exists(DirectCast(Me.Owner, frmMain).ApplicationDataFolder(False, "") & "settings-openwith.txt") Then
+                For Each line As String In System.IO.File.ReadAllLines(DirectCast(Me.Owner, frmMain).ApplicationDataFolder(False, "") & "settings-openwith.txt", System.Text.Encoding.UTF8).Reverse()
                     Dim fi As New System.IO.FileInfo(line)
                     Dim item As New FileSystemItemVB(frm, getFTPPath() & "", fi.Extension.ToString() & "", CInt("1"), "owner", "group", fi.Length.ToString & "", fi.LastWriteTime().Month.ToString & "", fi.LastWriteTime().Day.ToString & "", fi.LastWriteTime().Year.ToString & "", Path.GetFileName(line) & "")
                     fsItems.Insert(0, item)

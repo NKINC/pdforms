@@ -33,7 +33,7 @@ Public Class frmSignature
     Private Property profiles() As DataSet
         Get
             Try
-                _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+                _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
                 If System.IO.File.Exists(_profilePath) Then
                     _profiles = New DataSet
                     _profiles.ReadXml(_profilePath, XmlReadMode.Auto)
@@ -102,7 +102,7 @@ Public Class frmSignature
                     dt.Columns.Add(dc)
                     dt.PrimaryKey = pks.ToArray
                     _profiles.Tables.Add(dt)
-                    _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+                    _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
                     _profiles.WriteXml(_profilePath, XmlReadMode.Auto)
                 End If
             Catch ex As Exception
@@ -112,7 +112,7 @@ Public Class frmSignature
         End Get
         Set(ByVal value As DataSet)
             Try
-                _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+                _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
                 value.WriteXml(_profilePath, XmlReadMode.Auto)
             Catch ex As Exception
                 Err.Clear()
@@ -154,7 +154,7 @@ Public Class frmSignature
             dr("signatureImage") = ""
         End If
         _profiles.Tables(0).Rows.Add(dr)
-        _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+        _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
         _profiles.WriteXml(_profilePath, XmlReadMode.Auto)
         LoadProfilesCombo(Me.ComboBoxSignatureProfiles)
         Me.ComboBoxSignatureProfiles.SelectedIndex = Me.ComboBoxSignatureProfiles.Items.Count - 1
@@ -206,7 +206,7 @@ Public Class frmSignature
             _profiles.Tables(0).Rows(profileIndex)("signatureImage") = ""
         End If
         _profiles.AcceptChanges()
-        _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+        _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
         _profiles.WriteXml(_profilePath, XmlReadMode.Auto)
     End Sub
     Public Sub SaveProfileWithPicture(ByVal img As System.Drawing.Image)
@@ -242,7 +242,7 @@ Public Class frmSignature
             _profiles.Tables(0).Rows(profileIndex)("signatureImage") = ""
         End If
         _profiles.AcceptChanges()
-        _profilePath = frm.appPath & "signatures\signatureProfiles.xml"
+        _profilePath = frm.ApplicationDataFolder(True, "signatures") & "\signatureProfiles.xml"
         _profiles.WriteXml(_profilePath, XmlReadMode.Auto)
     End Sub
     Private Function FDFCheckChar(ByVal strINPUT As String) As String
@@ -732,9 +732,9 @@ Public Class frmSignature
     End Sub
     Public Sub import_signatureImage()
         Try
-            Dim fpath As String = frm.appPath
+            Dim fpath As String = frm.ApplicationDataFolder(True, "signatures") & "\"
             Dim c As New clsPromptDialog
-            fpath = c.ShowDialogFileSelection("Select an image.", frm.appPath, "Import Signature", Me, "JPG|*.jpg|JPEG|*.jpeg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIF|*.tif|TIFF|*.tiff|All Files|*.*")
+            fpath = c.ShowDialogFileSelection("Select an image.", frm.ApplicationDataFolder(True, "signatures") & "\", "Import Signature", Me, "JPG|*.jpg|JPEG|*.jpeg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIF|*.tif|TIFF|*.tiff|All Files|*.*")
             If System.IO.File.Exists(fpath) Then
                 Dim b As Bitmap = Bitmap.FromFile(fpath)
                 If Not b Is Nothing Then
