@@ -136,6 +136,7 @@ Partial Class frmMain
         Me.btnOpenPDF = New System.Windows.Forms.Button()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
         Me.pnlFields = New System.Windows.Forms.Panel()
+        Me.ComboBox4 = New System.Windows.Forms.ComboBox()
         Me.ComboBox3 = New System.Windows.Forms.ComboBox()
         Me.ComboBox2 = New System.Windows.Forms.ComboBox()
         Me.chkLockPnlFields = New System.Windows.Forms.CheckBox()
@@ -691,7 +692,8 @@ Partial Class frmMain
         Me.CopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CancelCopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FieldPropertiesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ComboBox4 = New System.Windows.Forms.ComboBox()
+        Me.OpenAppDataToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
+        Me.OpenTempFolderToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.PDFEdit_Options_Textboxes.SuspendLayout()
         Me.PDFEdit_Options_SubmitButtons.SuspendLayout()
         Me.grpBoxPuchButton_IconAndLabel.SuspendLayout()
@@ -1944,6 +1946,17 @@ Partial Class frmMain
         Me.pnlFields.Size = New System.Drawing.Size(451, 576)
         Me.pnlFields.TabIndex = 186
         Me.pnlFields.Visible = False
+        '
+        'ComboBox4
+        '
+        Me.ComboBox4.Font = New System.Drawing.Font("Microsoft Sans Serif", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ComboBox4.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.ComboBox4.FormattingEnabled = True
+        Me.ComboBox4.ItemHeight = 24
+        Me.ComboBox4.Location = New System.Drawing.Point(8, 8)
+        Me.ComboBox4.Name = "ComboBox4"
+        Me.ComboBox4.Size = New System.Drawing.Size(410, 32)
+        Me.ComboBox4.TabIndex = 938
         '
         'ComboBox3
         '
@@ -5278,9 +5291,9 @@ Partial Class frmMain
         'ContextMenuStrip1
         '
         Me.ContextMenuStrip1.Font = New System.Drawing.Font("Arial", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel)
-        Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
+        Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.OpenAppDataToolStripMenuItem1, Me.OpenTempFolderToolStripMenuItem1, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.ContextMenuStrip1.Name = "ContextMenuStrip1"
-        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 846)
+        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 912)
         '
         'PDFDocumentToolStripMenuItem
         '
@@ -7357,16 +7370,17 @@ Partial Class frmMain
         Me.FieldPropertiesToolStripMenuItem.Size = New System.Drawing.Size(207, 22)
         Me.FieldPropertiesToolStripMenuItem.Text = "Field Properties"
         '
-        'ComboBox4
+        'OpenAppDataToolStripMenuItem1
         '
-        Me.ComboBox4.Font = New System.Drawing.Font("Microsoft Sans Serif", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.ComboBox4.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.ComboBox4.FormattingEnabled = True
-        Me.ComboBox4.ItemHeight = 24
-        Me.ComboBox4.Location = New System.Drawing.Point(8, 8)
-        Me.ComboBox4.Name = "ComboBox4"
-        Me.ComboBox4.Size = New System.Drawing.Size(410, 32)
-        Me.ComboBox4.TabIndex = 938
+        Me.OpenAppDataToolStripMenuItem1.Name = "OpenAppDataToolStripMenuItem1"
+        Me.OpenAppDataToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
+        Me.OpenAppDataToolStripMenuItem1.Text = "Open Application Data Folder"
+        '
+        'OpenTempFolderToolStripMenuItem1
+        '
+        Me.OpenTempFolderToolStripMenuItem1.Name = "OpenTempFolderToolStripMenuItem1"
+        Me.OpenTempFolderToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
+        Me.OpenTempFolderToolStripMenuItem1.Text = "Open Temp Folder"
         '
         'frmMain
         '
@@ -8169,4 +8183,6 @@ Partial Class frmMain
     Friend WithEvents ScanPDFsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ToolStripMenuItemLicense As ToolStripMenuItem
     Friend WithEvents ComboBox4 As ComboBox
+    Friend WithEvents OpenAppDataToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents OpenTempFolderToolStripMenuItem1 As ToolStripMenuItem
 End Class

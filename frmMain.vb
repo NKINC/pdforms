@@ -179,25 +179,65 @@ Public Class frmMain
     Public ReadOnly Property ApplicationDataFolder(Optional ByVal TrimEnd As Boolean = False, Optional subfolderName As String = "") As String
         Get
             Dim f As String = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
-            If Not Directory.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\") Then
-                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
-                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\Resources\")
-                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\notes\")
-                Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\temp\")
-                'AddEveryoneToPathACL(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
-            End If
-            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt") Then
-                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt", "")
-            End If
-            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt") Then
-                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt", "")
-            End If
-            If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt") Then
-                File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt", "")
-            End If
-            If Not Directory.Exists((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\")) Then
-                Directory.CreateDirectory((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\"))
-            End If
+            Try
+                If Not Directory.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\") Then
+                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
+                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\Resources\")
+                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\notes\")
+                    Directory.CreateDirectory(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\temp\")
+                    'AddEveryoneToPathACL(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\")
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not Directory.Exists(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\signatures\") Then
+                    Directory.CreateDirectory(f.ToString().TrimEnd("\"c) & "\NK-Inc.com\PdForms.net\signatures\")
+                    If Directory.Exists(appPath & "signaures") Then
+                        For Each strFile As String In Directory.GetFiles(appPath & "signaures")
+                            File.Copy(strFile, f.ToString().TrimEnd("\"c) & "\signatures\" & Path.GetFileName(strFile), True)
+                        Next
+                    End If
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt") Then
+                    If File.Exists(appPath & "readme.txt") Then
+                        File.Copy(appPath & "readme.txt", f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt", False)
+                    Else
+                        File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\readme.txt", "")
+                    End If
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt") Then
+                    File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\log.txt", "")
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not File.Exists(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt") Then
+                    If File.Exists(appPath & "open-history") Then
+                        File.Copy(appPath & "open-history", f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history", False)
+                    Else
+                        File.WriteAllText(f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net\open-history.txt", "")
+                    End If
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Try
+                If Not Directory.Exists((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\")) Then
+                    Directory.CreateDirectory((f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\"))
+                End If
+            Catch ex As Exception
+                Err.Clear()
+            End Try
             Return (f.ToString.TrimEnd("\".ToCharArray()) & "\NK-Inc.com\PdForms.net" & "\" & subfolderName.ToString().TrimEnd("\"c)).TrimEnd("\"c) & IIf(TrimEnd, "", "\")
         End Get
     End Property
@@ -472,95 +512,119 @@ Public Class frmMain
                     clsPreloadImagesThread.StopTimer()
                 End If
             End If
+            Dim cntr As Integer = 0
             Do While LoadImageGs_InUse
-                DoEvents_Wait(100)
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
             Loop
         Catch exPreload As Exception
-            TimeStampAdd(exPreload, debugMode)
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
         End Try
-        Using cPDF2Image As New PdfToImage.PDFConvert()
-            Try
-                pdfRead = New PdfReader(pdfData, getBytes(pdfOwnerPassword))
-GoTo_StartOver:
-                startCount += 1
-                Dim x As String = appPath
-                Dim tmpname As String = Path.GetRandomFileName & ".pdf"
-                Dim tmpImg As String = Path.GetRandomFileName & ".jpg"
-                cPDF2Image.OutputToMultipleFile = False
-                cPDF2Image.FirstPageToConvert = CInt(page)
-                cPDF2Image.LastPageToConvert = CInt(page)
-                cPDF2Image.FitPage = True
-                cPDF2Image.GraphicsAlphaBit = 4
-                cPDF2Image.TextAlphaBit = 4
-                cPDF2Image.DisableFontMap = False
-                cPDF2Image.DisablePlatformFonts = False
-                cPDF2Image.OutputFormat = "jpeg"
-                cPDF2Image.ResolutionX = 300
-                cPDF2Image.ResolutionY = 300
-                cPDF2Image.RenderingThreads = 4
-                cPDF2Image.JPEGQuality = 100
-                cPDF2Image.UseMutex = False
-                cPDF2Image.Width = CInt(getPDFWidth(pdfData) * getPercent())
-                cPDF2Image.Height = CInt(getPDFHeight(pdfData) * getPercent())
-                cPDF2Image.GhostScriptDLLDirectory = appPath
-                If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
-                End If
-                pdfRead.SelectPages(CInt(page).ToString)
+        If Not LoadImageGs_InUse Then
+            Using cPDF2Image As New PdfToImage.PDFConvert()
                 Try
-                    If MakeFieldsVisible Then
-                        If Not pdfRead.AcroFields Is Nothing Then
-                            If Not pdfRead.AcroFields.Fields Is Nothing Then
-                                If pdfRead.AcroFields.Fields.Keys.Count > 0 Then
-                                    pdfRead = A0_MakeFieldsVisible(pdfRead.Clone)
+
+                    pdfRead = New PdfReader(pdfData, pdfOwnerPassword.toBytesPdfOwnerPassword)
+GoTo_StartOver:
+                    startCount += 1
+                    cPDF2Image.OutputToMultipleFile = False
+                    pdfRead.SelectPages(page.ToString)
+                    page = 1
+                    Try
+                        If MakeFieldsVisible Then
+                            If Not pdfRead.AcroFields Is Nothing Then
+                                If Not pdfRead.AcroFields.Fields Is Nothing Then
+                                    If pdfRead.AcroFields.Fields.Keys.Count > 0 Then
+                                        pdfRead = A0_MakeFieldsVisible(pdfRead.Clone)
+                                    End If
                                 End If
                             End If
                         End If
+
+                    Catch exKeys As Exception
+                        TimeStampAdd(exKeys, debugMode)
+                    End Try
+
+                    cPDF2Image.FitPage = True
+                    cPDF2Image.GraphicsAlphaBit = 4
+                    cPDF2Image.TextAlphaBit = 4
+                    cPDF2Image.DisableFontMap = False
+                    cPDF2Image.DisablePlatformFonts = False
+                    cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
+                    cPDF2Image.RenderingThreads = 4
+                    cPDF2Image.JPEGQuality = 100
+                    cPDF2Image.UseMutex = False
+                    Dim height As Integer = 0, width As Integer = 0
+                    pdfRead.SelectPages(CStr(page.ToString()))
+                    pdfData = getPDFBytes(pdfRead.Clone, False)
+                    If height <= 0 And width > 0 Then
+                        height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    ElseIf height > 0 And width <= 0 Then
+                        width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    ElseIf height <= 0 And width <= 0 Then
+                        width = CInt(getPDFWidth(pdfData, 1))
+                        height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    Else
                     End If
-                Catch exKeys As Exception
-                    TimeStampAdd(exKeys, debugMode)
-                End Try
-                Dim perc As Single = getPercent(pdfRead, 1)
-                If perc <> 1 Then
-                    pdfData = getPDFBytes(pdfRead, False)
-                Else
-                    pdfData = getPDFBytes(pdfRead, False)
-                End If
-                cPDF2Image.FirstPageToConvert = 1
-                cPDF2Image.LastPageToConvert = 1
-                Try
-                    Do While LoadImageGs_InUse
-                        DoEvents_Wait(100)
-                    Loop
+                    cPDF2Image.Width = width
+                    cPDF2Image.Height = height
+                    cPDF2Image.GhostScriptDLLDirectory = appPath
+                    If Not pdfOwnerPassword.IsNullOrEmpty() Then
+                    End If
+                    cPDF2Image.FirstPageToConvert = 1 '1 'page
+                    cPDF2Image.LastPageToConvert = 1 '1 'page
+                    Try
+                        Dim cntr As Integer = 0
+                        Do While LoadImageGs_InUse
+                            If DoEvents_Wait(100) Then
+                                cntr += 1
+                                If cntr > 30 Then
+                                    LoadImageGs_InUse = False
+                                    Exit Do
+                                End If
+                            End If
+                        Loop
+                    Catch ex As Exception
+                        TimeStampAdd(ex, debugMode)
+                    End Try
+                    LoadImageGs_InUse = True
+                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
                 Catch ex As Exception
+                    If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
+                        pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
+                        Err.Clear()
+                        GoTo GoTo_StartOver
+                    End If
                     TimeStampAdd(ex, debugMode)
+                Finally
+                    Try
+                        If Not pdfRead Is Nothing Then
+                            pdfRead.Close()
+                            pdfRead.Dispose()
+                            pdfRead = Nothing
+                        End If
+                        'cPDF2Image.Dispose()
+                        LoadImageGs_InUse = False
+                    Catch ex2 As Exception
+                        TimeStampAdd(ex2, debugMode)
+                        TimeStampAdd(ex2, debugMode)
+                        LoadImageGs_InUse = False
+                    End Try
                 End Try
-                LoadImageGs_InUse = True
-                Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
-            Catch ex As Exception
-                If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
-                    pdfRead = New PdfReader(pdfData, getBytes(pdfOwnerPassword & ""))
-                    Err.Clear()
-                    GoTo GoTo_StartOver
-                End If
-                TimeStampAdd(ex, debugMode)
-            Finally
-                Try
-                    pdfRead.Close()
-                    pdfRead.Dispose()
-                    pdfRead = Nothing
-                Catch ex2 As Exception
-                    TimeStampAdd(ex2, debugMode)
-                End Try
-                Try
-                    cPDF2Image.Dispose()
-                    LoadImageGs_InUse = False
-                Catch ex As Exception
-                    TimeStampAdd(ex, debugMode)
-                End Try
-            End Try
-        End Using
+            End Using
+        End If
         Return Nothing
     End Function
+
+
+
     Public Function A0_MakeFieldsVisible(ByRef pdfread As PdfReader)
         Dim rClone As PdfReader = pdfread.Clone
         Try
@@ -768,12 +832,20 @@ GoTo_StartOver:
                     clsPreloadImagesThread.StopTimer()
                 End If
             End If
+            Dim cntr As Integer = 0
             Do While LoadImageGs_InUse
-                DoEvents_Wait(100)
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
             Loop
         Catch exPreload As Exception
-            TimeStampAdd(exPreload, debugMode)
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
         End Try
+
         If pdfRead Is Nothing Then
             LoadPDFReaderDoc(pdfOwnerPassword, True)
             pdfReadTemp = pdfReaderDoc.Clone
@@ -786,6 +858,7 @@ GoTo_StartOver:
 GoTo_StartOver:
                     startCount += 1
                     cPDF2Image.OutputToMultipleFile = False
+
                     pdfReadTemp.SelectPages(page.ToString)
                     page = 1
                     Try
@@ -807,8 +880,8 @@ GoTo_StartOver:
                     cPDF2Image.DisableFontMap = False
                     cPDF2Image.DisablePlatformFonts = False
                     cPDF2Image.OutputFormat = "png16m" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
-                    cPDF2Image.ResolutionX = 150
-                    cPDF2Image.ResolutionY = 150
+                    cPDF2Image.ResolutionX = 150 '300'150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    cPDF2Image.ResolutionY = 150 '300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
                     cPDF2Image.RenderingThreads = 4
                     cPDF2Image.JPEGQuality = 100
                     cPDF2Image.UseMutex = False
@@ -818,18 +891,26 @@ GoTo_StartOver:
                         width = CInt((height / CSng(getPDFHeight(pdfReadTemp, page))) * CSng(getPDFWidth(pdfReadTemp, page)))
                     ElseIf height <= 0 And width <= 0 Then
                         width = CInt(getPDFWidth(pdfReadTemp, page))
-                        height = CInt(getPDFHeight(pdfReadTemp, page))
+                        height = CInt(getPDFHeight(pdfReadTemp, page)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
                     Else
                     End If
                     cPDF2Image.Width = width
                     cPDF2Image.Height = height
                     cPDF2Image.GhostScriptDLLDirectory = appPath
-                    If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
+                    If Not pdfOwnerPassword.IsNullOrEmpty() Then
                     End If
-                    cPDF2Image.FirstPageToConvert = page
-                    cPDF2Image.LastPageToConvert = page
+                    cPDF2Image.FirstPageToConvert = page '1 'page
+                    cPDF2Image.LastPageToConvert = page '1 'page
                     Try
+                        Dim cntr As Integer = 0
                         Do While LoadImageGs_InUse
+                            If DoEvents_Wait(100) Then
+                                cntr += 1
+                                If cntr > 30 Then
+                                    LoadImageGs_InUse = False
+                                    Exit Do
+                                End If
+                            End If
                         Loop
                     Catch ex As Exception
                         TimeStampAdd(ex, debugMode)
@@ -838,14 +919,14 @@ GoTo_StartOver:
                     Return cPDF2Image.ConvertToBytes(getPDFBytes(pdfReadTemp.Clone, False), "pdf", ".jpg", appPath)
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
-                        pdfReadTemp = New PdfReader(getPDFBytes(pdfReadTemp.Clone), getBytes(pdfOwnerPassword & ""))
+                        pdfReadTemp = New PdfReader(getPDFBytes(pdfReadTemp.Clone), pdfOwnerPassword.toBytesPdfOwnerPassword)
                         Err.Clear()
                         GoTo GoTo_StartOver
                     End If
                     TimeStampAdd(ex, debugMode)
                 Finally
                     Try
-                        cPDF2Image.Dispose()
+                        'cPDF2Image.Dispose()
                         LoadImageGs_InUse = False
                     Catch ex2 As Exception
                         TimeStampAdd(ex2, debugMode)
@@ -866,11 +947,18 @@ GoTo_StartOver:
                     clsPreloadImagesThread.StopTimer()
                 End If
             End If
+            Dim cntr As Integer = 0
             Do While LoadImageGs_InUse
-                DoEvents_Wait(100)
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
             Loop
         Catch exPreload As Exception
-            TimeStampAdd(exPreload, debugMode)
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
         End Try
         If Not LoadImageGs_InUse Then
             Using cPDF2Image As New PdfToImage.PDFConvert()
@@ -891,6 +979,7 @@ GoTo_StartOver:
                                 End If
                             End If
                         End If
+
                     Catch exKeys As Exception
                         TimeStampAdd(exKeys, debugMode)
                     End Try
@@ -901,9 +990,9 @@ GoTo_StartOver:
                     cPDF2Image.TextAlphaBit = 4
                     cPDF2Image.DisableFontMap = False
                     cPDF2Image.DisablePlatformFonts = False
-                    cPDF2Image.OutputFormat = "jpeg"
-                    cPDF2Image.ResolutionX = 300
-                    cPDF2Image.ResolutionY = 300
+                    cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
                     cPDF2Image.RenderingThreads = 4
                     cPDF2Image.JPEGQuality = 100
                     cPDF2Image.UseMutex = False
@@ -913,18 +1002,26 @@ GoTo_StartOver:
                         width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
                     ElseIf height <= 0 And width <= 0 Then
                         width = CInt(getPDFWidth(pdfData, 1))
-                        height = CInt(getPDFHeight(pdfData, 1))
+                        height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
                     Else
                     End If
                     cPDF2Image.Width = width
                     cPDF2Image.Height = height
                     cPDF2Image.GhostScriptDLLDirectory = appPath
-                    If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
+                    If Not pdfOwnerPassword.IsNullOrEmpty() Then
                     End If
-                    cPDF2Image.FirstPageToConvert = page
-                    cPDF2Image.LastPageToConvert = page
+                    cPDF2Image.FirstPageToConvert = page ' 1 'page
+                    cPDF2Image.LastPageToConvert = page '1 'page
                     Try
+                        Dim cntr As Integer = 0
                         Do While LoadImageGs_InUse
+                            If DoEvents_Wait(100) Then
+                                cntr += 1
+                                If cntr > 30 Then
+                                    LoadImageGs_InUse = False
+                                    Exit Do
+                                End If
+                            End If
                         Loop
                     Catch ex As Exception
                         TimeStampAdd(ex, debugMode)
@@ -933,7 +1030,7 @@ GoTo_StartOver:
                     Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
-                        pdfRead = New PdfReader(pdfData.ToArray, getBytes(pdfOwnerPassword & ""))
+                        pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
                         Err.Clear()
                         GoTo GoTo_StartOver
                     End If
@@ -959,7 +1056,7 @@ GoTo_StartOver:
     End Function
     Public Function LoadFileGhostScript(ByVal pdfData() As Byte, ByVal inputFormatExtension As String) As Byte()
         Try
-            Dim x As String = appPath & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 8) & "\"
+            Dim x As String = appPath & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 8) & "\" 'Server.MapPath("/SubmitPDF/editPDF/")
             If Not Directory.Exists(x) Then
                 Directory.CreateDirectory(x)
             End If
@@ -967,13 +1064,13 @@ GoTo_StartOver:
             Dim tmpImg As String = Path.GetRandomFileName & ".bmp"
             Dim cPDF2Image As New PdfToImage.PDFConvert()
             cPDF2Image.OutputToMultipleFile = False
-            cPDF2Image.FirstPageToConvert = 1
-            cPDF2Image.LastPageToConvert = 1
+            cPDF2Image.FirstPageToConvert = 1 'CInt(page)
+            cPDF2Image.LastPageToConvert = 1 'CInt(page)
             cPDF2Image.FitPage = True
             cPDF2Image.JPEGQuality = 100
             cPDF2Image.GraphicsAlphaBit = 4
             cPDF2Image.TextAlphaBit = 4
-            cPDF2Image.OutputFormat = "png16m"
+            cPDF2Image.OutputFormat = "png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
             cPDF2Image.ResolutionX = 720
             cPDF2Image.ResolutionY = 720
             cPDF2Image.GhostScriptDLLDirectory = appPath
@@ -982,9 +1079,9 @@ GoTo_StartOver:
             Catch ex As Exception
             End Try
             Try
-                Return pdfData
+                Return pdfData 'File.ReadAllBytes(x & tmpImg)
             Catch ex As Exception
-                TimeStampAdd(ex, debugMode)
+                TimeStampAdd(ex, debugMode)  ' Throw ex
             Finally
                 Try
                 Catch ex As Exception
@@ -1194,7 +1291,7 @@ GoTo_StartOver:
                 If memName.StartsWith("image_cache_history_") Then
                     Try
                         If String.IsNullOrEmpty(fpath & "") Then Return Nothing
-                        memName &= "-" & cmbPercent1SelectedIndex & "-" & cmbPercent1SelectedText
+                        memName &= "-" & cmbPercent1SelectedIndex & "-" & cmbPercent1SelectedText & "-" & Me.Width.ToString() & "-" & Me.Height().ToString() & ""
                     Catch exImgCache As Exception
                         TimeStampAdd(exImgCache, debugMode)
                     End Try
@@ -1218,7 +1315,7 @@ GoTo_StartOver:
                 If String.IsNullOrEmpty(fpath & "") Then Return
                 Dim pgNum As Integer = CInt(CStr(name.ToString.Replace("image_cache_history_", "")))
                 Dim fn1 As String = Path.GetFileNameWithoutExtension(fpath & "") & "-" & CStr(FormatNumber(CDbl(getPercentPageNumber(pgNum, cmbPercent1SelectedIndex, cmbPercent1SelectedText, cmbPercent1Text)), 2)).ToString.Replace(".", "_")
-                name &= "-" & cmbPercent1SelectedIndex & "-" & cmbPercent1SelectedText
+                name &= "-" & cmbPercent1SelectedIndex & "-" & cmbPercent1SelectedText & "-" & Me.Width.ToString() & "-" & Me.Height().ToString() & ""
             ElseIf name.StartsWith("image_undo_history_") Then
             ElseIf name.ToLower = ("saved") Then
             End If
@@ -1643,14 +1740,21 @@ GoTo_StartOver:
     End Function
     Public Function A0_LoadPDF(Optional ByVal updateImage As Boolean = True, Optional ByVal forceNew As Boolean = True, Optional ByVal updatePictureBox As Boolean = True, Optional ByVal pgNo As Integer = -1, Optional ByVal drawFieldPositions As Boolean = True) As Boolean
         Dim ignoreClickTemp As Boolean = ignoreClick
-        If isSessionNull() Then Return False
         Try
+            If isSessionNull() Then Return False
+            'If pdfReaderDoc Is Nothing Then
+            'LoadPDFReaderDoc(pdfOwnerPassword, True)
+            'End If
             If Not pdfReaderDoc Is Nothing Then
                 If forceNew Then
                     If Not Session Is Nothing Then
                         If Session.Length > 0 Then
                             LoadPDFReaderDoc(pdfOwnerPassword & "", forceNew)
+                        Else
+                            Throw New Exception("A0_LoadPDF - Session is null")
                         End If
+                    Else
+                        Throw New Exception("A0_LoadPDF - Session is null")
                     End If
                 End If
             Else
@@ -1659,12 +1763,17 @@ GoTo_StartOver:
                         LoadPDFReaderDoc(pdfOwnerPassword & "", forceNew)
                         fldRectangles = getFieldRectangles(False)
                         LoadPageList(Me.btnPage)
+                    Else
+                        Throw New Exception("A0_LoadPDF - Session is null")
                     End If
+                Else
+                    Throw New Exception("A0_LoadPDF - Session is null")
                 End If
             End If
+            'TimeStampAdd("A0_LoadPDF-session.lengthA:" & Session.Length.ToString())
         Catch ex As Exception
-            LoadPDFReaderDoc(pdfOwnerPassword & "", forceNew)
             TimeStampAdd(ex, debugMode)
+            LoadPDFReaderDoc(pdfOwnerPassword & "", forceNew)
         End Try
         Try
             If Not pgNo = Nothing Then
@@ -1678,64 +1787,83 @@ GoTo_StartOver:
             Dim m As New MemoryStream
             Dim pdfBytes() As Byte = Nothing
             Dim blnSaveCache As Boolean = True
-            If updateImage Then
+            If updateImage Then 'Or cUserRect.pauseDraw = False 
                 If Not Session("output") Is Nothing Then
-                    pdfBytes = Session("output").ToArray
+                    If Session.Length <= 0 Then Return False
+                    pdfBytes = Session.ToArray
+                    'TimeStampAdd("A0_LoadPDF-session.length:B:" & Session.Length.ToString())
                     Dim imgCache() As Byte = Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
                     Try
                         If Not forceNew Or imgCache Is Nothing Then
+                            ''TimeStampAdd("A0_LoadPDF-imgCache.length:B:1:" & imgCache.Length.ToString())
                             'Try
-                            '    If imgCache Is Nothing Then
+                            '    If imgCache Is Nothing And Not Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text) Is Nothing Then 'Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
+                            '        'TimeStampAdd("A0_LoadPDF-imgCache.length:B:1:A:" & imgCache.Length.ToString())
                             '        imgCache = Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text)
+                            '        'TimeStampAdd("A0_LoadPDF-imgCache.length:B:1:B:" & imgCache.Length.ToString())
                             '        blnSaveCache = False
                             '    End If
                             'Catch ex As Exception
-                            '    TimeStampAdd(ex, debugMode)
+                            '    TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                             'End Try
+                            'TimeStampAdd("A0_LoadPDF-session.length:B:2:" & Session.Length.ToString())
                             Try
                                 If forceNew Or imgCache Is Nothing Then
-                                    imgCache = A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
+                                    ''TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:A:" & imgCache.Length.ToString())
+                                    imgCache = A0_LoadImage(Session, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
+                                    'TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:B:" & imgCache.Length.ToString())
                                     Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text) = imgCache
+                                    'TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:C:" & imgCache.Length.ToString())
                                 Else
                                     If imgCache.Length <= 0 Then
                                         imgCache = A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
                                     End If
                                 End If
                             Catch ex As Exception
-                                TimeStampAdd(ex, debugMode)
+                                TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                             End Try
+                            'TimeStampAdd("A0_LoadPDF-session.length:B:3:" & Session.Length.ToString())
                             Try
+                                'TimeStampAdd("A0_LoadPDF-imgCache.length:B:3:A:" & imgCache.Length.ToString())
                                 m = New MemoryStream(imgCache)
+                                'TimeStampAdd("A0_LoadPDF-imgCache.length:B:3:B:" & imgCache.Length.ToString())
                             Catch ex As Exception
-                                TimeStampAdd(ex, debugMode)
+                                TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                             End Try
                         Else
+                            'TimeStampAdd("A0_LoadPDF-imgCache.length:B:4:" & imgCache.Length.ToString())
                             Try
                                 m = New MemoryStream(A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
                             Catch ex As Exception
-                                TimeStampAdd(ex, debugMode)
+                                TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                             End Try
+                            'TimeStampAdd("A0_LoadPDF-m.length:B:4:A:" & m.Length.ToString())
                         End If
                     Catch exImageCache As Exception
+                        'TimeStampAdd("A0_LoadPDF-session.length:B:4:" & Session.Length.ToString())
                         m = New MemoryStream(A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
-                        TimeStampAdd(exImageCache, debugMode)
+                        TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
+                        'TimeStampAdd("A0_LoadPDF-session.length:B:5:" & Session.Length.ToString())
                     Finally
+
                     End Try
+                    'TimeStampAdd("A0_LoadPDF-session.length:C:" & Session.Length.ToString())
                     Try
                         If m.CanSeek Then
                             m.Seek(0, SeekOrigin.Begin)
                         End If
                         If updatePictureBox Then
-                            Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m)
-                            If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image)
+                            Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m) 'IIf(getPercent ( pgNo , true ) >= 1, System.Drawing.Image.FromStream(m), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias)) 'IIf(getPercent ( pgNo , true ) > 0, clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.HighQuality, SmoothingMode.AntiAlias), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias))
+                            If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image) 'clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.AssumeLinear, SmoothingMode.AntiAlias)
                             If Not A0_PictureBox1.Visible Then A0_PictureBox1.Visible = True
                             A0_PictureBox2.Visible = True
                         End If
-                        A0_PictureBox1.Width = CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True))
-                        A0_PictureBox1.Height = CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))
+                        A0_PictureBox1.Width = CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)) 'img.Width
+                        A0_PictureBox1.Height = CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)) 'img.Height
                     Catch exImageCache As Exception
-                        TimeStampAdd(exImageCache, debugMode)
+                        TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                     End Try
+                    'TimeStampAdd("A0_LoadPDF-session.length:D:" & Session.Length.ToString())
                     If cLinks Is Nothing Then
                         cLinks = New clsLinks(pdfReaderDoc, Me)
                     ElseIf cLinks.Links.Count <= 0 Then
@@ -1743,6 +1871,7 @@ GoTo_StartOver:
                         cLinks.LoadLinksOnPage(CInt(pageIndex))
                     End If
                 ElseIf Not Session(_sid) Is Nothing Then
+                    'TimeStampAdd("A0_LoadPDF-session.length:F:" & Session.Length.ToString())
                     pdfBytes = cFDFDoc.PDFMergeFDF2Buf(cFDFDoc.FDFGetFile, False, "")
                     Dim imgCache() As Byte = Nothing
                     Try
@@ -1764,21 +1893,23 @@ GoTo_StartOver:
                         End If
                     Catch exImageCache As Exception
                         m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
-                        TimeStampAdd(exImageCache, debugMode)
+                        TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                     Finally
                     End Try
                     If m.CanSeek Then
                         m.Seek(0, SeekOrigin.Begin)
                     End If
                     If updatePictureBox Then
-                        Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m)
-                        If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image)
+                        Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m) 'IIf(getPercent ( pgNo , true ) >= 1, System.Drawing.Image.FromStream(m), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias)) 'IIf(getPercent ( pgNo , true ) > 0, clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.HighQuality, SmoothingMode.AntiAlias), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias))
+                        If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image) 'clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.AssumeLinear, SmoothingMode.AntiAlias)
                         A0_PictureBox1.Width = img.Width
                         A0_PictureBox1.Height = img.Height
                         If Not A0_PictureBox1.Visible Then A0_PictureBox1.Visible = True
                         A0_PictureBox2.Visible = True
                     End If
+
                 ElseIf Not Session("input") Is Nothing Then
+                    'TimeStampAdd("A0_LoadPDF-session.length:G:" & Session.Length.ToString())
                     Try
                         cFDFDoc = cFDFApp.FDFOpenFromBuf(Session("input"), True, True)
                     Catch ex As Exception
@@ -1805,21 +1936,22 @@ GoTo_StartOver:
                         End If
                     Catch exImageCache As Exception
                         m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
-                        TimeStampAdd(exImageCache, debugMode)
+                        TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                     Finally
                     End Try
                     If m.CanSeek Then
                         m.Seek(0, SeekOrigin.Begin)
                     End If
                     If updatePictureBox Then
-                        Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m)
-                        If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image)
+                        Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(m) 'IIf(getPercent ( pgNo , true ) >= 1, System.Drawing.Image.FromStream(m), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias)) 'IIf(getPercent ( pgNo , true ) > 0, clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.HighQuality, SmoothingMode.AntiAlias), clsPdfSizeReduction.imageQuality(m, InterpolationMode.HighQualityBicubic, CompositingQuality.HighQuality, SmoothingMode.AntiAlias))
+                        If Not cUserRect.pauseDraw Then A0_PictureBox1.Image = DirectCast(img.Clone(), System.Drawing.Image) 'clsPdfSizeReduction.imageQuality(m, InterpolationMode.High, CompositingQuality.AssumeLinear, SmoothingMode.AntiAlias)
                         A0_PictureBox1.Width = img.Width
                         A0_PictureBox1.Height = img.Height
                     End If
                 Else
                     Return True
                 End If
+                'TimeStampAdd("A0_LoadPDF-session.length:H:" & Session.Length.ToString())
                 Try
                     _pictureBoxImage = DirectCast(A0_PictureBox1.Image.Clone, System.Drawing.Image)
                     cUserRect.imgPic = DirectCast(_pictureBoxImage.Clone, System.Drawing.Image)
@@ -1840,11 +1972,13 @@ GoTo_StartOver:
                             End If
                         End If
                     Catch exCache As Exception
-                        TimeStampAdd(exCache, debugMode)
+                        TimeStampAdd(exCache, debugMode) ' NK 2016-06-30 'NK DM
                     End Try
+
                 Catch exImageCache As Exception
-                    TimeStampAdd(exImageCache, debugMode)
+                    TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                 End Try
+                'TimeStampAdd("A0_LoadPDF-session.length:I:" & Session.Length.ToString())
                 Try
                     If updatePictureBox Then
                         If _outputIndex >= 0 Then
@@ -1863,14 +1997,16 @@ GoTo_StartOver:
                             DrawImageFieldPositions()
                         End If
                     End If
+
                 Catch exImageCache As Exception
-                    TimeStampAdd(exImageCache, debugMode)
+                    TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                 End Try
             ElseIf updatePictureBox Then
+                'TimeStampAdd("A0_LoadPDF-session.length:J:" & Session.Length.ToString())
                 If Not Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text) Is Nothing Then
                     _pictureBoxImage = DirectCast(System.Drawing.Bitmap.FromStream(New MemoryStream(Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text))).Clone(), System.Drawing.Image)
                 Else
-                    _pictureBoxImage = DirectCast(cUserRect.imgPic.Clone, System.Drawing.Image)
+                    _pictureBoxImage = DirectCast(cUserRect.imgPic.Clone, System.Drawing.Image) '(PictureBox1.Image.Clone)
                 End If
                 _pictureBoxImage = DirectCast(A0_PictureBox1.Image.Clone, System.Drawing.Image)
                 cUserRect.imgPic = DirectCast(_pictureBoxImage.Clone, System.Drawing.Image)
@@ -1900,9 +2036,12 @@ GoTo_StartOver:
             End If
             Return True
         Catch exMain As Exception
+            'TimeStampAdd("A0_LoadPDF-session.length:Error:" & Session.Length.ToString())
+            TimeStampAdd(exMain, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
             Throw exMain
         Finally
             ignoreClick = False
+            'TimeStampAdd("A0_LoadPDF-session.length:FinallyA:" & Session.Length.ToString())
             If Not A0_PictureBox1.Image Is Nothing Then
                 If Not A0_PictureBox1.Visible Then A0_PictureBox1.Visible = True
                 A0_PictureBox2.Visible = True
@@ -25224,6 +25363,17 @@ Goto_END_APP:
     End Sub
     Private Sub Form1_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         Try
+            appPath = Application.StartupPath.ToString.TrimEnd("\"c) & "\"
+            appPathTemp = ApplicationDataFolder(False, "temp")
+            If Not Directory.Exists(ApplicationDataFolder(False, "temp") & "") Then
+                Directory.CreateDirectory(ApplicationDataFolder(False, "temp") & "")
+            End If
+            FontFactory.RegisterDirectories()
+            'DefaultFont = New iTextSharp.text.Font(FontFactory.GetFont(PDFField_FontFamily.Items(PDFField_FontFamily.SelectedIndex).ToString(), defaultFontSize, iTextSharp.text.Font.NORMAL, New BaseColor(PDFField_TextColorPicker.BackColor)))
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        Try
             If GetSetting(Application.ProductName, "LICENSE", "GNU", "") = "" Then
                 Select Case MsgBox("VIEW " & Application.ProductName & " LICENSE AGREEMENT?", MsgBoxStyle.YesNo + MsgBoxStyle.ApplicationModal, "IMPORTANT:")
                     Case MsgBoxResult.Yes, MsgBoxResult.Ok
@@ -25273,16 +25423,6 @@ Goto_END_APP:
         End Try
         _debugVariable = False
         loadReaderCount = 0
-        Try
-            appPath = Application.StartupPath.ToString.TrimEnd("\"c) & "\"
-            appPathTemp = ApplicationDataFolder(False, "temp")
-            If Not Directory.Exists(ApplicationDataFolder(False,"temp") & "") Then
-                Directory.CreateDirectory(ApplicationDataFolder(False,"temp") & "")
-            End If
-            FontFactory.RegisterDirectories()
-        Catch ex As Exception
-            Err.Clear()
-        End Try
         Dim m2 As New MemoryStream
         _debugFileName = appPath & "acro.pdf"
         fpath = appPath & "acro.pdf"
@@ -50115,5 +50255,21 @@ OPENFILE_KNOWN_FILENAME:
         End Select
     End Sub
     Private Sub A0_PictureBox2_BackgroundImageChanged(sender As Object, e As EventArgs) Handles A0_PictureBox2.BackgroundImageChanged
+    End Sub
+
+    Private Sub OpenAppDataToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles OpenAppDataToolStripMenuItem1.Click
+        Try
+            Process.Start(ApplicationDataFolder(False, ""))
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub OpenTempFolderToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles OpenTempFolderToolStripMenuItem1.Click
+        Try
+            Process.Start(ApplicationDataFolder(False, "temp"))
+        Catch ex As Exception
+            Err.Clear()
+        End Try
     End Sub
 End Class
