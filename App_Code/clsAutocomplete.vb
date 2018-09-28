@@ -386,17 +386,17 @@ Public Class clsAutocomplete
                 'If blnIncludeFields Then
                 '    strHTML &= "<style media=""all"" type=""text/css"">.lazy {display: none;}" & Environment.NewLine & "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none){html,body,form{font-size:28px}}" & Environment.NewLine & "</style>"
                 '    strHTML &= "<script type=""text/javascript"">"
-                '    'strHTML &= File.ReadAllText(frm.appPath & "resources/jquery.1.10.2.min.js") & ""
-                '    strHTML &= File.ReadAllText(frm.appPath & "resources/jquery-3.1.1.min.js") & ""
+                '    'strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "resources/jquery.1.10.2.min.js") & ""
+                '    strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "resources/jquery-3.1.1.min.js") & ""
                 '    strHTML &= "</script>"
                 '    'strHTML &= "<script type=""text/javascript"">"
-                '    'strHTML &= File.ReadAllText(frm.appPath & "resources/flowtype.js") & ""
+                '    'strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "resources/flowtype.js") & ""
                 '    'strHTML &= "</script>"
                 '    'strHTML &= "<script type=""text/javascript"">"
-                '    'strHTML &= File.ReadAllText(frm.appPath & "resources/lazyload.js") & ""
+                '    'strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "resources/lazyload.js") & ""
                 '    'strHTML &= "</script>"
                 '    strHTML &= "<script type=""text/javascript"">"
-                '    strHTML &= File.ReadAllText(frm.appPath & "resources/jquery-mask.js") & ""
+                '    strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "resources/jquery-mask.js") & ""
                 '    strHTML &= "</script>"
                 'End If
                 'strHTML &= "</head>"
@@ -1329,7 +1329,7 @@ Public Class clsAutocomplete
                     'strHTML &= "</script>" & Environment.NewLine
                 End If
                 'strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
-                'strHTML &= File.ReadAllText(frm.appPath & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", frm.fpath.ToString.Replace("\", "\\\\"))
+                'strHTML &= File.ReadAllText(frm.ApplicationDataFolder(True, "") & "\" & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", frm.fpath.ToString.Replace("\", "\\\\"))
                 'strHTML &= "</script>"
                 strHTML &= Environment.NewLine & "</form>" & Environment.NewLine
                 strHTML &= "</div>" & Environment.NewLine
