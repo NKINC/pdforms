@@ -46051,6 +46051,15 @@ goto_LinksStart:
                             End If
                             pathTemp = pathTemp2
                         End If
+                    ElseIf Clipboard.GetFileDropList.Count > 0 Then
+                        Try
+                            Dim oDataString As String = Clipboard.GetFileDropList(0).ToString()
+                            If FileExists(oDataString & "") Then
+                                pathTemp = Clipboard.GetFileDropList(0).ToString()
+                            End If
+                        Catch ex2 As Exception
+                            TimeStampAdd(ex2, debugMode)
+                        End Try
                     End If
                     fpath = New clsPromptDialog().ShowDialog("Open web page Url:", "Open File", Me, pathTemp)
                 Catch ex As Exception
@@ -46122,6 +46131,28 @@ GOTO_KNOWN_FILENAME:
                             Return
                         End Try
                     ElseIf FileExists(fn) Then
+                        'fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
+                        'Dim cHTML2Image As New clsHTML2Image()
+                        'Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                        'Dim bitmp As Bitmap = Nothing
+                        'If IsNumeric(MinWidth & "") Then
+                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
+                        'Else
+                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
+                        'End If
+                        'Dim cOptimize As New clsPDFOptimization()
+                        'clsPDFOptimization.cancelOptimize_Shared = False
+                        'Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
+                        'Using imgMem As New MemoryStream(imgBytes)
+                        '    If imgMem.CanSeek Then
+                        '        imgMem.Seek(0, SeekOrigin.Begin)
+                        '    End If
+                        '    bitmp = Bitmap.FromStream(imgMem)
+                        'End Using
+                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                        'ImportImage(fn & "")
+
+
                         fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
                         Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
@@ -46317,29 +46348,33 @@ GOTO_KNOWN_FILENAME:
                                     Dim strHTML As String = System.Text.Encoding.UTF8.GetString(wc.DownloadData(fpath)).Trim()
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
-                                    End If
-                                    Dim matchPattern As New List(Of String)
-                                    matchPattern.Add("src=""([^""]*)")
-                                    matchPattern.Add("href=""([^""]*)")
-                                    matchPattern.Add("src='([^']*)")
-                                    matchPattern.Add("href='([^']*)")
-                                    For Each mp As String In matchPattern.ToArray
-                                        For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
-                                            If m.Success Then
-                                                If m.Groups.Count = 1 Then
-                                                    Dim strSrc As String = m.Groups(0).Value
-                                                    If Not IsValidUrl(strSrc) Then
-                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
-                                                    End If
-                                                ElseIf m.Groups.Count = 2 Then
-                                                    Dim strSrc As String = m.Groups(1).Value
-                                                    If Not IsValidUrl(strSrc) Then
-                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
+                                        Dim matchPattern As New List(Of String)
+                                        matchPattern.Add("src=""([^""]*)")
+                                        matchPattern.Add("href=""([^""]*)")
+                                        matchPattern.Add("src='([^']*)")
+                                        matchPattern.Add("href='([^']*)")
+                                        For Each mp As String In matchPattern.ToArray
+                                            For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
+                                                If m.Success Then
+                                                    If m.Groups.Count = 1 Then
+                                                        Dim strSrc As String = m.Groups(0).Value
+                                                        If Not IsValidUrl(strSrc) Then
+                                                            If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
+                                                                strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
+                                                            End If
+                                                        End If
+                                                    ElseIf m.Groups.Count = 2 Then
+                                                        Dim strSrc As String = m.Groups(1).Value
+                                                        If Not IsValidUrl(strSrc) Then
+                                                            If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
+                                                                strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
+                                                            End If
+                                                        End If
                                                     End If
                                                 End If
-                                            End If
+                                            Next
                                         Next
-                                    Next
+                                    End If
                                     Dim pdfBytes() As Byte
                                     Try
                                         pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Replace("\", "/").Substring(0, fpath.ToString.Replace("\", "/").LastIndexOf("/") + 1), True)
@@ -46384,29 +46419,37 @@ GOTO_KNOWN_FILENAME:
                                     Dim strHTML As String = System.Text.Encoding.UTF8.GetString(System.IO.File.ReadAllBytes(fn)).Trim()
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
-                                    End If
-                                    Dim matchPattern As New List(Of String)
-                                    matchPattern.Add("src=""([^""]*)")
-                                    matchPattern.Add("href=""([^""]*)")
-                                    matchPattern.Add("src='([^']*)")
-                                    matchPattern.Add("href='([^']*)")
-                                    For Each mp As String In matchPattern.ToArray
-                                        For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
-                                            If m.Success Then
-                                                If m.Groups.Count = 1 Then
-                                                    Dim strSrc As String = m.Groups(0).Value
-                                                    If Not IsValidUrl(strSrc) And Not FileExists(strSrc) Then
-                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
-                                                    End If
-                                                ElseIf m.Groups.Count = 2 Then
-                                                    Dim strSrc As String = m.Groups(1).Value
-                                                    If Not IsValidUrl(strSrc) And Not FileExists(strSrc) Then
-                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
+                                        Dim matchPattern As New List(Of String)
+                                        matchPattern.Add("src=""([^""]*)")
+                                        matchPattern.Add("href=""([^""]*)")
+                                        matchPattern.Add("src='([^']*)")
+                                        matchPattern.Add("href='([^']*)")
+                                        For Each mp As String In matchPattern.ToArray
+                                            For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
+                                                If m.Success Then
+                                                    If m.Groups.Count = 1 Then
+                                                        Dim strSrc As String = m.Groups(0).Value
+                                                        If Not IsValidUrl(strSrc) Then
+                                                            If Not strSrc.ToLower().StartsWith("file:///") Then
+                                                                If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
+                                                                    strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    ElseIf m.Groups.Count = 2 Then
+                                                        Dim strSrc As String = m.Groups(1).Value
+                                                        If Not IsValidUrl(strSrc) Then
+                                                            If Not strSrc.ToLower().StartsWith("file:///") Then
+                                                                If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
+                                                                    strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
+                                                                End If
+                                                            End If
+                                                        End If
                                                     End If
                                                 End If
-                                            End If
+                                            Next
                                         Next
-                                    Next
+                                    End If
                                     Dim pdfBytes() As Byte
                                     Try
                                         pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1), True)
