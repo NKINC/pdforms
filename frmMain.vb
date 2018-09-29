@@ -46095,9 +46095,9 @@ GOTO_KNOWN_FILENAME:
                                     Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto)", "Page height:", Me, iTextSharp.text.PageSize.LETTER.Height, "OK"))
                                     Dim bitmp As Bitmap = Nothing
                                     If IsNumeric(MinWidth & "") Then
-                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
                                     Else
-                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", -1, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
                                     End If
                                     Dim cOptimize As New clsPDFOptimization()
                                     clsPDFOptimization.cancelOptimize_Shared = False
@@ -46127,9 +46127,9 @@ GOTO_KNOWN_FILENAME:
                         Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
@@ -46148,9 +46148,9 @@ GOTO_KNOWN_FILENAME:
                         Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
@@ -46251,7 +46251,7 @@ GOTO_KNOWN_FILENAME:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = appPathTemp & "resources\html2pdf.htm"
+                    Dim pathTemp As String = appPath & "resources\html2pdf.htm"
                     If Clipboard.ContainsText Then
                         Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
                         If IsValidUrl(pathTemp2) Then
@@ -46372,9 +46372,9 @@ GOTO_KNOWN_FILENAME:
                         Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
