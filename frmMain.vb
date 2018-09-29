@@ -46349,10 +46349,10 @@ GOTO_KNOWN_FILENAME:
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
                                         Dim matchPattern As New List(Of String)
-                                        matchPattern.Add("src=""([^""]*)")
-                                        matchPattern.Add("href=""([^""]*)")
-                                        matchPattern.Add("src='([^']*)")
-                                        matchPattern.Add("href='([^']*)")
+                                        matchPattern.Add("img.*src=""([^""]*)")
+                                        matchPattern.Add("img.*href=""([^""]*)")
+                                        matchPattern.Add("link.*src='([^']*)")
+                                        matchPattern.Add("link.*href='([^']*)")
                                         For Each mp As String In matchPattern.ToArray
                                             For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
                                                 If m.Success Then
@@ -46420,10 +46420,10 @@ GOTO_KNOWN_FILENAME:
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
                                         Dim matchPattern As New List(Of String)
-                                        matchPattern.Add("src=""([^""]*)")
-                                        matchPattern.Add("href=""([^""]*)")
-                                        matchPattern.Add("src='([^']*)")
-                                        matchPattern.Add("href='([^']*)")
+                                        matchPattern.Add("img.*src=""([^""]*)")
+                                        matchPattern.Add("img.*href=""([^""]*)")
+                                        matchPattern.Add("link.*src='([^']*)")
+                                        matchPattern.Add("link.*href='([^']*)")
                                         For Each mp As String In matchPattern.ToArray
                                             For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
                                                 If m.Success Then
