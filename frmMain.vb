@@ -46251,7 +46251,7 @@ GOTO_KNOWN_FILENAME:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = appPath & "resources\html2pdf.htm"
+                    Dim pathTemp As String = appPathTemp & "resources\html2pdf.htm"
                     If Clipboard.ContainsText Then
                         Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
                         If IsValidUrl(pathTemp2) Then
