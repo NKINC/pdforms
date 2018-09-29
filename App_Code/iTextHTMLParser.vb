@@ -131,14 +131,9 @@ Public Class clsHTML2PDFiText
     End Function
 
     Public Shared Function HTML2PDFCss(ByVal example_html As String, ByVal pgWidth As Integer, ByVal pgHeight As Integer, Optional ByVal printOnly As Boolean = False, Optional ByVal printInclude As Boolean = False, Optional ByVal baseURL As String = "", Optional ByVal injectCss As Boolean = False) As Byte()
-
-
         Dim bytes() As Byte
-
-
-
-        Using ms As MemoryStream = New MemoryStream()
-
+        Dim ms As System.IO.MemoryStream = New System.IO.MemoryStream
+        Try
             If pgWidth <= 0 Then
                 pgWidth = iTextSharp.text.PageSize.LETTER.Width
             End If
@@ -298,12 +293,24 @@ Public Class clsHTML2PDFiText
             If Not allCss.ToString() = "" Then
                 example_htmlNew = example_htmlNew.ToString().Replace("</head>", "<style media=""all"" type=""text/css"">" & Environment.NewLine & allCss.ToString() & Environment.NewLine & "</style></head>")
             End If
-            Using msHtml As MemoryStream = New MemoryStream(System.Text.Encoding.UTF8.GetBytes(example_htmlNew.Trim()))
-                iTextSharp.tool.xml.XMLWorkerHelper.GetInstance().ParseXHtml(writer, doc, msHtml, System.Text.Encoding.UTF8)
-                doc.Close()
-            End Using
-            bytes = ms.ToArray()
-        End Using
-        Return bytes
+            Try
+                Using msHtml As MemoryStream = New MemoryStream(System.Text.Encoding.UTF8.GetBytes(example_htmlNew.Trim()))
+                    Try
+                        iTextSharp.tool.xml.XMLWorkerHelper.GetInstance().ParseXHtml(writer, doc, msHtml, System.Text.Encoding.UTF8)
+                    Catch ex As Exception
+                        Dim strMSG As String = ex.Message
+                        Dim strStack As String = ex.StackTrace
+                        strStack = strStack
+                    Finally
+                        doc.CloseDocument()
+                    End Try
+                End Using
+            Catch ex As Exception
+                Throw ex
+            End Try
+        Catch ex As Exception
+            Throw ex
+        End Try
+        Return ms.ToArray
     End Function
 End Class
