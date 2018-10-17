@@ -1678,8 +1678,6 @@ GoTo_StartOver:
     End Sub
     Private Sub LoadLinksList(ByRef ddl As System.Windows.Forms.ComboBox)
         ddl.Items.Clear()
-        Dim strURL As String
-        strURL = appPath
     End Sub
     Public Sub LoadPageList(ByRef ddl As System.Windows.Forms.ComboBox, ByVal cfdf As FDFApp.FDFDoc_Class)
         Try
