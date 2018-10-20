@@ -4,3 +4,5 @@ Open source pdf editor for MS Windows - pdForms.net - Visual Studio .net
 <br/>GitHub: http://pdforms.net
 <br/>Zip Download: http://zip.pdforms.net
 <br/>Email: <a href="mailto:hello@pdforms.net?subject=pdForms.net">hello@pdforms.net</a>
+
+<img src="http://pdforms.com/images/screenshot-003.png"/>
