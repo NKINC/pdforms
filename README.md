@@ -1,5 +1,6 @@
 # pdforms
-Open source pdf editor for MS Windows - pdForms.net - Visual Studio .net
+pdForms.net is an open source (copyleft) pdf editor for Visual Studio .net
+<br/>
 <br/>
 <hr/>
 <br/>Www: http://pdforms.com
