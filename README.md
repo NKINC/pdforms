@@ -6,7 +6,7 @@ pdForms.net is an open source (copyleft) pdf editor for Visual Studio .net
 <br/>Www: http://pdforms.com
 <br/>GitHub: http://pdforms.net
 <br/>Zip Download: http://zip.pdforms.net
-<br/>Binary Download: http://www.nk-inc.com/downloads/fn/PDFormsNet.zip
+<br/>Binary Download: http://binary.pdforms.net
 <br/>Email: <a href="mailto:hello@pdforms.net?subject=pdForms.net">hello@pdforms.net</a>
 <br/>
 <hr/>
