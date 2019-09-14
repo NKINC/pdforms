@@ -1,5 +1,5 @@
 # pdforms
-pdForms.net is an open source (copyleft) pdf editor for Visual Studio .net
+pdForms.net is an open source (copyleft) pdf editor for Visual Studio .net 4.5
 <br/>
 <br/>
 <hr/>
