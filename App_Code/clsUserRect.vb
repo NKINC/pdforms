@@ -1,9 +1,10 @@
 Public Class clsUserRect
     ''' <summary>
-    ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+    ''' PdForms.net- Created by Nicholas Kowalewicz (www.PdForms.net)
+    ''' Copyright 2017 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
-    ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
+    ''' Email Contact: support@nk-inc.ccom
+    ''' Website: www.pdforms.net
     ''' </summary>
 
 #Region "PUBLIC DECLARATIONS"
@@ -33,28 +34,28 @@ Public Class clsUserRect
 #End Region
     Public Sub DisposeMe()
         Try
-            mPictureBox = Nothing
-            imgPic = Nothing
-            _rect = Nothing
-            allowDeformingDuringMovement = Nothing
-            mIsClick = Nothing
-            frm.mMove = Nothing
-            oldX = Nothing
-            oldY = Nothing
-            sizeNodeRect = Nothing
-            mBmp = Nothing
-            nodeSelected = Nothing
-            angle = Nothing
-            penWidth = Nothing
-            penColor = Nothing
-            pauseDraw = Nothing
-            _highLightFieldName = Nothing
-            rectOld = Nothing
-            rectBackup = Nothing
-            nodeSelectedTmp = Nothing
-            frm = Nothing
-            tmpRect = Nothing
-            rectScreenTemp = Nothing
+            mPictureBox = Nothing 'PictureBox
+            imgPic = Nothing 'Image
+            _rect = Nothing 'RectangleF = Nothing
+            allowDeformingDuringMovement = Nothing 'Boolean = False
+            mIsClick = Nothing 'Boolean = False
+            frm.mMove = Nothing 'Boolean = False
+            oldX = Nothing 'Single
+            oldY = Nothing 'Single
+            sizeNodeRect = Nothing 'Integer = 7
+            mBmp = Nothing 'Bitmap = Nothing
+            nodeSelected = Nothing 'PosSizableRect = PosSizableRect.None
+            angle = Nothing 'Integer = 30
+            penWidth = Nothing 'Integer = 2
+            penColor = Nothing 'System.Drawing.Color = Drawing.Color.FromArgb(255, 255, 0, 0)
+            pauseDraw = Nothing 'Boolean = False
+            _highLightFieldName = Nothing 'String = ""
+            rectOld = Nothing 'System.Drawing.RectangleF
+            rectBackup = Nothing 'System.Drawing.RectangleF
+            nodeSelectedTmp = Nothing 'PosSizableRect = PosSizableRect.None
+            frm = Nothing 'frmMain
+            tmpRect = Nothing 'RectangleF = Nothing
+            rectScreenTemp = Nothing 'RectangleF = Nothing
         Catch ex As Exception
             Err.Clear()
         End Try
@@ -115,14 +116,14 @@ Public Class clsUserRect
     ''' <returns></returns>
     Public Function rectPDFReversed() As iTextSharp.text.Rectangle
         Try
-
-
-
-
-
-
-
-
+            'Return frm.getRectanglePDF(rect)
+            'Dim r As New RectangleF(CSng(frm.btnLeft.Text) * frm.getPercent(), CSng(frm.btnTop.Text) * frm.getPercent(), CSng(frm.btnRight.Text) * frm.getPercent(), CSng(frm.btnBottom.Text) * frm.getPercent())
+            'Dim r As New RectangleF(CSng(frm.btnLeft.Text), CSng(frm.btnTop.Text), CSng(frm.btnRight.Text), CSng(frm.btnBottom.Text))
+            'rect = r
+            'Dim r As New iTextSharp.text.Rectangle(CSng(frm.btnLeft.Text), CSng(frm.btnBottom.Text), CSng(frm.btnRight.Text), CSng(frm.btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            'rect = New RectangleF(r.Left, frm.getPDFHeight() - r.Bottom, r.Right, frm.getPDFHeight() - r.Top)
+            'r = frm.GetFieldPositionsReverse(frm.Session(), r)
+            'Return (New iTextSharp.text.Rectangle(r.Left, r.Bottom, r.Right, r.Top))
             Dim r As RectangleF = rect
             Return (New iTextSharp.text.Rectangle(r.Left, frm.getPDFHeight() - r.Bottom, r.Right, frm.getPDFHeight() - r.Top))
         Catch ex As Exception
@@ -152,9 +153,9 @@ Public Class clsUserRect
     End Sub
     Public Sub DrawPictureBoxImageBox()
         Try
-
-
-
+            'Dim bmp As New Bitmap(imgPic.Width, imgPic.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+            'g.FillRectangle(New SolidBrush(Color.Black), 0, 0, bmp.Width, bmp.Height)
+            'g.Dispose()
             Dim img As System.Drawing.Image = New System.Drawing.Bitmap(imgPic.Width, imgPic.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb)
             Dim g As Graphics = Graphics.FromImage(img)
             g = Graphics.FromImage(img)
@@ -165,7 +166,7 @@ Public Class clsUserRect
             If pauseDraw = False Then
                 If rect = Nothing Then Return
                 If rect.Width <= 1 And rect.Height <= 1 Then Return
-                If True = True Then
+                If True = True Then 'If pauseDraw = False Then
                     Dim tmpScreenRect As RectangleF = rectScreen()
                     If tmpScreenRect = Nothing Then Return
                     If tmpScreenRect.Width <= 1 And tmpScreenRect.Height <= 1 Then Return
@@ -209,7 +210,7 @@ Public Class clsUserRect
         Try
             If pauseDraw = False Then
                 rect = frm.getRectanglePDF(rect1)
-                Dim tmpScreenRect As RectangleF = rect1
+                Dim tmpScreenRect As RectangleF = rect1 'rectScreen()
                 If tmpScreenRect = Nothing Then Return g
                 If tmpScreenRect.Width <= 1 And tmpScreenRect.Height <= 1 Then Return g
                 Dim p As New Pen(Color.Red)
@@ -247,7 +248,7 @@ Public Class clsUserRect
                             If Not String.IsNullOrEmpty(frm.fldNameHighlighted & "") And frm.CheckfieldNameExits(frm.fldNameHighlighted & "") Then
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
-
+                                'r = frm.GetFieldPositionsReverse(frm.Session, r)
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, frm.fldNameHighlighted, frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
@@ -255,32 +256,32 @@ Public Class clsUserRect
                                 frm.fldNameHighlighted = fldName
                                 rect = rectTemp
                                 frm.A0_PDFFormField_LoadFieldWithRectF(rF, fldName, Nothing, True)
-
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
 
                             ElseIf frm.CheckfieldNameExits(frm.PDFField_Name.Text & "") Then
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
-
+                                'r = frm.GetFieldPositionsReverse(frm.Session, r)
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, frm.PDFField_Name.Text & "", frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
                                 rect = rectTemp
                                 frm.fldKidIndex = fldKidIndexTemp
                                 frm.fldNameHighlighted = fldName
-
-
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, -1, fldKidIndexTemp)
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
                                 frm.A0_PDFFormField_LoadFieldWithRectF(rF, fldName, Nothing, True)
                             Else
                                 frm.lblFieldType.Text = "PROPERTIES"
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
-
+                                'r = frm.GetFieldPositionsReverse(frm.Session, r)
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, "", frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
                                 rect = rectTemp
-
-
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, frm.fldNameHighlighted, -1, 0)
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
                             End If
                         End If
                     End If
@@ -383,7 +384,7 @@ Public Class clsUserRect
             moveResize = False
             If Not rectOld = rectBackup Then
                 If frm.preventDragging = False And Not rect = Nothing And Not frm.fldNameHighlighted = "" Then
-                    '
+                    ''frm.PDFField_Name.Text = frm.fldNameHighlighted
                     If fldKidIndexPrevious = frm.fldKidIndex And frm.fldNameHighlighted = frm.fldNameHighlightedCopy Then
                         fldKidIndexPrevious = frm.fldKidIndex
                         MoveOrResizeControl(frm.fldNameHighlighted & "")
@@ -427,13 +428,192 @@ Public Class clsUserRect
                 End If
             End If
         Catch exMain As Exception
-            frm.TimeStampAdd(exMain, frm.debugMode)
+            frm.TimeStampAdd(exMain, frm.debugMode) ' NK 2016-06-30exMain Else Err.Clear() ' Err.Clear()  ' NK3 ' 
         Finally
             mIsClick = False
         End Try
     End Sub
     Public Sub mPictureBox_MouseMove(ByVal sender As Object, ByVal e As MouseEventArgs)
-
+        '        If frm.mMove Then
+        '        End If
+        '        If Not frm.lockCursor And Not frm.isDragingImage And Not frm._dragging Then
+        '            ChangeCursor(e.Location)
+        '        End If
+        '        If mIsClick = False Then
+        '            GoTo GOTO_END
+        '        ElseIf frm.preventDragging = True Then
+        '        ElseIf Not frm._dragging Then
+        '        End If
+        '        Dim backupRect As RectangleF = rect
+        '        Dim rectScreenTemp As RectangleF = rectScreen()
+        '        If rectScreenTemp.Right > frm.A0_PictureBox1.Width Then
+        '            rectScreenTemp = New System.Drawing.RectangleF(frm.A0_PictureBox1.Width - rectScreenTemp.Width - 1, rectScreenTemp.Top, rectScreenTemp.Width, rectScreenTemp.Height)
+        '            frm._clickPoints.Clear()
+        '            frm._clickPoints.Add(New PointF(rectScreenTemp.Left, rectScreenTemp.Bottom))
+        '            frm._clickPoints.Add(New PointF(rectScreenTemp.Right, rectScreenTemp.Top))
+        '        ElseIf rectScreenTemp.Bottom > frm.A0_PictureBox1.Height Then
+        '            rectScreenTemp = New System.Drawing.RectangleF(rectScreenTemp.Left, frm.A0_PictureBox1.Height - rectScreenTemp.Height - 1, rectScreenTemp.Width, rectScreenTemp.Height)
+        '            frm._clickPoints.Clear()
+        '            frm._clickPoints.Add(New PointF(rectScreenTemp.Left, rectScreenTemp.Bottom))
+        '            frm._clickPoints.Add(New PointF(rectScreenTemp.Right, rectScreenTemp.Top))
+        '        End If
+        '        Dim drawBox As Boolean = False
+        '        If frm._dragging Or frm.mMove Or nodeSelectedTmp <> PosSizableRect.None Or mPictureBox.Cursor <> Cursors.Default Then
+        '            Dim tmprect As RectangleF = rectScreenTemp
+        '            If frm.preventDragging = False Then
+        '                rectBackup = rect
+        '                drawBox = True
+        '                If nodeSelected <> PosSizableRect.None Then
+        '                    If frm.pnlFields.Visible Then frm.pnlFields.Visible = False
+        '                End If
+        '                Select Case nodeSelectedTmp
+        '                    Case PosSizableRect.LeftUp
+        '                        tmprect.X += e.X - oldX
+        '                        tmprect.Width -= e.X - oldX
+        '                        tmprect.Y += e.Y - oldY
+        '                        tmprect.Height -= e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.LeftMiddle
+        '                        tmprect.X += e.X - oldX
+        '                        tmprect.Width -= e.X - oldX
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.LeftBottom
+        '                        tmprect.Width -= e.X - oldX
+        '                        tmprect.X += e.X - oldX
+        '                        tmprect.Height += e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.BottomMiddle
+        '                        tmprect.Height += e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.RightUp
+        '                        tmprect.Width += e.X - oldX
+        '                        tmprect.Y += e.Y - oldY
+        '                        tmprect.Height -= e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.RightBottom
+        '                        tmprect.Width += e.X - oldX
+        '                        tmprect.Height += e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.RightMiddle
+        '                        tmprect.Width += e.X - oldX
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.UpMiddle
+        '                        tmprect.Y += e.Y - oldY
+        '                        tmprect.Height -= e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        Exit Select
+        '                    Case PosSizableRect.Middle
+        '                        tmprect.X = tmprect.X + e.X - oldX
+        '                        tmprect.Y = tmprect.Y + e.Y - oldY
+        '                        rect = frm.getRectanglePDF(tmprect)
+        '                        frm.lockCursor = True
+        '                        frm.mMove = True
+        '                        Exit Select
+        '                    Case Else
+        '                        Exit Select
+        '                End Select
+        '                oldX = e.X
+        '                oldY = e.Y
+        '                If drawBox Then
+        '                    DrawPictureBoxImageBox()
+        '                End If
+        '            End If
+        '        End If
+        '        Dim moveResize As Boolean = False
+        '        Try
+        '            Dim eMouse As Point = frm.A0_PictureBox2.PointToClient(Cursor.Position)
+        '            If Not frm.lockCursor Then
+        '            End If
+        '            If nodeSelectedTmp = PosSizableRect.Middle Then
+        '                GoTo GOTO_END
+        '            End If
+        '            If frm.mMove Then
+        '            End If
+        '            If frm.preventDragging = True Then
+        '                GoTo GOTO_END
+        '            End If
+        '            rectScreenTemp = rectScreen()
+        '            If frm.mMove Or mIsClick Then
+        '                Dim x As Boolean = True
+        '                If eMouse.X >= frm.A0_PictureBox1.Width Then
+        '                ElseIf eMouse.Y >= frm.A0_PictureBox1.Height Then
+        '                ElseIf eMouse.X <= 0 Or eMouse.Y <= 0 Then
+        '                    If frm.preventDragging = True Then
+        '                        GoTo GOTO_END
+        '                    End If
+        '                End If
+        '                If frm._clickPoints.Count = 1 Then
+        '                    frm._clickPoints.Add(eMouse)
+        '                ElseIf frm._clickPoints.Count >= 2 Then
+        '                    Do Until frm._clickPoints.Count = 2
+        '                        frm._clickPoints.RemoveAt(0)
+        '                    Loop
+        '                    frm._clickPoints(frm._clickPoints.Count - 1) = (eMouse)
+        '                End If
+        '            Else
+        '                If Not frm._dragging And frm._clickPoints.Count <= 1 Then
+        '                    GoTo GOTO_END
+        '                End If
+        '            End If
+        '            If frm._dragging And frm._clickPoints.Count > 1 Then
+        '                Dim ptOrigin As New System.Drawing.Point
+        '                If frm._clickPoints(0).Y > frm._clickPoints(1).Y Then
+        '                    frm.btnTop.Text = frm._clickPoints(1).Y.ToString
+        '                    frm.btnBottom.Text = frm._clickPoints(0).Y.ToString
+        '                    ptOrigin.Y = CInt(frm._clickPoints(1).Y)
+        '                Else
+        '                    frm.btnTop.Text = frm._clickPoints(0).Y.ToString
+        '                    frm.btnBottom.Text = frm._clickPoints(1).Y.ToString
+        '                    ptOrigin.Y = CInt(frm._clickPoints(0).Y)
+        '                End If
+        '                frm.btnHeight.Text = Math.Abs(CSng(frm.btnTop.Text) - CSng(frm.btnBottom.Text)).ToString
+        '                If frm._clickPoints(0).X > frm._clickPoints(1).X Then
+        '                    frm.btnLeft.Text = frm._clickPoints(1).X.ToString
+        '                    frm.btnRight.Text = frm._clickPoints(0).X.ToString
+        '                    ptOrigin.X = CInt(frm._clickPoints(1).X)
+        '                Else
+        '                    frm.btnLeft.Text = frm._clickPoints(0).X.ToString
+        '                    frm.btnRight.Text = frm._clickPoints(1).X.ToString
+        '                    ptOrigin.X = CInt(frm._clickPoints(0).X)
+        '                End If
+        '                frm.btnWidth.Text = Math.Abs(CSng(frm.btnRight.Text) - CSng(frm.btnLeft.Text)).ToString
+        '                If CSng(frm.btnHeight.Text) > 5 And CSng(frm.btnWidth.Text) > 5 Then
+        '                    If Not frm._pictureBoxImage Is Nothing Then
+        '                        Dim tmpRect As New RectangleF(ptOrigin.X, ptOrigin.Y, CSng(frm.btnWidth.Text), CSng(frm.btnHeight.Text))
+        '                        rect = frm.getRectanglePDF(tmpRect)
+        '                    End If
+        '                End If
+        '            Else
+        '                frm.ToolStripStatusLabel_XY.Text = "" & eMouse.X & "," & eMouse.Y & ""
+        '            End If
+        '        Catch exMain As Exception
+        '            frm.TimeStampAdd(exMain, frm.debugMode) ' NK 2016-06-30exMain Else Err.Clear() ' Err.Clear()  ' NK3 ' 
+        '        Finally
+        '            frm.preventDragging = False
+        '            If Not rect = Nothing Then
+        '                If rect.Width > 1 And rect.Height > 1 Or drawBox Then
+        '                    If Not rectOld = rect Or Not nodeSelected = PosSizableRect.None Or drawBox Then
+        '                        frm.A0_PictureBox2.Invalidate()
+        '                    End If
+        '                End If
+        '            End If
+        '        End Try
+        'GOTO_END:
     End Sub
     Public Sub refreshDimensionsForm1()
         Try
@@ -450,23 +630,23 @@ Public Class clsUserRect
             frm.btnHeight.Text = rect.Height.ToString
             Dim ptOrigin As New System.Drawing.Point
             If rect.Left > rect.Right Then
-                frm.btnTop.Text = rect.Bottom.ToString
-                frm.btnBottom.Text = rect.Top.ToString
-                ptOrigin.Y = CInt(rect.Bottom)
+                frm.btnTop.Text = rect.Bottom.ToString '_clickPoints(1).Y
+                frm.btnBottom.Text = rect.Top.ToString '_clickPoints(0).Y
+                ptOrigin.Y = CInt(rect.Bottom) '_clickPoints(1).Y
             Else
-                frm.btnTop.Text = rect.Top.ToString
-                frm.btnBottom.Text = rect.Bottom.ToString
-                ptOrigin.Y = CInt(rect.Top)
+                frm.btnTop.Text = rect.Top.ToString '_clickPoints(0).Y
+                frm.btnBottom.Text = rect.Bottom.ToString '_clickPoints(1).Y
+                ptOrigin.Y = CInt(rect.Top) '_clickPoints(0).Y
             End If
             frm.btnHeight.Text = Math.Abs(CSng(frm.btnBottom.Text) - CSng(frm.btnTop.Text)).ToString
-            If rect.Left > rect.Right Then
-                frm.btnLeft.Text = rect.Right.ToString
-                frm.btnRight.Text = rect.Left.ToString
-                ptOrigin.X = CInt(rect.Right)
+            If rect.Left > rect.Right Then '_clickPoints(0).X > _clickPoints(1).X Then
+                frm.btnLeft.Text = rect.Right.ToString '_clickPoints(1).X
+                frm.btnRight.Text = rect.Left.ToString ' _clickPoints(0).X
+                ptOrigin.X = CInt(rect.Right) '_clickPoints(1).X
             Else
-                frm.btnLeft.Text = rect.Left.ToString.ToString
-                frm.btnRight.Text = rect.Right.ToString.ToString
-                ptOrigin.X = CInt(rect.Left)
+                frm.btnLeft.Text = rect.Left.ToString.ToString '_clickPoints(0).X
+                frm.btnRight.Text = rect.Right.ToString.ToString ' _clickPoints(1).X
+                ptOrigin.X = CInt(rect.Left) '_clickPoints(0).X
             End If
             frm.btnWidth.Text = Math.Abs(CSng(frm.btnRight.Text) - CSng(frm.btnLeft.Text)).ToString
             Dim h As Single = mPictureBox.Height + 0
@@ -521,7 +701,7 @@ Public Class clsUserRect
         End Select
     End Function
     Private Function GetRectScreen(ByVal p As PosSizableRect) As Rectangle
-        Dim rectTemp As RectangleF = rectScreen()
+        Dim rectTemp As RectangleF = rectScreen() 'frm.getRectangleScreen(rect)
         Select Case p
             Case PosSizableRect.LeftUp
                 Return CreateRectSizableNode(rectTemp.X, rectTemp.Y)
@@ -544,7 +724,7 @@ Public Class clsUserRect
         End Select
     End Function
     Private Function GetRectScreen(ByVal p As PosSizableRect, ByVal offset As Integer) As Rectangle
-        Dim rectTemp As RectangleF = rectScreen()
+        Dim rectTemp As RectangleF = rectScreen() 'frm.getRectangleScreen(rect)
         Select Case p
             Case PosSizableRect.LeftUp
                 Return CreateRectSizableNode(rectTemp.X, rectTemp.Y, offset)
@@ -568,7 +748,7 @@ Public Class clsUserRect
     End Function
     Public Function GetNodeSelectable(ByVal p As Point) As PosSizableRect
         For Each r As PosSizableRect In [Enum].GetValues(GetType(PosSizableRect))
-            If GetRectScreen(r, sizeNodeRect).Contains(p) Then
+            If GetRectScreen(r, sizeNodeRect).Contains(p) Then 'CInt(IIf(frm.getPercent() >= 1, sizeNodeRect / frm.getPercent(), sizeNodeRect * frm.getPercent()))
 
                 Return r
             End If
