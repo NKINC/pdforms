@@ -514,6 +514,8 @@ Partial Class frmMain
         Me.ToolStripSeparator14 = New System.Windows.Forms.ToolStripSeparator()
         Me.OpenContainingFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenApplicationFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.OpenAppDataToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
+        Me.OpenTempFolderToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripMenuItemLicense = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator10 = New System.Windows.Forms.ToolStripSeparator()
         Me.UnlockDocumentSecurityToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -692,8 +694,6 @@ Partial Class frmMain
         Me.CopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CancelCopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FieldPropertiesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.OpenAppDataToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
-        Me.OpenTempFolderToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.PDFEdit_Options_Textboxes.SuspendLayout()
         Me.PDFEdit_Options_SubmitButtons.SuspendLayout()
         Me.grpBoxPuchButton_IconAndLabel.SuspendLayout()
@@ -5293,7 +5293,7 @@ Partial Class frmMain
         Me.ContextMenuStrip1.Font = New System.Drawing.Font("Arial", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel)
         Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.OpenAppDataToolStripMenuItem1, Me.OpenTempFolderToolStripMenuItem1, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.ContextMenuStrip1.Name = "ContextMenuStrip1"
-        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 912)
+        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 890)
         '
         'PDFDocumentToolStripMenuItem
         '
@@ -5831,6 +5831,18 @@ Partial Class frmMain
         Me.OpenApplicationFolderToolStripMenuItem.Name = "OpenApplicationFolderToolStripMenuItem"
         Me.OpenApplicationFolderToolStripMenuItem.Size = New System.Drawing.Size(296, 22)
         Me.OpenApplicationFolderToolStripMenuItem.Text = "Open Application Folder"
+        '
+        'OpenAppDataToolStripMenuItem1
+        '
+        Me.OpenAppDataToolStripMenuItem1.Name = "OpenAppDataToolStripMenuItem1"
+        Me.OpenAppDataToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
+        Me.OpenAppDataToolStripMenuItem1.Text = "Open Application Data Folder"
+        '
+        'OpenTempFolderToolStripMenuItem1
+        '
+        Me.OpenTempFolderToolStripMenuItem1.Name = "OpenTempFolderToolStripMenuItem1"
+        Me.OpenTempFolderToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
+        Me.OpenTempFolderToolStripMenuItem1.Text = "Open Temp Folder"
         '
         'ToolStripMenuItemLicense
         '
@@ -7369,18 +7381,6 @@ Partial Class frmMain
         Me.FieldPropertiesToolStripMenuItem.Name = "FieldPropertiesToolStripMenuItem"
         Me.FieldPropertiesToolStripMenuItem.Size = New System.Drawing.Size(207, 22)
         Me.FieldPropertiesToolStripMenuItem.Text = "Field Properties"
-        '
-        'OpenAppDataToolStripMenuItem1
-        '
-        Me.OpenAppDataToolStripMenuItem1.Name = "OpenAppDataToolStripMenuItem1"
-        Me.OpenAppDataToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
-        Me.OpenAppDataToolStripMenuItem1.Text = "Open Application Data Folder"
-        '
-        'OpenTempFolderToolStripMenuItem1
-        '
-        Me.OpenTempFolderToolStripMenuItem1.Name = "OpenTempFolderToolStripMenuItem1"
-        Me.OpenTempFolderToolStripMenuItem1.Size = New System.Drawing.Size(296, 22)
-        Me.OpenTempFolderToolStripMenuItem1.Text = "Open Temp Folder"
         '
         'frmMain
         '
