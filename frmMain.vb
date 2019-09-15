@@ -47123,7 +47123,7 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Then
-                        fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
                         If fn = ApplicationDataFolder(False, "temp") Then
                             fn &= "default"
                         End If
@@ -47349,7 +47349,12 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Or FileExists(fpath) Then
-                        fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        If IsValidUrl(fpath) Then
+                            fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
+                        Else
+                            fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
+                        End If
+
                         If fn = ApplicationDataFolder(False, "temp") Then
                             fn &= "default"
                         End If
