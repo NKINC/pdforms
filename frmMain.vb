@@ -47077,7 +47077,7 @@ goto_LinksStart:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = appPath & "resources\html2pdf.htm"
+                    Dim pathTemp As String = ApplicationDataFolder(False, "") & "resources\html2pdf.htm" ' 
                     If Clipboard.ContainsText Then
                         Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
                         If IsValidUrl(pathTemp2) Then
@@ -47095,16 +47095,16 @@ goto_LinksStart:
                                 pathTemp = Clipboard.GetFileDropList(0).ToString()
                             End If
                         Catch ex2 As Exception
-                            TimeStampAdd(ex2, debugMode)
+                            TimeStampAdd(ex2, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                         End Try
                     End If
-                    fpath = New clsPromptDialog().ShowDialog("Open web page Url:", "Open File", Me, pathTemp)
+                    fpath = New clsPromptDialog().ShowDialogFileSelection("Open web page Url:", pathTemp, "Open File", Me, "HTM|*.htm|HTML|*.html|All Files|*.*")
                 Catch ex As Exception
                     TimeStampAdd(ex, debugMode)
                 Finally
                     Me.Show()
                 End Try
-                If Not String.IsNullOrEmpty(fpath) Then
+                If Not fpath.isNullOrEmpty() Then
                     If IsValidUrl(fpath) Then
                         GoTo GOTO_KNOWN_FILENAME
                     ElseIf FileExists(fpath) Then
@@ -47114,7 +47114,7 @@ goto_LinksStart:
                 Else
                     Return
                 End If
-                If Not String.IsNullOrEmpty(fpath) Then
+                If Not fpath.isNullOrEmpty() Then
                     Dim fn As String = fpath & ""
                     fpath = fn
 GOTO_KNOWN_FILENAME:
@@ -47131,19 +47131,20 @@ GOTO_KNOWN_FILENAME:
                             Try
                                 Try
                                     fn &= ".png"
+                                    'fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                                     Dim cHTML2Image As New clsHTML2Image()
                                     If fpath.LastIndexOf("/"c) = fpath.LastIndexOf("//") + 1 Then
                                         fpath = fpath & "/"
                                     ElseIf fpath.Replace("//", "|").IndexOf("/"c) <= 0 Then
                                         fpath = fpath & "/"
                                     End If
-                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK"))
-                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto)", "Page height:", Me, iTextSharp.text.PageSize.LETTER.Height, "OK"))
+                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
                                     Dim bitmp As Bitmap = Nothing
                                     If IsNumeric(MinWidth & "") Then
-                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, MinHeight).Clone()
                                     Else
-                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fpath & "", 720, -1).Clone()
                                     End If
                                     Dim cOptimize As New clsPDFOptimization()
                                     clsPDFOptimization.cancelOptimize_Shared = False
@@ -47156,6 +47157,7 @@ GOTO_KNOWN_FILENAME:
                                     End Using
                                     bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                                     ImportImage(fn & "")
+
                                     Return
                                 Catch exHTML As Exception
                                     Throw exHTML
@@ -47168,36 +47170,15 @@ GOTO_KNOWN_FILENAME:
                             Return
                         End Try
                     ElseIf FileExists(fn) Then
-                        'fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
-                        'Dim cHTML2Image As New clsHTML2Image()
-                        'Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
-                        'Dim bitmp As Bitmap = Nothing
-                        'If IsNumeric(MinWidth & "") Then
-                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
-                        'Else
-                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
-                        'End If
-                        'Dim cOptimize As New clsPDFOptimization()
-                        'clsPDFOptimization.cancelOptimize_Shared = False
-                        'Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
-                        'Using imgMem As New MemoryStream(imgBytes)
-                        '    If imgMem.CanSeek Then
-                        '        imgMem.Seek(0, SeekOrigin.Begin)
-                        '    End If
-                        '    bitmp = Bitmap.FromStream(imgMem)
-                        'End Using
-                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        'ImportImage(fn & "")
-
-
                         fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
-                        Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                        Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                        Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, MinHeight).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", 720, -1).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
@@ -47210,15 +47191,16 @@ GOTO_KNOWN_FILENAME:
                         End Using
                         bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         ImportImage(fn & "")
-                    ElseIf FileExists(ApplicationDataFolder(False, "") & fn) Then
-                        fn = ApplicationDataFolder(False, "") & fn & "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
+                    ElseIf FileExists(ApplicationDataFolder(False, "images") & fn) Then
+                        fn = ApplicationDataFolder(False, "images") & fn & "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
-                        Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                        Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                        Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, MinHeight).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", 720, -1).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
@@ -47264,12 +47246,12 @@ GOTO_KNOWN_FILENAME:
                     End If
                 End If
             Catch exLoadFDFDoc As Exception
-                TimeStampAdd(exLoadFDFDoc, debugMode)
+                TimeStampAdd(exLoadFDFDoc, debugMode) ' NK 2016-06-30 'NK DM
             End Try
             Try
-                If Not String.IsNullOrEmpty(fpath) And Not Session Is Nothing Then
+                If Not fpath.isNullOrEmpty() And Not Session Is Nothing Then
                     If Session.Length > 0 Then
-                        If True = True Then
+                        If True = True Then 'If DoEvents_Wait(500) Then
                             Me.StatusToolStrip = "File loaded: " & (fpath & "")
                         End If
                     End If
@@ -47278,10 +47260,11 @@ GOTO_KNOWN_FILENAME:
                 TimeStampAdd(ex, debugMode)
             End Try
         Catch exMain1 As Exception
-            TimeStampAdd(exMain1, debugMode)
+            TimeStampAdd(exMain1, debugMode) ' NK 2016-06-30 'NK DM
         Finally
             ignoreClick = False
             MenuBar_Enabled = True
+            'Application.DoEvents()
         End Try
     End Sub
     Public Sub Convert_ImportURl2HTMLFile(Optional ByVal fp As String = "")
@@ -47291,6 +47274,7 @@ GOTO_KNOWN_FILENAME:
                 cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
                 cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
             Catch ex As Exception
+
             End Try
             Try
                 If A0_CloseDocument() = False Then
@@ -47319,7 +47303,7 @@ GOTO_KNOWN_FILENAME:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = appPath & "resources\html2pdf.htm"
+                    Dim pathTemp As String = ApplicationDataFolder(False, "") & "resources\html2pdf.htm" ' 
                     If Clipboard.ContainsText Then
                         Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
                         If IsValidUrl(pathTemp2) Then
@@ -47337,7 +47321,7 @@ GOTO_KNOWN_FILENAME:
                                 pathTemp = Clipboard.GetFileDropList(0).ToString()
                             End If
                         Catch ex2 As Exception
-                            TimeStampAdd(ex2, debugMode)
+                            TimeStampAdd(ex2, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                         End Try
                     End If
                     fpath = New clsPromptDialog().ShowDialogFileSelection("Open web page Url:", pathTemp, "Open File", Me, "HTM|*.htm|HTML|*.html|All Files|*.*")
@@ -47346,7 +47330,7 @@ GOTO_KNOWN_FILENAME:
                 Finally
                     Me.Show()
                 End Try
-                If Not String.IsNullOrEmpty(fpath) Then
+                If Not fpath.isNullOrEmpty() Then
                     If IsValidUrl(fpath) Then
                         GoTo GOTO_KNOWN_FILENAME
                     ElseIf FileExists(fpath) Then
@@ -47356,7 +47340,7 @@ GOTO_KNOWN_FILENAME:
                 Else
                     Return
                 End If
-                If Not String.IsNullOrEmpty(fpath) Then
+                If Not fpath.isNullOrEmpty() Then
                     Dim fn As String = fpath & ""
                     fpath = fn
 GOTO_KNOWN_FILENAME:
@@ -47364,7 +47348,7 @@ GOTO_KNOWN_FILENAME:
                     Dim b() As Byte = Nothing
                     _outputIndex = 0
                     mem.Clear()
-                    If IsValidUrl(fpath) Then
+                    If IsValidUrl(fpath) Or FileExists(fpath) Then
                         fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
                         If fn = ApplicationDataFolder(False, "temp") Then
                             fn &= "default"
@@ -47373,45 +47357,58 @@ GOTO_KNOWN_FILENAME:
                             Try
                                 Try
                                     fn &= ".png"
+                                    'fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                                     Dim cHTML2Image As New clsHTML2Image()
-                                    If fpath.LastIndexOf("/"c) = fpath.LastIndexOf("//") + 1 Then
-                                        fpath = fpath & "/"
-                                    ElseIf fpath.Replace("//", "|").IndexOf("/"c) <= 0 Then
-                                        fpath = fpath & "/"
+                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
+
+                                    Dim strHTML As String = ""
+                                    If IsValidUrl(fpath) Then
+                                        If fpath.LastIndexOf("/"c) = fpath.LastIndexOf("//") + 1 Then
+                                            fpath = fpath & "/"
+                                        ElseIf fpath.Replace("//", "|").IndexOf("/"c) <= 0 Then
+                                            fpath = fpath & "/"
+                                        End If
+                                        Dim wc As New System.Net.WebClient
+                                        strHTML = System.Text.Encoding.UTF8.GetString(wc.DownloadData(fpath)).Trim() 'wb.DocumentText 
+                                    Else
+                                        'If fpath.LastIndexOf("\"c) = fpath.LastIndexOf("\\") + 1 Then
+                                        '    fpath = fpath & "\"
+                                        'ElseIf fpath.Replace("\\", "|").IndexOf("\"c) <= 0 Then
+                                        '    fpath = fpath & "\"
+                                        'End If
+                                        strHTML = System.IO.File.ReadAllText(fpath)
                                     End If
-                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK"))
-                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto)", "Page height:", Me, iTextSharp.text.PageSize.LETTER.Height, "OK"))
-                                    Dim wc As New System.Net.WebClient
-                                    Dim strHTML As String = System.Text.Encoding.UTF8.GetString(wc.DownloadData(fpath)).Trim()
+
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
-                                        Dim matchPattern As New List(Of String)
-                                        matchPattern.Add("img.*src=""([^""]*)")
-                                        matchPattern.Add("img.*href=""([^""]*)")
-                                        matchPattern.Add("link.*src='([^']*)")
-                                        matchPattern.Add("link.*href='([^']*)")
-                                        For Each mp As String In matchPattern.ToArray
-                                            For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
-                                                If m.Success Then
-                                                    If m.Groups.Count = 1 Then
-                                                        Dim strSrc As String = m.Groups(0).Value
-                                                        If Not IsValidUrl(strSrc) Then
-                                                            If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
-                                                                strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
-                                                            End If
-                                                        End If
-                                                    ElseIf m.Groups.Count = 2 Then
-                                                        Dim strSrc As String = m.Groups(1).Value
-                                                        If Not IsValidUrl(strSrc) Then
-                                                            If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
-                                                                strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
-                                                            End If
-                                                        End If
+                                    End If
+                                    Dim matchPattern As New List(Of String)
+                                    matchPattern.Add("src=""([^""]*)")
+                                    matchPattern.Add("href=""([^""]*)")
+                                    matchPattern.Add("src='([^']*)")
+                                    matchPattern.Add("href='([^']*)")
+                                    For Each mp As String In matchPattern.ToArray
+                                        For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
+                                            If m.Success Then
+                                                If m.Groups.Count = 1 Then
+                                                    Dim strSrc As String = m.Groups(0).Value
+                                                    If Not IsValidUrl(strSrc) And Not FileExists(fpath) Then
+                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
+                                                    ElseIf Not IsValidUrl(strSrc) And Not FileExists(strSrc) And FileExists(fpath) Then
+                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c).Replace("\", "\")))
+                                                    End If
+                                                ElseIf m.Groups.Count = 2 Then
+                                                    Dim strSrc As String = m.Groups(1).Value
+                                                    If Not IsValidUrl(strSrc) And Not FileExists(fpath) Then
+                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("/") + 1).TrimEnd("/"c) & "/" & strSrc.TrimStart("/"c).TrimStart("\"c).Replace("\", "/")))
+                                                    ElseIf Not IsValidUrl(strSrc) And Not FileExists(strSrc) And FileExists(fpath) Then
+                                                        strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c).Replace("\", "\")))
                                                     End If
                                                 End If
-                                            Next
+                                            End If
                                         Next
-                                    End If
+                                    Next
                                     Dim pdfBytes() As Byte
                                     Try
                                         pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Replace("\", "/").Substring(0, fpath.ToString.Replace("\", "/").LastIndexOf("/") + 1), True)
@@ -47427,6 +47424,7 @@ GOTO_KNOWN_FILENAME:
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
                                     OpenFile(fp, False, False)
+                                    'COMMENT END
                                     Return
                                 Catch exHTML As Exception
                                     Throw exHTML
@@ -47439,100 +47437,27 @@ GOTO_KNOWN_FILENAME:
                             Return
                         End Try
                     ElseIf FileExists(fn) Then
-                        'fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        'If fn = ApplicationDataFolder(False, "temp") Then
-                        '    fn &= "default"
-                        'End If
-                        Try
-                            Try
-                                Try
-                                    'fn &= ".png"
-                                    Dim cHTML2Image As New clsHTML2Image()
-                                    fpath = fn.Substring(0, fn.LastIndexOf("\"c) + 1)
-                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK"))
-                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto)", "Page height:", Me, -1, "OK"))
-                                    Dim wc As New System.Net.WebClient
-                                    'Dim strHTML As String = System.Text.Encoding.UTF8.GetString(wc.DownloadData(fpath)).Trim()
-                                    Dim strHTML As String = System.Text.Encoding.UTF8.GetString(System.IO.File.ReadAllBytes(fn)).Trim()
-                                    If Not strHTML.ToString.ToLower.Contains("<base ") Then
-                                        strHTML = strHTML.Replace("<head>", "<head><base href=""" & fpath & """/>")
-                                        Dim matchPattern As New List(Of String)
-                                        matchPattern.Add("img.*src=""([^""]*)")
-                                        matchPattern.Add("img.*href=""([^""]*)")
-                                        matchPattern.Add("link.*src='([^']*)")
-                                        matchPattern.Add("link.*href='([^']*)")
-                                        For Each mp As String In matchPattern.ToArray
-                                            For Each m As System.Text.RegularExpressions.Match In System.Text.RegularExpressions.Regex.Matches(strHTML, mp)
-                                                If m.Success Then
-                                                    If m.Groups.Count = 1 Then
-                                                        Dim strSrc As String = m.Groups(0).Value
-                                                        If Not IsValidUrl(strSrc) Then
-                                                            If Not strSrc.ToLower().StartsWith("file:///") Then
-                                                                If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
-                                                                    strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
-                                                                End If
-                                                            End If
-                                                        End If
-                                                    ElseIf m.Groups.Count = 2 Then
-                                                        Dim strSrc As String = m.Groups(1).Value
-                                                        If Not IsValidUrl(strSrc) Then
-                                                            If Not strSrc.ToLower().StartsWith("file:///") Then
-                                                                If Not FileExists(strSrc.ToString().Replace("file:///", "").Replace("/"c, "\"c)) Then
-                                                                    strHTML = strHTML.Replace(mp.ToString.Replace("([^""]*)", strSrc), mp.ToString.Replace("([^""]*)", fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1).TrimEnd("\"c) & "\" & strSrc.TrimStart("\"c).TrimStart("\"c)))
-                                                                End If
-                                                            End If
-                                                        End If
-                                                    End If
-                                                End If
-                                            Next
-                                        Next
-                                    End If
-                                    Dim pdfBytes() As Byte
-                                    Try
-                                        pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1), True)
-                                    Catch ex1 As Exception
-                                        Err.Clear()
-                                        Try
-                                            pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Substring(0, fpath.ToString.LastIndexOf("\") + 1), False)
-                                        Catch ex2 As Exception
-                                            Throw ex2
-                                        End Try
-                                    End Try
-                                    fp = ApplicationDataFolder(False, "temp") & "" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
-                                    File.WriteAllBytes(fp, pdfBytes)
-                                    addOpenHistoryListItem(fpath)
-                                    OpenFile(fp, False, False)
-                                    Return
-                                Catch exHTML As Exception
-                                    Throw exHTML
-                                End Try
-                            Catch exFilename As Exception
-                                Throw exFilename
-                            End Try
-                        Catch exDownlaod As Exception
-                            MsgBox("Download failed!" & Environment.NewLine & Environment.NewLine & "Error: " & exDownlaod.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkOnly + MsgBoxStyle.ApplicationModal, "Download Failed!")
-                            Return
-                        End Try
-                        'fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
-                        'Dim cHTML2Image As New clsHTML2Image()
-                        'Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
-                        'Dim bitmp As Bitmap = Nothing
-                        'If IsNumeric(MinWidth & "") Then
-                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, CInt(MinWidth) + 0, -1).Clone()
-                        'Else
-                        '    bitmp = cHTML2Image.GenerateScreenshot(fpath & "", appPathTemp, -1, -1).Clone()
-                        'End If
-                        'Dim cOptimize As New clsPDFOptimization()
-                        'clsPDFOptimization.cancelOptimize_Shared = False
-                        'Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
-                        'Using imgMem As New MemoryStream(imgBytes)
-                        '    If imgMem.CanSeek Then
-                        '        imgMem.Seek(0, SeekOrigin.Begin)
-                        '    End If
-                        '    bitmp = Bitmap.FromStream(imgMem)
-                        'End Using
-                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        'ImportImage(fn & "")
+                        fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
+                        Dim cHTML2Image As New clsHTML2Image()
+                        Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                        Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
+                        Dim bitmp As Bitmap = Nothing
+                        If IsNumeric(MinWidth & "") Then
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", CInt(MinWidth) + 0, MinHeight).Clone()
+                        Else
+                            bitmp = cHTML2Image.GenerateScreenshot(fpath & "", 720, -1).Clone()
+                        End If
+                        Dim cOptimize As New clsPDFOptimization()
+                        clsPDFOptimization.cancelOptimize_Shared = False
+                        Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
+                        Using imgMem As New MemoryStream(imgBytes)
+                            If imgMem.CanSeek Then
+                                imgMem.Seek(0, SeekOrigin.Begin)
+                            End If
+                            bitmp = Bitmap.FromStream(imgMem)
+                        End Using
+                        bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                        ImportImage(fn & "")
                     Else
                         Return
                     End If
@@ -47566,12 +47491,12 @@ GOTO_KNOWN_FILENAME:
                     End If
                 End If
             Catch exLoadFDFDoc As Exception
-                TimeStampAdd(exLoadFDFDoc, debugMode)
+                TimeStampAdd(exLoadFDFDoc, debugMode) ' NK 2016-06-30 'NK DM
             End Try
             Try
-                If Not String.IsNullOrEmpty(fpath) And Not Session Is Nothing Then
+                If Not fpath.isNullOrEmpty() And Not Session Is Nothing Then
                     If Session.Length > 0 Then
-                        If True = True Then
+                        If True = True Then 'If DoEvents_Wait(500) Then
                             Me.StatusToolStrip = "File loaded: " & (fpath & "")
                         End If
                     End If
@@ -47580,10 +47505,11 @@ GOTO_KNOWN_FILENAME:
                 TimeStampAdd(ex, debugMode)
             End Try
         Catch exMain1 As Exception
-            TimeStampAdd(exMain1, debugMode)
+            TimeStampAdd(exMain1, debugMode) ' NK 2016-06-30 'NK DM
         Finally
             ignoreClick = False
             MenuBar_Enabled = True
+            'Application.DoEvents()
         End Try
     End Sub
     Public Sub ConvertHTMLFileFromFile(ByVal fp As String)
@@ -47922,11 +47848,14 @@ GOTO_KNOWN_FILENAME:
             Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
                 Case DialogResult.OK
                     Convert_ImportURl2HTMLFile()
+                    A0_LoadPDF()
                 Case DialogResult.Yes
                     Convert_ImportURl2ImageFile()
+                    A0_LoadPDF()
                 Case Else
                     Exit Select
             End Select
+
         Catch ex As Exception
             Throw ex
         End Try

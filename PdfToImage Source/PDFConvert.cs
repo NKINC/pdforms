@@ -145,7 +145,7 @@ namespace PdfToImage
         /// <param name="pinstance"></param>
         /// <param name="caller_handle"></param>
         /// <returns></returns>
-	    [DllImport(GhostScriptDLLName, EntryPoint = "gsapi_new_instance")]
+	[DllImport(GhostScriptDLLName, EntryPoint = "gsapi_new_instance")]
         private static extern int gsapi_new_instance (out IntPtr pinstance, IntPtr caller_handle);
 
         /// <summary>This is the important function that will perform the conversion</summary>
@@ -153,27 +153,27 @@ namespace PdfToImage
         /// <param name="argc"></param>
         /// <param name="argv"></param>
         /// <returns></returns>
-        [DllImport(GhostScriptDLLName, EntryPoint="gsapi_init_with_args")]
+        [DllImport("gsdll64.dll", EntryPoint="gsapi_init_with_args")]
         private static extern int gsapi_init_with_args (IntPtr instance, int argc, IntPtr argv);
         /// <summary>
         /// Exit the interpreter. This must be called on shutdown if gsapi_init_with_args() has been called, and just before gsapi_delete_instance(). 
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        [DllImport(GhostScriptDLLName, EntryPoint="gsapi_exit")]
+        [DllImport("gsdll64.dll", EntryPoint="gsapi_exit")]
         private static extern int gsapi_exit (IntPtr instance);
 
         /// <summary>
         /// Destroy an instance of Ghostscript. Before you call this, Ghostscript must have finished. If Ghostscript has been initialised, you must call gsapi_exit before gsapi_delete_instance. 
         /// </summary>
         /// <param name="instance"></param>
-        [DllImport(GhostScriptDLLName, EntryPoint="gsapi_delete_instance")]
+        [DllImport("gsdll64.dll", EntryPoint="gsapi_delete_instance")]
         private static extern void gsapi_delete_instance (IntPtr instance);
         /// <summary>Get info about the version of Ghostscript i'm using</summary>
         /// <param name="pGSRevisionInfo"></param>
         /// <param name="intLen"></param>
         /// <returns></returns>
-        [DllImport(GhostScriptDLLName, EntryPoint="gsapi_revision")]
+        [DllImport("gsdll64.dll", EntryPoint="gsapi_revision")]
         private static extern int gsapi_revision (ref GS_Revision pGSRevisionInfo , int intLen );
         /// <summary>Use a different I/O</summary>
         /// <param name="lngGSInstance"></param>
@@ -181,7 +181,7 @@ namespace PdfToImage
         /// <param name="gsdll_stdout">Function that menage the Standard OUTPUT</param>
         /// <param name="gsdll_stderr">Function that menage the Standard ERROR output</param>
         /// <returns></returns>
-        [DllImport(GhostScriptDLLName, EntryPoint = "gsapi_set_stdio")]
+        [DllImport("gsdll64.dll", EntryPoint = "gsapi_set_stdio")]
         private static extern int gsapi_set_stdio(IntPtr lngGSInstance, StdioCallBack gsdll_stdin, StdioCallBack gsdll_stdout, StdioCallBack gsdll_stderr);
 
         #endregion
@@ -572,6 +572,7 @@ namespace PdfToImage
                 outputFile = outputFile + "." + outputFormatExtension.ToString().TrimStart('.');
                 //byte[] o = inputStream.ToArray();
                 //System.IO.File.WriteAllBytes(outputFile + "." + outputFormatExtension.ToString().TrimStart('.'), o);
+                //if (Convert(inputFile, outputFile, _bThrowOnlyException, null))
                 if (Convert(inputFile, outputFile, _bThrowOnlyException, null))
                 {
                     return System.IO.File.ReadAllBytes(outputFile);

@@ -8,6 +8,7 @@ F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\PdfToImage Source\obj\Debug\PdfToIm
 F:\Data\PROGRAMMING\VS.Net\2017\PDFEditorNet\PdfToImage Source\obj\Debug\PdfToImage.pdb
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\bin\x86\Debug\PdfToImage.dll
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\bin\x86\Debug\PdfToImage.pdb
-F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\Debug\PdfToImage.csprojResolveAssemblyReference.cache
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\Debug\PdfToImage.dll
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\Debug\PdfToImage.pdb
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\Debug\PdfToImage.csprojAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\Debug\PdfToImage.csproj.CoreCompileInputs.cache

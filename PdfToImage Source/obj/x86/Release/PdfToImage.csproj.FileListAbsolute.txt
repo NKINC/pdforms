@@ -1,3 +1,7 @@
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\bin\x86\Release\PdfToImage.dll
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\x86\Release\PdfToImage.csprojResolveAssemblyReference.cache
 F:\Data\PROGRAMMING\VS.Net\2017\PDForms.net\PdfToImage Source\obj\x86\Release\PdfToImage.dll
+F:\Data\PROGRAMMING\VS.Net\2019\pdforms-master\PdfToImage Source\bin\x86\Release\PdfToImage.dll
+F:\Data\PROGRAMMING\VS.Net\2019\pdforms-master\PdfToImage Source\obj\x86\Release\PdfToImage.csprojAssemblyReference.cache
+F:\Data\PROGRAMMING\VS.Net\2019\pdforms-master\PdfToImage Source\obj\x86\Release\PdfToImage.csproj.CoreCompileInputs.cache
+F:\Data\PROGRAMMING\VS.Net\2019\pdforms-master\PdfToImage Source\obj\x86\Release\PdfToImage.dll
