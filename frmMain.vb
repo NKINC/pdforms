@@ -32954,19 +32954,19 @@ returnSub:
         End Try
         Return Nothing
     End Function
-    Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True)
+    Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = True)
         preventClickDialog = True
         Try
             OpenFileDialog2.Filter = "Image Formats|*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tif;*.tiff|JPG|*.jpg|JPEG|*.jpeg|BMP|*.bmp|GIF|*.gif|PNG|*.png|Tif|*.tif|TIFF|*.tiff|All Files|*.*"
             OpenFileDialog2.FilterIndex = 0
             OpenFileDialog2.FileName = ""
-            If Not String.IsNullOrEmpty(fn & "") Then
+            If Not fn.isNullOrEmpty() Then
                 If FileExists(fn & "") Then GoTo OPENFILE_KNOWN_FILENAME
             End If
-            OpenFileDialog2.InitialDirectory = ApplicationDataFolder(False, "")
+            OpenFileDialog2.InitialDirectory = defaulFilePath()
             Select Case OpenFileDialog2.ShowDialog(Me)
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
-                    If Not String.IsNullOrEmpty(OpenFileDialog2.FileName) Then
+                    If Not OpenFileDialog2.FileName.isNullOrEmpty() Then
                         fn = OpenFileDialog2.FileName & ""
 OPENFILE_KNOWN_FILENAME:
                         Dim jpg As System.Drawing.Image = System.Drawing.Image.FromFile(fn)
@@ -32976,6 +32976,7 @@ OPENFILE_KNOWN_FILENAME:
                         frmImgRot.LoadPictureBox(jpg)
                         Dim rotType As System.Drawing.RotateFlipType = RotateFlipType.RotateNoneFlipNone
                         If ShowDialogs Then
+                            'Me.Hide()
                             Select Case frmImgRot.ShowDialog(Me)
                                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                                     If frmImgRot.cancelled Then
@@ -33032,15 +33033,17 @@ OPENFILE_KNOWN_FILENAME:
                         Dim cb As PdfContentByte = writer.DirectContent
                         doc.Add(New Paragraph(" "))
                         For i As Integer = 0 To pages - 1
-                            Dim image As iTextSharp.text.Image = iTextSharp.text.Image.GetInstance(bmp, ImageFormat.Png)
-                            image.SetAbsolutePosition(0, 0)
-                            image.ScaleAbsoluteHeight(doc.PageSize.Height)
-                            image.ScaleAbsoluteWidth(doc.PageSize.Width)
-                            writer.DirectContent.AddImage(image)
+                            Dim Image As iTextSharp.text.Image = iTextSharp.text.Image.GetInstance(bmp, ImageFormat.Png)
+                            Image.SetAbsolutePosition(0, 0)
+                            Image.ScaleAbsoluteHeight(doc.PageSize.Height)
+                            Image.ScaleAbsoluteWidth(doc.PageSize.Width)
+                            writer.DirectContent.AddImage(Image)
                             doc.NewPage()
+                            Image = Nothing
                         Next i
                         writer.CloseStream = False
                         doc.Close()
+
                         If Not Session Is Nothing Then
                             If Session.Length > 0 Then
                                 cFDFDoc = New FDFApp.FDFDoc_Class
@@ -33052,7 +33055,12 @@ OPENFILE_KNOWN_FILENAME:
                             Session("output") = mPDF.ToArray
                         End If
                         writer.Close()
+                        writer.Dispose()
                         writer = Nothing
+                        doc.Dispose()
+                        doc = Nothing
+                        jpg.Dispose()
+                        bitmap.Dispose()
                         If loadDoc Then
                             A0_LoadPDF(True)
                             LoadPageList(Me.btnPage)
@@ -33077,6 +33085,7 @@ OPENFILE_KNOWN_FILENAME:
         If img Is Nothing Then Return
         preventClickDialog = True
         Try
+
             Dim jpg As System.Drawing.Image = img.Clone
             Dim jpgStream As New MemoryStream
             Dim frmImgRot As New frmImageRotation
@@ -33084,6 +33093,7 @@ OPENFILE_KNOWN_FILENAME:
             frmImgRot.LoadPictureBox(jpg)
             Dim rotType As System.Drawing.RotateFlipType = RotateFlipType.RotateNoneFlipNone
             If ShowDialogs Then
+                'Me.Hide()
                 Select Case frmImgRot.ShowDialog(Me)
                     Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                         If frmImgRot.cancelled Then
@@ -33098,6 +33108,7 @@ OPENFILE_KNOWN_FILENAME:
                 Me.Show()
                 Me.BringToFront()
             End If
+
             jpg = frmImgRot.ImageRotation_PictureBox.Image.Clone
             Dim bitmap As New Bitmap(jpg)
             Dim mPDF As New MemoryStream()
@@ -33185,8 +33196,9 @@ OPENFILE_KNOWN_FILENAME:
         End If
         preventClickDialog = True
         Try
-            Dim jpg As System.Drawing.Image = DirectCast(img.Clone(), System.Drawing.Image)
+            Dim jpg As System.Drawing.Image = DirectCast(img.Clone(), System.Drawing.Image) 'System.Drawing.Image.FromFile(fn)
             Dim jpgStream As New MemoryStream
+            'Me.Hide()
             Dim frmImgRot As New frmImageRotation
             frmImgRot.imgRect = New RectangleF(0, 0, jpg.Width, jpg.Height)
             frmImgRot.LoadPictureBox(jpg)
@@ -45574,6 +45586,19 @@ nextField:
             TimeStampAdd(ex, debugMode)
         End Try
     End Sub
+    Public Function defaulFilePath() As String
+        Try
+            If Not fpath = "" Then
+                If File.Exists(fpath) Then
+                    Return System.IO.Path.GetDirectoryName(fpath)
+                End If
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        Return appPath
+    End Function
+
     Private Sub InsertImageOverPageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles InsertImageOverPageToolStripMenuItem.Click
         Dim returnImage As System.Drawing.Image = Nothing
         Dim extensions As New List(Of String)
@@ -47048,24 +47073,25 @@ goto_LinksStart:
             Throw ex
         End Try
     End Sub
-    Public Sub Convert_ImportURl2ImageFile(Optional ByVal fp As String = "")
+    Public Sub Convert_ImportURl2ImageFile(Optional ByVal fp As String = "", Optional closeDocument As Boolean = True)
         Try
             Try
-                If A0_CloseDocument(False, True) = False Then
-                    Return
+                If closeDocument Then
+                    If A0_CloseDocument(False, True) = False Then
+                        Return
+                    End If
+                    cUserRect.rect = Nothing
+                    Try
+                        cFDFDoc = New FDFApp.FDFDoc_Class()
+                        cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
+                        cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
+                    Catch ex As Exception
+                        cUserRect.rect = Nothing
+                    End Try
                 End If
-                cUserRect.rect = Nothing
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
             End Try
-            Try
-                cFDFDoc = New FDFApp.FDFDoc_Class()
-                cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
-                cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
-            Catch ex As Exception
-                cUserRect.rect = Nothing
-            End Try
-
             MenuBar_Enabled = False
             Try
                 StatusToolStrip("Status: ", True) = "Loading, please wait..."
@@ -47128,8 +47154,10 @@ goto_LinksStart:
 GOTO_KNOWN_FILENAME:
                     fn = fpath
                     Dim b() As Byte = Nothing
-                    _outputIndex = 0
-                    mem.Clear()
+                    If closeDocument Then
+                        _outputIndex = 0
+                        mem.Clear()
+                    End If
                     If IsValidUrl(fpath) Then
                         fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
                         If fn.TrimEnd("."c) = appPath.ToString.TrimEnd("\"c) & "\temp\" Then
@@ -47294,22 +47322,24 @@ GOTO_KNOWN_FILENAME:
             'Application.DoEvents()
         End Try
     End Sub
-    Public Sub Convert_ImportURl2HTMLFile(Optional ByVal fp As String = "")
+    Public Sub Convert_ImportURl2HTMLFile(Optional ByVal fp As String = "", Optional closeDocument As Boolean = True)
         Try
             Try
-                If A0_CloseDocument(False, True) = False Then
-                    Return
+                If closeDocument Then
+                    If A0_CloseDocument(False, True) = False Then
+                        Return
+                    End If
+                    cUserRect.rect = Nothing
+                    Try
+                        cFDFDoc = New FDFApp.FDFDoc_Class()
+                        cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
+                        cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
+                    Catch ex As Exception
+                        cUserRect.rect = Nothing
+                    End Try
                 End If
-                cUserRect.rect = Nothing
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
-            End Try
-            Try
-                cFDFDoc = New FDFApp.FDFDoc_Class()
-                cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
-                cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
-            Catch ex As Exception
-                cUserRect.rect = Nothing
             End Try
             MenuBar_Enabled = False
             Try
@@ -47373,8 +47403,10 @@ GOTO_KNOWN_FILENAME:
 GOTO_KNOWN_FILENAME:
                     fn = fpath
                     Dim b() As Byte = Nothing
-                    _outputIndex = 0
-                    mem.Clear()
+                    If closeDocument Then
+                        _outputIndex = 0
+                        mem.Clear()
+                    End If
                     If IsValidUrl(fpath) Or FileExists(fpath) Then
                         fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
 
@@ -47912,10 +47944,46 @@ GOTO_KNOWN_FILENAME:
         End Try
     End Sub
     Private Sub AppendPageFromWebToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AppendPageFromWebToolStripMenuItem.Click
+        'Try
+        '    If Not Session Is Nothing Then
+        '        If Session.Length > 0 Then
+        '            AppendPageFromWeb()
+        '        End If
+        '    End If
+        'Catch ex As Exception
+        '    Throw ex
+        'End Try
         Try
             If Not Session Is Nothing Then
                 If Session.Length > 0 Then
-                    AppendPageFromWeb()
+                    'AppendPageFromWeb()
+                    Try
+                        'ConvertHTMLFileFromUrl()
+                        'Convert_ImportURl2ImageFile()
+                        Dim dMultipleChoice As New dialogMultiChoice(Me)
+                        dMultipleChoice.lblMessage.Text = "Import HTML page as..."
+                        Dim clsBut As New List(Of dialogMultiChoice.clsButton)
+                        Dim btn As dialogMultiChoice.clsButton
+                        btn = New dialogMultiChoice.clsButton("as HTML", True, DialogResult.OK)
+                        clsBut.Add(btn)
+                        btn = New dialogMultiChoice.clsButton("as Image", True, DialogResult.Yes)
+                        clsBut.Add(btn)
+                        btn = New dialogMultiChoice.clsButton("", False, DialogResult.No)
+                        clsBut.Add(btn)
+                        btn = New dialogMultiChoice.clsButton("Cancel", True, DialogResult.Cancel)
+                        clsBut.Add(btn)
+                        Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
+                            Case DialogResult.OK
+                                Convert_ImportURl2HTMLFile("", False)
+                            Case DialogResult.Yes
+                                Convert_ImportURl2ImageFile("", False)
+                            Case Else
+                                Exit Select
+                        End Select
+                        'Convert_ImportURl2HTMLFile(fpath & "")
+                    Catch ex As Exception
+                        Throw ex
+                    End Try
                 End If
             End If
         Catch ex As Exception
