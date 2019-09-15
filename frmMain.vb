@@ -47051,13 +47051,21 @@ goto_LinksStart:
     Public Sub Convert_ImportURl2ImageFile(Optional ByVal fp As String = "")
         Try
             Try
-                If A0_CloseDocument() = False Then
+                If A0_CloseDocument(False, True) = False Then
                     Return
                 End If
                 cUserRect.rect = Nothing
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
             End Try
+            Try
+                cFDFDoc = New FDFApp.FDFDoc_Class()
+                cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
+                cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
+            Catch ex As Exception
+                cUserRect.rect = Nothing
+            End Try
+
             MenuBar_Enabled = False
             Try
                 StatusToolStrip("Status: ", True) = "Loading, please wait..."
@@ -47123,8 +47131,8 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Then
-                        fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
-                        If fn = ApplicationDataFolder(False, "temp") Then
+                        fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
+                        If fn.TrimEnd("."c) = appPath.ToString.TrimEnd("\"c) & "\temp\" Then
                             fn &= "default"
                         End If
                         Try
@@ -47146,18 +47154,31 @@ GOTO_KNOWN_FILENAME:
                                     Else
                                         bitmp = cHTML2Image.GenerateScreenshot(fpath & "", 720, -1).Clone()
                                     End If
-                                    Dim cOptimize As New clsPDFOptimization()
-                                    clsPDFOptimization.cancelOptimize_Shared = False
-                                    Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
-                                    Using imgMem As New MemoryStream(imgBytes)
-                                        If imgMem.CanSeek Then
-                                            imgMem.Seek(0, SeekOrigin.Begin)
+                                    'Dim cOptimize As New clsPDFOptimization()
+                                    'clsPDFOptimization.cancelOptimize_Shared = False
+                                    'Dim imgBytes() As Byte = cOptimize.optimizeBitmap(bitmp.Clone(), 1, System.Drawing.Imaging.ImageFormat.Png, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
+                                    'Using imgMem As New MemoryStream(imgBytes)
+                                    '    If imgMem.CanSeek Then
+                                    '        imgMem.Seek(0, SeekOrigin.Begin)
+                                    '    End If
+                                    '    bitmp = Bitmap.FromStream(imgMem)
+                                    'End Using
+                                    Try
+                                        If FileExists(fn) Then
+                                            System.IO.File.Delete(fn)
                                         End If
-                                        bitmp = Bitmap.FromStream(imgMem)
-                                    End Using
-                                    bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                                    ImportImage(fn & "")
-
+                                    Catch exFileExists As Exception
+                                        TimeStampAdd(exFileExists, debugMode)
+                                    End Try
+                                    'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                                    'Dim memStreamBitmap As New MemoryStream
+                                    'bitmp.Save(memStreamBitmap, System.Drawing.Imaging.ImageFormat.Png)
+                                    'bitmp.Dispose()
+                                    'System.IO.File.WriteAllBytes(fn, memStreamBitmap.ToArray)
+                                    ImportImage(bitmp.Clone)
+                                    Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                                    bitmp.Dispose()
+                                    bitmp = Nothing
                                     Return
                                 Catch exHTML As Exception
                                     Throw exHTML
@@ -47189,8 +47210,10 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        ImportImage(fn & "")
+                        ImportImage(bitmp.Clone)
+                        Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                        bitmp.Dispose()
+                        bitmp = Nothing
                     ElseIf FileExists(ApplicationDataFolder(False, "images") & fn) Then
                         fn = ApplicationDataFolder(False, "images") & fn & "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
@@ -47211,12 +47234,16 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        ImportImage(fn & "")
+                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                        'ImportImage(fn & "")
+                        'Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                        ImportImage(bitmp.Clone)
+                        Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                        bitmp.Dispose()
+                        bitmp = Nothing
                     Else
                         Return
                     End If
-                    Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
                     fldRectangles = getFieldRectangles(True)
                     ignoreClick = True
                     If A0_LoadPDF(True, True, True) Then A0_PictureBox1.Visible = True
@@ -47270,19 +47297,19 @@ GOTO_KNOWN_FILENAME:
     Public Sub Convert_ImportURl2HTMLFile(Optional ByVal fp As String = "")
         Try
             Try
-                cFDFDoc = New FDFApp.FDFDoc_Class()
-                cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
-                cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
-            Catch ex As Exception
-
-            End Try
-            Try
-                If A0_CloseDocument() = False Then
+                If A0_CloseDocument(False, True) = False Then
                     Return
                 End If
                 cUserRect.rect = Nothing
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
+            End Try
+            Try
+                cFDFDoc = New FDFApp.FDFDoc_Class()
+                cFDFDoc.DefaultEncoding = System.Text.Encoding.UTF8
+                cFDFApp.DefaultEncoding = System.Text.Encoding.UTF8
+            Catch ex As Exception
+                cUserRect.rect = Nothing
             End Try
             MenuBar_Enabled = False
             Try
@@ -47349,13 +47376,9 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If IsValidUrl(fpath) Or FileExists(fpath) Then
-                        If IsValidUrl(fpath) Then
-                            fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
-                        Else
-                            fn = ApplicationDataFolder(False, "temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        End If
+                        fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
 
-                        If fn = ApplicationDataFolder(False, "temp") Then
+                        If fn.TrimEnd("."c) = appPath.ToString.TrimEnd("\"c) & "\temp\" Then
                             fn &= "default"
                         End If
                         Try
@@ -47429,6 +47452,7 @@ GOTO_KNOWN_FILENAME:
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
                                     OpenFile(fp, False, False)
+                                    Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                                     'COMMENT END
                                     Return
                                 Catch exHTML As Exception
@@ -47461,12 +47485,17 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        ImportImage(fn & "")
+                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                        'ImportImage(fn & "")
+                        ImportImage(bitmp.Clone)
+                        Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                        bitmp.Dispose()
+                        bitmp = Nothing
+                        Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                     Else
                         Return
                     End If
-                    Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
+                    'Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
                     fldRectangles = getFieldRectangles(True)
                     ignoreClick = True
                     If A0_LoadPDF(True, True, True) Then A0_PictureBox1.Visible = True
@@ -47520,9 +47549,11 @@ GOTO_KNOWN_FILENAME:
     Public Sub ConvertHTMLFileFromFile(ByVal fp As String)
         Try
             Try
-                If String.IsNullOrEmpty(fp & "") Then
+                If fp.isNullOrEmpty() Then
                     Return
                 End If
+                'Convert_ImportURl2HTMLFile(fp)
+                'return
                 If A0_CloseDocument() = False Then
                     Return
                 End If
@@ -47539,8 +47570,9 @@ GOTO_KNOWN_FILENAME:
             Try
                 If Not String.IsNullOrEmpty(fp.ToString()) Then
                     fpath = fp.ToString()
-                    If IsValidUrl(fpath) Then
+                    If IsValidUrl(fpath) Or FileExists(fpath) Then
                         addOpenHistoryListItem(fpath)
+                        'ConvertHTMLFileFromUrl(fpath)
                         Dim dMultipleChoice As New dialogMultiChoice(Me)
                         dMultipleChoice.lblMessage.Text = "Import HTML page as..."
                         Dim clsBut As New List(Of dialogMultiChoice.clsButton)
@@ -47569,7 +47601,7 @@ GOTO_KNOWN_FILENAME:
                     Return
                 End If
                 preventClickDialog = True
-                If Not String.IsNullOrEmpty(fpath) Then
+                If Not fpath.isNullOrEmpty() Then
                     Dim fn As String = fpath & ""
                     fpath = fn
 GOTO_KNOWN_FILENAME:
@@ -47578,17 +47610,17 @@ GOTO_KNOWN_FILENAME:
                     _outputIndex = 0
                     mem.Clear()
                     If File.Exists(fpath.ToString.Replace("file://", "")) Then
-                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fpath & "")
-                        If fn = ApplicationDataFolder(False,"temp") Then
+                        fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
+                        If fn.TrimEnd("."c) = appPath.ToString.TrimEnd("\"c) & "\temp\" Then
                             fn &= "default"
                         End If
                         Try
                             Try
                                 Try
                                     fn &= ".png"
-                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK"))
-                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto)", "Page height:", Me, iTextSharp.text.PageSize.LETTER.Height, "OK"))
-                                    Dim strHTML As String = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(fpath)).Trim()
+                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
+                                    Dim strHTML As String = System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(fpath)).Trim() 'wb.DocumentText 
                                     If Not strHTML.ToString.ToLower.Contains("<base ") Then
                                         strHTML = strHTML.Replace("<head>", "<head><base href=""" & "file://" & fpath & """/>")
                                     End If
@@ -47634,7 +47666,7 @@ GOTO_KNOWN_FILENAME:
                                             End If
                                         Next
                                     Next
-                                    Dim pdfBytes() As Byte
+                                    Dim pdfBytes() As Byte '= clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, False, True, fpath.ToString.Replace("/", "\").Substring(0, fpath.ToString.Replace("/", "\").LastIndexOf("\") + 1))
                                     Try
                                         pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Replace("\", "/").Substring(0, fpath.ToString.Replace("\", "/").LastIndexOf("/") + 1), True)
                                     Catch ex1 As Exception
@@ -47649,6 +47681,7 @@ GOTO_KNOWN_FILENAME:
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
                                     OpenFile(fp, False, False)
+                                    Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                                     Return
                                 Catch exHTML As Exception
                                     Throw exHTML
@@ -47663,7 +47696,7 @@ GOTO_KNOWN_FILENAME:
                     Else
                         Return
                     End If
-                    Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
+                    'Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
                     fldRectangles = getFieldRectangles(True)
                     ignoreClick = True
                     If A0_LoadPDF(True, True, True) Then A0_PictureBox1.Visible = True
@@ -47693,12 +47726,12 @@ GOTO_KNOWN_FILENAME:
                     End If
                 End If
             Catch exLoadFDFDoc As Exception
-                TimeStampAdd(exLoadFDFDoc, debugMode)
+                TimeStampAdd(exLoadFDFDoc, debugMode) ' NK 2016-06-30 'NK DM
             End Try
             Try
-                If Not String.IsNullOrEmpty(fpath) And Not Session Is Nothing Then
+                If Not fpath.isNullOrEmpty() And Not Session Is Nothing Then
                     If Session.Length > 0 Then
-                        If True = True Then
+                        If True = True Then 'If DoEvents_Wait(500) Then
                             Me.StatusToolStrip = "File loaded: " & (fpath & "")
                         End If
                     End If
@@ -47707,10 +47740,11 @@ GOTO_KNOWN_FILENAME:
                 TimeStampAdd(ex, debugMode)
             End Try
         Catch exMain1 As Exception
-            TimeStampAdd(exMain1, debugMode)
+            TimeStampAdd(exMain1, debugMode) ' NK 2016-06-30 'NK DM
         Finally
             ignoreClick = False
             MenuBar_Enabled = True
+            'Application.DoEvents()
         End Try
     End Sub
     Public Sub AppendPageFromWeb(Optional ByVal fp As String = "")
@@ -47745,7 +47779,7 @@ GOTO_KNOWN_FILENAME:
                 Finally
                     Me.Show()
                 End Try
-                If Not String.IsNullOrEmpty(fp) Then
+                If Not fp.isNullOrEmpty() Then
                     If IsValidUrl(fp) Then
                         GoTo GOTO_KNOWN_FILENAME
                     ElseIf FileExists(fp) Then
@@ -47755,14 +47789,14 @@ GOTO_KNOWN_FILENAME:
                 Else
                     Return
                 End If
-                If Not String.IsNullOrEmpty(fp) Then
+                If Not fp.isNullOrEmpty() Then
                     Dim fn As String = fp & ""
 GOTO_KNOWN_FILENAME:
                     fn = fp
                     Dim b() As Byte = Nothing
                     If IsValidUrl(fp) Then
-                        fn = ApplicationDataFolder(False,"temp") & System.IO.Path.GetFileNameWithoutExtension(fp & "").ToString().Replace(".", "-").Replace("_", "-")
-                        If fn = ApplicationDataFolder(False,"temp") Then
+                        fn = appPath.ToString.TrimEnd("\"c) & "\temp\" & System.IO.Path.GetFileNameWithoutExtension((New Uri(fpath).LocalPath))
+                        If fn.TrimEnd(".") = appPath.ToString.TrimEnd("\"c) & "\temp\" Then
                             fn &= "default"
                         End If
                         Try
@@ -47770,12 +47804,14 @@ GOTO_KNOWN_FILENAME:
                                 Try
                                     fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                                     Dim cHTML2Image As New clsHTML2Image()
-                                    Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                                    'Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                                    Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                                    Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
                                     Dim bitmp As Bitmap = Nothing
                                     If IsNumeric(MinWidth & "") Then
-                                        bitmp = cHTML2Image.GenerateScreenshot(fp & "", CInt(MinWidth) + 0, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fp & "", CInt(MinWidth) + 0, MinHeight).Clone()
                                     Else
-                                        bitmp = cHTML2Image.GenerateScreenshot(fp & "", -1, -1).Clone()
+                                        bitmp = cHTML2Image.GenerateScreenshot(fp & "", 720, -1).Clone()
                                     End If
                                     Dim cOptimize As New clsPDFOptimization()
                                     clsPDFOptimization.cancelOptimize_Shared = False
@@ -47786,9 +47822,13 @@ GOTO_KNOWN_FILENAME:
                                         End If
                                         bitmp = Bitmap.FromStream(imgMem)
                                     End Using
-                                    bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                                    'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                                     Dim bytes() As Byte = Session
-                                    ImportImage(fn & "")
+                                    'ImportImage(fn & "")
+                                    ImportImage(bitmp.Clone)
+                                    Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                                    bitmp.Dispose()
+                                    bitmp = Nothing
                                     Return
                                 Catch exHTML As Exception
                                     Throw exHTML
@@ -47803,12 +47843,13 @@ GOTO_KNOWN_FILENAME:
                     ElseIf FileExists(fn) Then
                         fn &= "-" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 10).ToString() & ".png"
                         Dim cHTML2Image As New clsHTML2Image()
-                        Dim MinWidth As String = New clsPromptDialog().ShowDialog("Desired page width? (-1 = auto)", "Page width:", Me, "-1", "OK")
+                        Dim MinWidth As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page width?", "Page width:", Me, iTextSharp.text.PageSize.LETTER.Width, "OK")) 'iTextSharp.text.PageSize.LETTER.Width
+                        Dim MinHeight As Integer = CInt(New clsPromptDialog().ShowDialog("Desired page height? (-1 = auto height)", "Page height:", Me, "-1", "OK")) '
                         Dim bitmp As Bitmap = Nothing
                         If IsNumeric(MinWidth & "") Then
-                            bitmp = cHTML2Image.GenerateScreenshot(fp & "", CInt(MinWidth) + 0, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fp & "", CInt(MinWidth) + 0, MinHeight).Clone()
                         Else
-                            bitmp = cHTML2Image.GenerateScreenshot(fp & "", -1, -1).Clone()
+                            bitmp = cHTML2Image.GenerateScreenshot(fp & "", -1, 720).Clone()
                         End If
                         Dim cOptimize As New clsPDFOptimization()
                         clsPDFOptimization.cancelOptimize_Shared = False
@@ -47819,8 +47860,12 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
-                        ImportImage(fn & "")
+                        'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                        'ImportImage(fn & "")
+                        ImportImage(bitmp.Clone)
+                        Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
+                        bitmp.Dispose()
+                        bitmp = Nothing
                     Else
                         Return
                     End If
@@ -47829,10 +47874,11 @@ GOTO_KNOWN_FILENAME:
                 Throw exHTML
             End Try
         Catch exMain1 As Exception
-            TimeStampAdd(exMain1, debugMode)
+            TimeStampAdd(exMain1, debugMode) ' NK 2016-06-30 'NK DM
         Finally
             ignoreClick = False
             MenuBar_Enabled = True
+            'Application.DoEvents()
             Me.StatusToolStrip = "Status: Imported web page complete."
         End Try
     End Sub
