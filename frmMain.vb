@@ -32617,44 +32617,43 @@ returnSub:
             If PDFFiles.Length > 0 Then
                 reader = New iTextSharp.text.pdf.PdfReader(PDFFiles(currentPDF), getBytes(ownerPasswords(currentPDF)))
                 pdfDoc = New iTextSharp.text.Document(reader.GetPageSizeWithRotation(1))
-                writer = New iTextSharp.text.pdf.PdfSmartCopy(pdfDoc, MemStream)
+                writer = New iTextSharp.text.pdf.PdfSmartCopy(pdfDoc, MemStream) ', stamp) ', True)
                 writer.SetMergeFields()
                 writer.CloseStream = False
                 pageCount = reader.NumberOfPages
                 Dim excludeThisPage As Boolean = False
-                While currentPDF < PDFFiles.Length
-                    pdfDoc.Open()
-                    If Not excludeThisPage Then
-                        If keepPages Is Nothing Then
-                            writer.AddDocument(reader)
-                        Else
-                            If keepPages.Count > currentPage Then
-                                If Not keepPages(currentPDF) Is Nothing Then
-                                    If (keepPages(currentPDF)).Length > 0 Then
-                                        writer.AddDocument(reader, keepPages(currentPDF).ToList())
+                pdfDoc.Open()
+                Do Until currentPDF = PDFFiles.Length
+                    If currentPDF < PDFFiles.Length Then
+                        If Not excludeThisPage Then
+                            If keepPages Is Nothing Then
+                                writer.AddDocument(reader)
+                            Else
+                                If keepPages.Count > currentPage Then
+                                    If Not keepPages(currentPDF) Is Nothing Then
+                                        If (keepPages(currentPDF)).Length > 0 Then
+                                            writer.AddDocument(reader, keepPages(currentPDF).ToList())
+                                        Else
+                                            writer.AddDocument(reader)
+                                        End If
                                     Else
                                         writer.AddDocument(reader)
                                     End If
                                 Else
                                     writer.AddDocument(reader)
                                 End If
-                            Else
-                                writer.AddDocument(reader)
                             End If
                         End If
+                        currentPDF += 1
+                        If currentPDF < PDFFiles.Length Then
+                            reader = New iTextSharp.text.pdf.PdfReader(PDFFiles(currentPDF), getBytes(ownerPasswords(currentPDF)))
+                            pageCount = reader.NumberOfPages
+                        End If
                     End If
-                    If Not reader.AcroFields Is Nothing Then
-                    End If
-                    currentPDF += 1
-                    If currentPDF < PDFFiles.Length Then
-                        reader = New iTextSharp.text.pdf.PdfReader(PDFFiles(currentPDF), getBytes(ownerPasswords(currentPDF)))
-                        pageCount = reader.NumberOfPages
-                        currentPage = 0
-                    End If
-                End While
+                Loop
                 pdfDoc.Close()
             Else
-                Throw New Exception("The input file array is empty. Processing terminated.")
+                'Throw New Exception("The input file array is empty. Processing terminated.")
             End If
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
@@ -47111,7 +47110,7 @@ goto_LinksStart:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = appPath.ToString().TrimEnd("\"c) & "\resources\html2pdf.htm"
+                    Dim pathTemp As String = appPath.ToString().TrimEnd("\"c) & "\resources\html2pdf.htm" ' 
                     If Clipboard.ContainsText Then
                         pathTemp = Clipboard.GetText(TextDataFormat.Text)
                     ElseIf Clipboard.GetFileDropList.Count > 0 Then
@@ -47207,7 +47206,7 @@ GOTO_KNOWN_FILENAME:
                                     'bitmp.Save(memStreamBitmap, System.Drawing.Imaging.ImageFormat.Png)
                                     'bitmp.Dispose()
                                     'System.IO.File.WriteAllBytes(fn, memStreamBitmap.ToArray)
-                                    ImportImage(bitmp.Clone, False, False, closeDocument)
+                                    ImportImage(bitmp.Clone, False, True, closeDocument)
                                     Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                                     bitmp.Dispose()
                                     bitmp = Nothing
@@ -47242,7 +47241,7 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        ImportImage(bitmp.Clone, False, False, closeDocument)
+                        ImportImage(bitmp.Clone, False, True, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47269,7 +47268,7 @@ GOTO_KNOWN_FILENAME:
                         'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         'ImportImage(fn & "")
                         'Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
-                        ImportImage(bitmp.Clone, False, False, closeDocument)
+                        ImportImage(bitmp.Clone, False, True, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47488,6 +47487,16 @@ GOTO_KNOWN_FILENAME:
                                             Throw ex2
                                         End Try
                                     End Try
+                                    If Not Session Is Nothing Then
+                                        If Session.Length > 0 Then
+                                            cFDFDoc = New FDFApp.FDFDoc_Class
+                                            pdfBytes = PDFConcatenateForms2Buf(New Byte()() {Session, pdfBytes}, New String() {pdfOwnerPassword, ""})
+                                        Else
+                                            Session("output") = pdfBytes
+                                        End If
+                                    Else
+                                        Session("output") = pdfBytes
+                                    End If
                                     fp = ApplicationDataFolder(False, "temp") & "" & Path.GetFileNameWithoutExtension(fn & "") & ".pdf"
                                     File.WriteAllBytes(fp, pdfBytes)
                                     addOpenHistoryListItem(fpath)
@@ -47527,7 +47536,7 @@ GOTO_KNOWN_FILENAME:
                         End Using
                         'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         'ImportImage(fn & "")
-                        ImportImage(bitmp.Clone, False, False, closeDocument)
+                        ImportImage(bitmp.Clone, False, True, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47865,7 +47874,7 @@ GOTO_KNOWN_FILENAME:
                                     'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                                     Dim bytes() As Byte = Session
                                     'ImportImage(fn & "")
-                                    ImportImage(bitmp.Clone)
+                                    ImportImage(bitmp.Clone, False, True, False)
                                     Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                                     bitmp.Dispose()
                                     bitmp = Nothing
@@ -47902,7 +47911,7 @@ GOTO_KNOWN_FILENAME:
                         End Using
                         'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         'ImportImage(fn & "")
-                        ImportImage(bitmp.Clone)
+                        ImportImage(bitmp.Clone, False, True, False)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47924,6 +47933,8 @@ GOTO_KNOWN_FILENAME:
     End Sub
     Private Sub FromWebPageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FromWebPageToolStripMenuItem.Click
         Try
+            'ConvertHTMLFileFromUrl()
+            'Convert_ImportURl2ImageFile("", False)
             Dim dMultipleChoice As New dialogMultiChoice(Me)
             dMultipleChoice.lblMessage.Text = "Import HTML page as..."
             Dim clsBut As New List(Of dialogMultiChoice.clsButton)
@@ -47939,35 +47950,24 @@ GOTO_KNOWN_FILENAME:
             Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
                 Case DialogResult.OK
                     Convert_ImportURl2HTMLFile("", True)
-                    A0_LoadPDF()
                 Case DialogResult.Yes
                     Convert_ImportURl2ImageFile("", True)
-                    A0_LoadPDF()
                 Case Else
                     Exit Select
             End Select
-
+            'Convert_ImportURl2HTMLFile(fpath & "")
         Catch ex As Exception
             Throw ex
         End Try
     End Sub
     Private Sub AppendPageFromWebToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AppendPageFromWebToolStripMenuItem.Click
-        'Try
-        '    If Not Session Is Nothing Then
-        '        If Session.Length > 0 Then
-        '            AppendPageFromWeb()
-        '        End If
-        '    End If
-        'Catch ex As Exception
-        '    Throw ex
-        'End Try
         Try
             If Not Session Is Nothing Then
                 If Session.Length > 0 Then
                     'AppendPageFromWeb()
                     Try
                         'ConvertHTMLFileFromUrl()
-                        'Convert_ImportURl2ImageFile()
+                        'Convert_ImportURl2ImageFile("", False)
                         Dim dMultipleChoice As New dialogMultiChoice(Me)
                         dMultipleChoice.lblMessage.Text = "Import HTML page as..."
                         Dim clsBut As New List(Of dialogMultiChoice.clsButton)
@@ -48848,16 +48848,16 @@ GOTO_KNOWN_FILENAME:
                                                 clsButtons.Add(New dialogMultiChoice.clsButton("Don't Ask", True, 4))
                                                 Select Case clsPrompt.ShowDialog(Me, "Import this file?" & Environment.NewLine & "File: " & Path.GetFileName(f.ToString) & Environment.NewLine & "Files remaining: " & fcntr.ToString() & "", "Import File:", clsButtons.ToArray)
                                                     Case 1
-                                                        ImportImage(f, promptUser, False)
+                                                        ImportImage(f, promptUser, False, True)
                                                     Case 2
                                                     Case 3
                                                         Return
                                                     Case 4
                                                         promptUser = False
-                                                        ImportImage(f, promptUser, False)
+                                                        ImportImage(f, promptUser, False, True)
                                                 End Select
                                             Else
-                                                ImportImage(f, promptUser, False)
+                                                ImportImage(f, promptUser, False, True)
                                             End If
                                         End If
                                     Catch ex As Exception
@@ -49691,9 +49691,9 @@ GOTO_KNOWN_FILENAME:
                 clsPDFOptimization.cancelOptimize_Shared = False
                 b = clsOpt.optimizeBitmap(b.ToArray(), 1.0F, System.Drawing.Imaging.ImageFormat.Jpeg, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
                 Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
-                Dim fnImgPath As String = dirPathTemp & "page-" & pg.ToString() & ".jpg"
-                i.Save(fnImgPath, System.Drawing.Imaging.ImageFormat.Jpeg)
-                ImportImage(fnImgPath, False, False)
+                'Dim fnImgPath As String = dirPathTemp & "page-" & pg.ToString() & ".jpg"
+                'i.Save(fnImgPath, System.Drawing.Imaging.ImageFormat.Jpeg)
+                ImportImage(i.Clone, False, True, False)
                 StatusToolStrip("Progress:  ", True) = "Page #" & pg.ToString & " of " & r.NumberOfPages.ToString & " pages"
             Next
             cUserRect.pauseDraw = False
