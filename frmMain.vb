@@ -32954,7 +32954,7 @@ returnSub:
         End Try
         Return Nothing
     End Function
-    Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = True)
+    Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
         preventClickDialog = True
         Try
             OpenFileDialog2.Filter = "Image Formats|*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tif;*.tiff|JPG|*.jpg|JPEG|*.jpeg|BMP|*.bmp|GIF|*.gif|PNG|*.png|Tif|*.tif|TIFF|*.tiff|All Files|*.*"
@@ -33044,7 +33044,7 @@ OPENFILE_KNOWN_FILENAME:
                         writer.CloseStream = False
                         doc.Close()
 
-                        If Not Session Is Nothing Then
+                        If Not Session Is Nothing And Not closeDoc Then
                             If Session.Length > 0 Then
                                 cFDFDoc = New FDFApp.FDFDoc_Class
                                 Session("output") = PDFConcatenateForms2Buf(New Byte()() {Session, mPDF.ToArray}, New String() {pdfOwnerPassword, ""})
@@ -33081,7 +33081,7 @@ OPENFILE_KNOWN_FILENAME:
             timerPreventDefaultExpires.Enabled = True
         End Try
     End Sub
-    Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = True)
+    Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
         If img Is Nothing Then Return
         preventClickDialog = True
         Try
@@ -33160,7 +33160,7 @@ OPENFILE_KNOWN_FILENAME:
             Next i
             writer.CloseStream = False
             doc.Close()
-            If Not Session Is Nothing Then
+            If Not Session Is Nothing And Not closeDoc Then
                 If Session.Length > 0 Then
                     cFDFDoc = New FDFApp.FDFDoc_Class
                     Session("output") = PDFConcatenateForms2Buf(New Byte()() {Session, mPDF.ToArray}, New String() {pdfOwnerPassword, ""})
@@ -33188,7 +33188,7 @@ OPENFILE_KNOWN_FILENAME:
             timerPreventDefaultExpires.Enabled = True
         End Try
     End Sub
-    Public Sub ImportImageFromImage(ByVal img As System.Drawing.Image)
+    Public Sub ImportImageFromImage(ByVal img As System.Drawing.Image, Optional closeDoc As Boolean = False)
         If img Is Nothing Then
             Return
         ElseIf img.Width <= 0 And img.Height <= 0 Then
@@ -33266,7 +33266,7 @@ OPENFILE_KNOWN_FILENAME:
             Next i
             writer.CloseStream = False
             doc.Close()
-            If Not Session Is Nothing Then
+            If Not Session Is Nothing And Not closeDoc Then
                 If Session.Length > 0 Then
                     cFDFDoc = New FDFApp.FDFDoc_Class
                     Session("output") = PDFConcatenateForms2Buf(New Byte()() {Session, mPDF.ToArray}, New String() {pdfOwnerPassword, ""})
@@ -47938,10 +47938,10 @@ GOTO_KNOWN_FILENAME:
             clsBut.Add(btn)
             Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
                 Case DialogResult.OK
-                    Convert_ImportURl2HTMLFile()
+                    Convert_ImportURl2HTMLFile("", True)
                     A0_LoadPDF()
                 Case DialogResult.Yes
-                    Convert_ImportURl2ImageFile()
+                    Convert_ImportURl2ImageFile("", True)
                     A0_LoadPDF()
                 Case Else
                     Exit Select
