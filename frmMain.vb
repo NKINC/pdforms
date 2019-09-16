@@ -33081,7 +33081,7 @@ OPENFILE_KNOWN_FILENAME:
             timerPreventDefaultExpires.Enabled = True
         End Try
     End Sub
-    Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True)
+    Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = True)
         If img Is Nothing Then Return
         preventClickDialog = True
         Try
@@ -47111,17 +47111,9 @@ goto_LinksStart:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = ApplicationDataFolder(False, "") & "resources\html2pdf.htm" ' 
+                    Dim pathTemp As String = appPath.ToString().TrimEnd("\"c) & "\resources\html2pdf.htm"
                     If Clipboard.ContainsText Then
-                        Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
-                        If IsValidUrl(pathTemp2) Then
-                            If pathTemp2.LastIndexOf("/"c) = pathTemp2.LastIndexOf("//") + 1 Then
-                                pathTemp2 = pathTemp2 & "/"
-                            ElseIf pathTemp2.Replace("//", "|").IndexOf("/"c) <= 0 Then
-                                pathTemp2 = pathTemp2 & "/"
-                            End If
-                            pathTemp = pathTemp2
-                        End If
+                        pathTemp = Clipboard.GetText(TextDataFormat.Text)
                     ElseIf Clipboard.GetFileDropList.Count > 0 Then
                         Try
                             Dim oDataString As String = Clipboard.GetFileDropList(0).ToString()
@@ -47131,6 +47123,18 @@ goto_LinksStart:
                         Catch ex2 As Exception
                             TimeStampAdd(ex2, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                         End Try
+                    End If
+                    If IsValidUrl(pathTemp) Then
+                        If pathTemp.LastIndexOf("/"c) = pathTemp.LastIndexOf("//") + 1 Then
+                            pathTemp = pathTemp & "/"
+                        ElseIf pathTemp.Replace("//", "|").IndexOf("/"c) <= 0 Then
+                            pathTemp = pathTemp & "/"
+                        End If
+                        pathTemp = pathTemp
+                    ElseIf FileExists(pathTemp) Then
+                        pathTemp = pathTemp.ToString.ToLower().Replace("file:///", "").Replace("/", "\")
+                    ElseIf pathTemp.ToString.ToLower().StartsWith("file:///") Then
+                        pathTemp = pathTemp.ToString.ToLower().Replace("file:///", "").Replace("/", "\")
                     End If
                     fpath = New clsPromptDialog().ShowDialogFileSelection("Open web page Url:", pathTemp, "Open File", Me, "HTM|*.htm|HTML|*.html|All Files|*.*")
                 Catch ex As Exception
@@ -47360,17 +47364,9 @@ GOTO_KNOWN_FILENAME:
                 preventClickDialog = True
                 Try
                     Me.Hide()
-                    Dim pathTemp As String = ApplicationDataFolder(False, "") & "resources\html2pdf.htm" ' 
+                    Dim pathTemp As String = appPath.ToString().TrimEnd("\"c) & "\resources\html2pdf.htm"
                     If Clipboard.ContainsText Then
-                        Dim pathTemp2 As String = Clipboard.GetText(TextDataFormat.Text)
-                        If IsValidUrl(pathTemp2) Then
-                            If pathTemp2.LastIndexOf("/"c) = pathTemp2.LastIndexOf("//") + 1 Then
-                                pathTemp2 = pathTemp2 & "/"
-                            ElseIf pathTemp2.Replace("//", "|").IndexOf("/"c) <= 0 Then
-                                pathTemp2 = pathTemp2 & "/"
-                            End If
-                            pathTemp = pathTemp2
-                        End If
+                        pathTemp = Clipboard.GetText(TextDataFormat.Text)
                     ElseIf Clipboard.GetFileDropList.Count > 0 Then
                         Try
                             Dim oDataString As String = Clipboard.GetFileDropList(0).ToString()
@@ -47380,6 +47376,18 @@ GOTO_KNOWN_FILENAME:
                         Catch ex2 As Exception
                             TimeStampAdd(ex2, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                         End Try
+                    End If
+                    If IsValidUrl(pathTemp) Then
+                        If pathTemp.LastIndexOf("/"c) = pathTemp.LastIndexOf("//") + 1 Then
+                            pathTemp = pathTemp & "/"
+                        ElseIf pathTemp.Replace("//", "|").IndexOf("/"c) <= 0 Then
+                            pathTemp = pathTemp & "/"
+                        End If
+                        pathTemp = pathTemp
+                    ElseIf FileExists(pathTemp) Then
+                        pathTemp = pathTemp.ToString.ToLower().Replace("file:///", "").Replace("/", "\")
+                    ElseIf pathTemp.ToString.ToLower().StartsWith("file:///") Then
+                        pathTemp = pathTemp.ToString.ToLower().Replace("file:///", "").Replace("/", "\")
                     End If
                     fpath = New clsPromptDialog().ShowDialogFileSelection("Open web page Url:", pathTemp, "Open File", Me, "HTM|*.htm|HTML|*.html|All Files|*.*")
                 Catch ex As Exception
