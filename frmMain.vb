@@ -47207,7 +47207,7 @@ GOTO_KNOWN_FILENAME:
                                     'bitmp.Save(memStreamBitmap, System.Drawing.Imaging.ImageFormat.Png)
                                     'bitmp.Dispose()
                                     'System.IO.File.WriteAllBytes(fn, memStreamBitmap.ToArray)
-                                    ImportImage(bitmp.Clone)
+                                    ImportImage(bitmp.Clone, False, False, closeDocument)
                                     Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                                     bitmp.Dispose()
                                     bitmp = Nothing
@@ -47242,7 +47242,7 @@ GOTO_KNOWN_FILENAME:
                             End If
                             bitmp = Bitmap.FromStream(imgMem)
                         End Using
-                        ImportImage(bitmp.Clone)
+                        ImportImage(bitmp.Clone, False, False, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47269,7 +47269,7 @@ GOTO_KNOWN_FILENAME:
                         'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         'ImportImage(fn & "")
                         'Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
-                        ImportImage(bitmp.Clone)
+                        ImportImage(bitmp.Clone, False, False, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
@@ -47527,7 +47527,7 @@ GOTO_KNOWN_FILENAME:
                         End Using
                         'bitmp.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
                         'ImportImage(fn & "")
-                        ImportImage(bitmp.Clone)
+                        ImportImage(bitmp.Clone, False, False, closeDocument)
                         Me.Text = "PDForms.net:  " & System.IO.Path.GetFileName(fpath) & ""
                         bitmp.Dispose()
                         bitmp = Nothing
