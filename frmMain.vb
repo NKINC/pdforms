@@ -41983,1648 +41983,1701 @@ nextField:
         Return myFields
     End Function
     Private Sub CreateHTMLFormToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CreateHTMLFormToolStripMenuItem.Click
-        pnlFields.Hide()
-        Dim b() As Byte = Session
-        Dim chtml As New PDF2HTMLnet.PDF2HTMLnet(Session, pdfOwnerPassword, "form1", "", "_self")
-        chtml.formMethod = "post"
-        chtml.ShowTitles = True
-        chtml.TitleReplaceStringsWithSpace = New String() {"_", "-", "."}
-        Dim fn As String = fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\" & Path.GetFileNameWithoutExtension(fpath & "") & ".htm" & ""
-        Dim sd As New SaveFileDialog
-        sd.CheckPathExists = True
-        sd.FileName = Path.GetFileName(fn & "")
-        If Not Directory.Exists(fileDirectory() & "html\") Then
-            Directory.CreateDirectory(fileDirectory() & "html\")
-        End If
-        If Not Directory.Exists(fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\") Then
-            Directory.CreateDirectory(fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\")
-        End If
-        sd.InitialDirectory = fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\"
-        sd.Filter = "HTM|*.htm|HTML|*.html|Text|*.txt|All Files|*.*"
-        sd.FilterIndex = 0
-        sd.DefaultExt = ".htm"
-        Me.Show()
-        Select Case sd.ShowDialog(Me)
-            Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
-                fn = sd.FileName & ""
-            Case Else
-                Return
-                Exit Select
-        End Select
-        Select Case MsgBox("Export background and layout exactly as it appears?", MsgBoxStyle.YesNoCancel + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Export HTML:")
-            Case MsgBoxResult.Yes, MsgBoxResult.Ok
-                Try
-                    Dim totalPageHeight As Single = 0, pageWidth As Single, pageHeight As Single
-                    Dim strHTML As String = ""
-                    Dim useBase64ImageURL As Boolean = False
-                    Select Case MsgBox("Inline base64 image URLs?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Inline Image URLs:")
+        Try
+            _cFDFDoc = cFDFDoc(True)
+            Dim b() As Byte = Nothing
+            Dim fn As String = ""
+            Dim fSave As New SaveFileDialog
+            fSave.CheckFileExists = False
+            fSave.DefaultExt = ".htm"
+            fSave.FileName = System.IO.Path.GetFileNameWithoutExtension(fpath) & ".htm"
+            fSave.Filter = "htm|*.htm|html|*.html|txt|*.txt|all files|*.*"
+            fSave.FilterIndex = 0
+            fSave.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
+            'fSave.Multiselect = False
+            fSave.Title = "Save-As: HTML file"
+            Select Case fSave.ShowDialog(Me)
+                Case DialogResult.OK, DialogResult.Yes
+                    fn = fSave.FileName
+                    fSave.Dispose()
+                Case Else
+                    fn = ""
+                    fSave.Dispose()
+                    Return
+            End Select
+            If Not fpath.isNullOrEmpty() Then cFDFDoc.FDFSetFile(fpath)
+            Dim inlineImages As Boolean = True, includeFields As Boolean = True
+            Select Case MsgBox("Inline images using base64 URL encoding?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Inline Images:")
+                Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                    inlineImages = True
+                Case Else
+                    inlineImages = False
+            End Select
+            Try
+                includeFields = False
+                If _cFDFDoc.XDPFieldCount() > 0 Then
+                    Select Case MsgBox("Include html form fields?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "HTML form fields:")
                         Case MsgBoxResult.Yes, MsgBoxResult.Ok
-                            useBase64ImageURL = True
+                            includeFields = True
                         Case Else
-                            useBase64ImageURL = False
+                            includeFields = False
                     End Select
-                    Dim strCalcScript As String = ""
-                    strHTML &= "<html>"
-                    strHTML &= "<head>"
-                    strHTML &= "<style media=""all"" type=""text/css"">.lazy {display: none;}" & Environment.NewLine & "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none){html,body,form{font-size:28px}}" & Environment.NewLine & "</style>"
-                    '
-                    strHTML &= "</head>"
-                    strHTML &= "<body style=""margin:0;padding:0;"">"
-                    Dim clsInput As New clsPromptDialog
-                    Dim htmlSubmitAction As String = clsInput.ShowDialog("HTML submit action URL?", "HTML Submit Action URL?", Me, "", "OK")
-                    strHTML &= Environment.NewLine & "<form action=""" & htmlSubmitAction & """ method=""post"" id=""form"" " & Environment.NewLine
-                    Dim pField As New List(Of String)
-                    ToolStripProgressBar1.Maximum = pdfReaderDoc.NumberOfPages
-                    ToolStripProgressBar1.Minimum = 1
-                    ToolStripProgressBar1.Value = 1
-                    ToolStripProgressBar1.Visible = True
-                    Dim dir As String = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\"
-                    If cLinks Is Nothing Then
-                        cLinks = New clsLinks(pdfReaderDoc, Me)
-                    ElseIf cLinks.Links.Count <= 0 Then
-                        cLinks = New clsLinks(pdfReaderDoc, Me)
-                        cLinks.LoadLinksOnPage(CInt(pageIndex))
-                    End If
-                    Dim fieldListFlowType As New Dictionary(Of String, Single)
-                    Dim fldTabIndex As Integer = 0
-                    Dim fldTabMax As Integer = 0
-                    Dim maskInput As New System.Text.StringBuilder
-                    For p As Integer = 1 To pdfReaderDoc.NumberOfPages
-                        pageIndex = p - 1
-                        ToolStripProgressBar1.Value = p
-                        pnlFieldTabOrder_Load(True)
-                        Dim lstFields As Dictionary(Of String, List(Of fieldInfo)) = GetAllFieldsOnPageiText(Session.ToArray(), pdfOwnerPassword, p, True)
-                        pageWidth = pdfReaderDoc.GetPageSizeWithRotation(p).Width
-                        pageHeight = pdfReaderDoc.GetPageSizeWithRotation(p).Height
-                        LoadPDFReaderDoc(pdfOwnerPassword, True)
-                        Dim pdfReaderDocClone As PdfReader = pdfReaderDoc.Clone
-                        pdfReaderDocClone.RemoveFields()
-                        Dim imgBytes() As Byte = A0_LoadImageGhostScript(getPDFBytes(pdfReaderDocClone), pdfOwnerPassword, p, pageWidth * getPercent() * 1.3F, pageHeight * getPercent() * 1.3F, False)
-                        Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(imgBytes))
-                        Dim imgStream As New MemoryStream
-                        img.Save(imgStream, System.Drawing.Imaging.ImageFormat.Png)
-                        strHTML &= "<div name=""page_" & p & """ id=""page_" & p & """ style=""background-size: 100%;margin:0 auto;padding:0;display:block;width:100%;max-width:100%;height:auto;position:relative;"">"
-                        If useBase64ImageURL Then
-                            strHTML &= "<img src=""data:image/jpeg;base64," & System.Convert.ToBase64String(imgStream.ToArray()).ToString.Replace(" ", "+") & """ style=""width:100%;max-width:100%;height:auto;margin:0 auto;z-index:-1000;""/>"
-                        Else
-                            Dim imgFileName As String = dir & "images\" & p.ToString() & "-" & Path.GetFileNameWithoutExtension(fn) & ".png"
-                            If Not Directory.Exists(dir & "images\") Then
-                                Directory.CreateDirectory(dir & "images\")
-                            End If
-                            File.WriteAllBytes(imgFileName, imgStream.ToArray())
-                            strHTML &= "<img src=""" & "images/" & p.ToString() & "-" & Path.GetFileNameWithoutExtension(fn) & ".png" & """ style=""width:100%;max-width:100%;height:auto;margin:0 auto;z-index:-1000;""/>"
-                        End If
-                        cLinks.LoadLinksOnPage(CInt(p - 1))
-                        If cLinks.Links.Count > 0 Then
-                            For lnkIndex As Integer = 0 To cLinks.Links.Count - 1
-                                Dim lnkRectScreen As RectangleF = cLinks.Links(lnkIndex).Link_Rect
-                                Dim strHTMLField As String = ""
-                                Dim strHtmlBuilder As New System.Text.StringBuilder
-                                Dim perc As Single = getPercent()
-                                If cLinks.Links(lnkIndex).Link_Destination_PageIndex >= 0 And String.IsNullOrEmpty(cLinks.Links(lnkIndex).Link_Destination_URI) And cLinks.Links(lnkIndex).Link_ImageBytes Is Nothing Then
-                                    Dim intDestPage As Integer = cLinks.Links(lnkIndex).Link_Destination_PageIndex + 0
-                                    If intDestPage >= 0 Then
-                                        strHtmlBuilder.AppendLine("<a name='p" & p & "_lnk" & lnkIndex & "' id='p" & p & "_lnk" & lnkIndex & "' href=""#page_" & CInt(intDestPage + 1).ToString() & """ ")
-                                        Dim r As System.Drawing.RectangleF = lnkRectScreen
-                                        strHtmlBuilder.Append(" style=""")
-                                        strHtmlBuilder.Append("position:absolute;left:" & (r.Left / (pageWidth * perc)) * 100 & "%;right:" & (r.Right / (pageWidth * perc)) * 100 & "%;top:" & ((r.Top) / (pageHeight * perc)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight * perc)) * 100 & "%;")
-                                        strHtmlBuilder.Append("height:" & (r.Height / (pageHeight * perc)) * 100 & "%;width:" & (r.Width / (pageWidth * perc)) * 100 & "%;")
-                                        strHtmlBuilder.Append("background-color: Transparent;")
-                                        strHtmlBuilder.Append("border-color:Transparent;")
-                                        strHtmlBuilder.Append("border-width:0px;")
-                                        strHtmlBuilder.Append(""" ")
-                                        strHtmlBuilder.Append("> </a>")
-                                        strHTML &= strHtmlBuilder.ToString
-                                    End If
-                                ElseIf Not String.IsNullOrEmpty(cLinks.Links(lnkIndex).Link_Destination_URI) And cLinks.Links(lnkIndex).Link_ImageBytes Is Nothing Then
-                                    Dim strDestUri As String = cLinks.Links(lnkIndex).Link_Destination_URI & ""
-                                    strHtmlBuilder.AppendLine("<a target=""_blank"" name='p" & p & "_lnk" & lnkIndex & "' id='p" & p & "_lnk" & lnkIndex & "' href=""" & strDestUri & """ ")
-                                    Dim r As System.Drawing.RectangleF = lnkRectScreen
-                                    strHtmlBuilder.Append(" style=""")
-                                    strHtmlBuilder.Append("position:absolute;left:" & (r.Left / (pageWidth * perc)) * 100 & "%;right:" & (r.Right / (pageWidth * perc)) * 100 & "%;top:" & ((r.Top) / ((pageHeight * perc))) * 100 & "%;bottom:" & ((r.Bottom) / ((pageHeight * perc))) * 100 & "%;")
-                                    strHtmlBuilder.Append("height:" & (r.Height / (pageHeight * perc)) * 100 & "%;width:" & (r.Width / (pageWidth * perc)) * 100 & "%;")
-                                    strHtmlBuilder.Append("background-color: Transparent;")
-                                    strHtmlBuilder.Append("border-color:Transparent;")
-                                    strHtmlBuilder.Append("border-width:0px;")
-                                    strHtmlBuilder.Append(""" ")
-                                    strHtmlBuilder.Append("> </a>")
-                                    strHTML &= strHtmlBuilder.ToString
-                                End If
-                            Next
-                        End If
-                        strHTML &= (Environment.NewLine & "")
-                        Try
-                            calculationOrderList = CalculationOrder
-                        Catch ex As Exception
-                            TimeStampAdd(ex, debugMode)
-                        End Try
-                        Dim fldTabIndexTemp As Integer = fldTabIndex
-                        For Each fldNm As String In lstFields.Keys.ToArray
-                            strHTML &= (Environment.NewLine & "")
-                            Try
-                                calculationOrderList = CalculationOrder
-                                fldTabIndexTemp = 0
-                                Try
-                                    fields_tab_order = FieldTabOrder(True)
-                                    Dim iTab As Integer = 0
-                                    For Each fldRect As FieldName_Rectangle In fields_tab_order.ToArray()
-                                        If Not fldRect.field_name Is Nothing Then
-                                            If Not String.IsNullOrEmpty(fldRect.field_name) Then
-                                                If fldRect.field_name.ToString.ToLower() & "" = fldNm.ToString.ToLower() Then
-                                                    fldTabIndexTemp = fldTabIndex + iTab
-                                                    Exit For
-                                                End If
-                                            End If
-                                        End If
-                                        iTab += 1
-                                    Next
-                                Catch ex As Exception
-                                    TimeStampAdd(ex, debugMode)
-                                End Try
-                                If fldTabIndexTemp > fldTabMax Then
-                                    fldTabMax = fldTabIndexTemp
-                                End If
-                            Catch ex As Exception
-                                TimeStampAdd(ex, debugMode)
-                            End Try
-                            Dim fld As fieldInfo = lstFields(fldNm)(0)
-                            Dim strHTMLField As String = ""
-                            Dim strHtmlBuilder As New System.Text.StringBuilder
-                            Dim defaultFontSize As Integer = 12
-                            Select Case fld.fieldType
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_TEXT
-                                    Dim currencySymbol As String = "", currencyPrepend As Boolean = True
-                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
-                                    Dim inputType As String = "text"
-                                    Dim classStringTextbox As String = fldNm & "_" & fld.fieldIndex, formatStringTextbox As String = ""
-                                    Dim strJS As String = PDFField_Format_Custom_Format_Script.Text
-                                    If PDFField_Format_Category.SelectedIndex > 0 Then
-                                        classStringTextbox = fldNm & "_" & fld.fieldIndex
-                                        If strJS.TrimStart("/"c).ToLower.StartsWith("AFNumber_Format".ToLower) Then
-                                            inputType = "number"
-                                            strJS = strJS.Replace(CStr("AFNumber_Format"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            Dim strJSParameters() As String = strJS.Split(","c)
-                                            Try
-                                                formatStringTextbox = "[.]"
-                                                For i As Integer = 0 To CInt(strJSParameters(0)) - 1
-                                                    formatStringTextbox &= "0"
-                                                Next
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                                If PDFField_Validations_Range.Checked Then
-                                                    If Not String.IsNullOrEmpty(PDFField_Validation_Range_To.Text) Then
-                                                        Dim numPrefix As String = "", numPrefixCount As Integer = 0
-                                                        If PDFField_Validation_Range_To.Text.Contains(".") Then
-                                                            numPrefixCount = PDFField_Validation_Range_To.Text.Split(".")(0).Length - 1
-                                                        Else
-                                                            numPrefixCount = PDFField_Validation_Range_To.Text.Length - 1
-                                                        End If
-                                                        Select Case CInt(strJSParameters(1))
-                                                            Case 0
-                                                                For i As Integer = 0 To numPrefixCount
-                                                                    If numPrefix.Contains(",") Then
-                                                                        If numPrefix.Split(",")(0).Length >= 2 Then
-                                                                            numPrefix = "," & "0" & numPrefix
-                                                                        Else
-                                                                            numPrefix = "0" & numPrefix
-                                                                        End If
-                                                                    Else
-                                                                        If numPrefix.Length >= 2 Then
-                                                                            numPrefix = "," & "0" & numPrefix
-                                                                        Else
-                                                                            numPrefix = "0" & numPrefix
-                                                                        End If
-                                                                    End If
-                                                                Next
-                                                                numPrefix = numPrefix.TrimStart(","c)
-                                                                formatStringTextbox = numPrefix & formatStringTextbox
-                                                            Case 1
-                                                                For i As Integer = 0 To numPrefixCount
-                                                                    numPrefix = "0" & numPrefix
-                                                                Next
-                                                                numPrefix = numPrefix
-                                                                formatStringTextbox = "0" & formatStringTextbox
-                                                            Case 2
-                                                                formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
-                                                            Case 3
-                                                                formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
-                                                        End Select
-                                                    Else
-                                                        Select Case CInt(strJSParameters(1))
-                                                            Case 0
-                                                                formatStringTextbox = "0,0" & formatStringTextbox
-                                                            Case 1
-                                                                formatStringTextbox = "0" & formatStringTextbox
-                                                            Case 2
-                                                                formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
-                                                            Case 3
-                                                                formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
-                                                        End Select
-                                                    End If
-                                                Else
-                                                    Select Case CInt(strJSParameters(1))
-                                                        Case 0
-                                                            formatStringTextbox = "0,0" & formatStringTextbox
-                                                        Case 1
-                                                            formatStringTextbox = "0" & formatStringTextbox
-                                                        Case 2
-                                                            formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
-                                                        Case 3
-                                                            formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
-                                                    End Select
-                                                End If
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                            Catch exF As Exception
-                                                PDFField_Format_Number_CurrencySymbol_Prepend.Checked = False
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                                Select Case CStr(strJSParameters(4) & "").Trim()
-                                                    Case ""
-                                                        formatStringTextbox = "" & formatStringTextbox
-                                                    Case """"""
-                                                        formatStringTextbox = "" & formatStringTextbox
-                                                    Case CStr(" ""\u0024""").Trim()
-                                                        currencySymbol = "&#036;"
-                                                        currencyPrepend = True
-                                                    Case CStr(" ""\u0020\u0044\u004d""").Trim()
-                                                        currencySymbol = "(DM)"
-                                                        currencyPrepend = False
-                                                    Case CStr(" ""\u20ac""").Trim()
-                                                        currencySymbol = "&euro;"
-                                                        currencyPrepend = True
-                                                    Case CStr(" ""\u0066\u006c""").Trim()
-                                                        currencySymbol = "fl"
-                                                        currencyPrepend = True
-                                                    Case CStr(" ""\u0020\u0046""").Trim()
-                                                        currencySymbol = "&#8355;"
-                                                        currencyPrepend = False
-                                                    Case CStr(" ""\u0020\u006b\u0072""").Trim()
-                                                        currencySymbol = "kr"
-                                                        currencyPrepend = False
-                                                    Case CStr(" ""\u004c\u002e\u0020""").Trim()
-                                                        currencySymbol = "&#8356; "
-                                                        currencyPrepend = True
-                                                    Case CStr(" ""\u0020\u0050\u0074\u0073""").Trim()
-                                                        currencySymbol = "&#8359; "
-                                                        currencyPrepend = False
-                                                    Case CStr(" ""\u00a3""").Trim()
-                                                        currencySymbol = "&pound;"
-                                                        currencyPrepend = True
-                                                    Case CStr(" ""\u00a5""").Trim()
-                                                        currencySymbol = "&yen;"
-                                                        currencyPrepend = True
-                                                    Case Else
-                                                        currencySymbol = ((strJSParameters(4).ToString().Replace("""", "").Replace(" ", "")) & "")
-                                                        If currencySymbol.Contains("\u") Then
-                                                            currencySymbol = currencySymbol.Replace("\u", "&#x")
-                                                        End If
-                                                        If PDFField_Format_Number_CurrencySymbol_Prepend.Checked = True Then
-                                                            currencyPrepend = True
-                                                        Else
-                                                            currencyPrepend = False
-                                                        End If
-                                                End Select
-                                                currencyPrepend = PDFField_Format_Number_CurrencySymbol_Prepend.Checked
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFPercent_Format".ToLower) Then
-                                            strJS = strJS.Replace(CStr("AFPercent_Format"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            Dim strJSParameters() As String = strJS.Split(","c)
-                                            Try
-                                                formatStringTextbox = "[.]"
-                                                For i As Integer = 0 To CInt(strJSParameters(0)) - 1
-                                                    formatStringTextbox &= "0"
-                                                Next
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            Try
-                                                Try
-                                                    Select Case CInt(strJSParameters(1))
-                                                        Case 0
-                                                            formatStringTextbox = "0,0" & formatStringTextbox
-                                                        Case 1
-                                                            formatStringTextbox = "0" & formatStringTextbox
-                                                        Case 2
-                                                            formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
-                                                        Case 3
-                                                            formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
-                                                    End Select
-                                                Catch exF As Exception
-                                                    TimeStampAdd(exF, debugMode)
-                                                End Try
-                                            Catch exF As Exception
-                                                TimeStampAdd(exF, debugMode)
-                                            End Try
-                                            formatStringTextbox &= "%"
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFDate_FormatEx".ToLower) Then
-                                            inputType = "date"
-                                            strJS = strJS.Replace(CStr("AFDate_FormatEx"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            strJS = strJS.TrimStart("""")
-                                            strJS = strJS.TrimEnd("""")
-                                            Dim selIndex As Integer = -1
-                                            For iVal As Integer = 0 To PDFField_Format_Dates.Items.Count - 1
-                                                If strJS = PDFField_Format_Dates.Items(iVal).ToString Then
-                                                    selIndex = iVal
-                                                    Exit For
-                                                End If
-                                            Next
-                                            If selIndex >= 0 Then
-                                                PDFField_Format_Dates.SelectedIndex = selIndex
-                                                For i As Integer = 0 To PDFField_Format_Dates.Items(PDFField_Format_Dates.SelectedIndex).ToString.ToCharArray().Length - 1
-                                                    Dim chrX As Char = PDFField_Format_Dates.Items(PDFField_Format_Dates.SelectedIndex).ToString.ToCharArray()(i)
-                                                    If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
-                                                        formatStringTextbox &= "0"
-                                                    Else
-                                                        formatStringTextbox &= chrX
-                                                    End If
-                                                Next
-                                            Else
-                                            End If
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFTime_Format(".ToLower) Then
-                                            inputType = "time"
-                                            Dim strJSTemp As String = strJS
-                                            strJS = strJS.Replace(CStr("AFTime_Format"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            strJS = strJS.TrimStart("""")
-                                            strJS = strJS.TrimEnd("""")
-                                            Dim selIndex As Integer = CInt(strJS)
-                                            If selIndex >= 0 Then
-                                                PDFField_Format_Dates.SelectedIndex = selIndex
-                                                For i As Integer = 0 To PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString.ToCharArray().Length - 1
-                                                    Dim chrX As Char = PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString().ToCharArray()(i)
-                                                    If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
-                                                        formatStringTextbox &= "0"
-                                                    Else
-                                                        formatStringTextbox &= chrX
-                                                    End If
-                                                Next
-                                            Else
-                                            End If
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFTime_FormatEx(".ToLower) Then
-                                            inputType = "time"
-                                            Dim strJSTemp As String = strJS
-                                            strJS = strJS.Replace(CStr("AFTime_FormatEx"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            strJS = strJS.TrimStart("""")
-                                            strJS = strJS.TrimEnd("""")
-                                            Dim selIndex As Integer = -1
-                                            For iVal As Integer = 0 To PDFField_Format_Times.Items.Count - 1
-                                                If strJS = PDFField_Format_Times.Items(iVal).ToString Then
-                                                    selIndex = iVal
-                                                    Exit For
-                                                End If
-                                            Next
-                                            If selIndex >= 0 Then
-                                                PDFField_Format_Dates.SelectedIndex = selIndex
-                                                For i As Integer = 0 To PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString.ToCharArray().Length - 1
-                                                    Dim chrX As Char = PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString().ToCharArray()(i)
-                                                    If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
-                                                        formatStringTextbox &= "0"
-                                                    Else
-                                                        formatStringTextbox &= chrX
-                                                    End If
-                                                Next
-                                            Else
-                                            End If
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFSpecial_Format(".ToLower) Then
-                                            Dim strJSTemp As String = strJS
-                                            strJS = strJS.Replace(CStr("AFSpecial_Format"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            strJS = strJS.TrimStart("""")
-                                            strJS = strJS.TrimEnd("""")
-                                            Dim selIndex As Integer = CInt(strJS)
-                                            PDFField_Format_Category.SelectedIndex = 5
-                                            If selIndex >= 0 Then
-                                                PDFField_Format_Specials.SelectedIndex = selIndex
-                                                PDFField_Format_Special_Custom.Text = PDFField_Format_Specials.Items(selIndex).ToString
-                                                PDFField_Format_Special_Custom.Visible = False
-                                            Else
-                                                PDFField_Format_Specials.SelectedIndex = PDFField_Format_Specials.Items.Count - 1
-                                                PDFField_Format_Special_Custom.Text = strJSTemp.ToString
-                                                PDFField_Format_Special_Custom.Visible = True
-                                            End If
-                                        ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFSpecial_FormatEx(".ToLower) Then
-                                            Dim strJSTemp As String = strJS
-                                            strJS = strJS.Replace(CStr("AFSpecial_FormatEx"), "")
-                                            strJS = strJS.TrimEnd(CStr(";"))
-                                            strJS = strJS.TrimEnd(CStr(")"))
-                                            strJS = strJS.TrimStart(CStr("("))
-                                            strJS = strJS.TrimStart("""")
-                                            strJS = strJS.TrimEnd("""")
-                                            Dim selIndex As Integer = -1
-                                            PDFField_Format_Category.SelectedIndex = 5
-                                            For iVal As Integer = 0 To PDFField_Format_Specials.Items.Count - 1
-                                                If strJS = PDFField_Format_Specials.Items(iVal).ToString Then
-                                                    selIndex = iVal
-                                                    Exit For
-                                                End If
-                                            Next
-                                            If selIndex >= 0 Then
-                                                PDFField_Format_Specials.SelectedIndex = selIndex
-                                                PDFField_Format_Special_Custom.Text = PDFField_Format_Specials.Items(selIndex).ToString
-                                                PDFField_Format_Special_Custom.Visible = False
-                                            Else
-                                                PDFField_Format_Specials.SelectedIndex = PDFField_Format_Specials.Items.Count - 1
-                                                PDFField_Format_Special_Custom.Text = strJS.ToString
-                                                PDFField_Format_Special_Custom.Visible = True
-                                            End If
-                                        Else
-                                            PDFField_Format_Category.SelectedIndex = 6
-                                        End If
-                                    End If
-                                    If Not String.IsNullOrEmpty(formatStringTextbox) Then
-                                        maskInput.AppendLine("// $('." & classStringTextbox & "').mask('" & formatStringTextbox & "');")
-                                    End If
-                                    'range
-                                    Dim strMin As String = "", strMax As String = ""
-                                    If PDFField_Validations_Range.Checked Then
-                                        If Not String.IsNullOrEmpty(PDFField_Validation_Range_From.Text) Then
-                                            If IsNumeric(PDFField_Validation_Range_From.Text) Then
-                                                strMin = "min=""" & PDFField_Validation_Range_From.Text & """ "
-                                            End If
-                                        End If
-                                        If Not String.IsNullOrEmpty(PDFField_Validation_Range_To.Text) Then
-                                            If IsNumeric(PDFField_Validation_Range_To.Text) Then
-                                                strMax = "max=""" & PDFField_Validation_Range_To.Text & """ "
-                                            End If
-                                        End If
-                                    End If
-                                    Dim strCalcOnChange As String = ""
-                                    If PDFField_Calculations_Fields.Checked Then
-                                        Dim fldsCalc As String = ""
-                                        Select Case PDFField_Calculations_Fields_Type.SelectedIndex
-                                            Case 0
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 1
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 2
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 3
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 4
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                        End Select
-                                    ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
-                                    End If
-                                    If Not PDFField_MultiLine.Checked Then
-                                        strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='text' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' value='" & PDFField_Value.Text & "' ")
-                                        If PDFField_MaxLenChk.Checked And IsNumeric(PDFField_MaxLen.Text) > 0 Then
-                                            strHtmlBuilder.Append(" maxlength=""" & PDFField_MaxLen.Text & """ ")
-                                        End If
-                                        strHtmlBuilder.Append(strMin & strMax)
-                                        If Not String.IsNullOrEmpty(formatStringTextbox) Then
-                                            If Not String.IsNullOrEmpty(currencySymbol.Trim()) Then
-                                                If currencyPrepend = True Then
-                                                    strHtmlBuilder.Append("onblur='this.value = """ & currencySymbol & """ + numeral(this.value).format(""" & formatStringTextbox & """);' ")
-                                                Else
-                                                    strHtmlBuilder.Append("onblur='this.value = numeral(this.value).format(""" & formatStringTextbox & """) + """ & currencySymbol & """;' ")
-                                                End If
-                                                strHtmlBuilder.Append("onfocus ='this.value = numeral(this.value.toString().replace(""" & currencySymbol & ""","""")).value();' ;' ")
-                                            Else
-                                                strHtmlBuilder.Append("onblur='this.value = numeral(this.value).format(""" & formatStringTextbox & """);' ")
-                                                strHtmlBuilder.Append("onfocus ='this.value = numeral(this.value.toString()).value();' ")
-                                            End If
-                                        End If
-                                        If Not strCalcScript = "" Then
-                                            strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
-                                        End If
-                                        Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                        If Not String.IsNullOrEmpty(formatStringTextbox) Then
-                                            strHtmlBuilder.Append(" class=""" & classStringTextbox & """ ")
-                                        End If
-                                        strHtmlBuilder.Append(" style=""")
-                                        strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                        strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                        strHtmlBuilder.Append("position:absolute;")
-                                        strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                        If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                            defaultFontSize = PDFField_FontSize.Text
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
-                                        Else
-                                            Dim ftSize As Integer = 12
-                                            If Not String.IsNullOrEmpty(PDFField_Value.Text) Then
-                                                Dim continueFontSize As Boolean = True
-                                                Do Until continueFontSize = False
-                                                    If (ftSize + 1) > r.Height - 4 Then
-                                                        continueFontSize = False
-                                                    ElseIf (ftSize + 1) * PDFField_Value.Text.Length >= r.Width - 4 Then
-                                                        continueFontSize = False
-                                                    End If
-                                                    If continueFontSize Then
-                                                        ftSize += 1
-                                                    End If
-                                                Loop
-                                            End If
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & 14 * 2.86 & ");")
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
-                                        End If
-                                        strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                        If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                        Else
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                        End If
-                                        strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                        Dim strStyle As String = PDFField_BorderStyle.Text
-                                        Select Case strStyle.ToString.ToLower
-                                            Case "solid", "dashed", "dotted", "inset"
-                                                strStyle = strStyle & ""
-                                            Case "beveled"
-                                                strStyle = "ridge"
-                                            Case "underline"
-                                                strStyle = "solid"
-                                        End Select
-                                        strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                        strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                        strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                        strHtmlBuilder.Append(""" ")
-                                        strHtmlBuilder.Append(" class=""resizeText"" ")
-                                        If PDFField_Required.Checked Then
-                                            strHtmlBuilder.Append(" required")
-                                        End If
-                                        strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                        strHtmlBuilder.Append(" />")
-                                        strHTML &= strHtmlBuilder.ToString
-                                    Else
-                                        strHtmlBuilder.AppendLine("<textarea tabIndex=""" & fldTabIndexTemp & """ name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                        If PDFField_MaxLenChk.Checked And IsNumeric(PDFField_MaxLen.Text) > 0 Then
-                                            strHtmlBuilder.Append(" maxlength=""" & PDFField_MaxLen.Text & """ ")
-                                        End If
-                                        Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                        strHtmlBuilder.Append(" style=""")
-                                        strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                        strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                        strHtmlBuilder.Append("position:absolute;")
-                                        strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                        If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                            defaultFontSize = PDFField_FontSize.Text
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
-                                        Else
-                                            Dim ftSize As Integer = 12
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (14 * 2.86) & ");")
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
-                                        End If
-                                        strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                        If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                        Else
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                        End If
-                                        strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                        Dim strStyle As String = PDFField_BorderStyle.Text
-                                        Select Case strStyle.ToString.ToLower
-                                            Case "solid", "dashed", "dotted", "inset"
-                                                strStyle = strStyle & ""
-                                            Case "beveled"
-                                                strStyle = "ridge"
-                                            Case "underline"
-                                                strStyle = "solid"
-                                        End Select
-                                        strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                        strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                        strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                        strHtmlBuilder.Append(""" ")
-                                        strHtmlBuilder.Append(" class=""resizeText"" ")
-                                        If PDFField_Required.Checked Then
-                                            strHtmlBuilder.Append(" required")
-                                        End If
-                                        strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                        strHtmlBuilder.Append(">" & PDFField_Value.Text & "</textarea>")
-                                        strHTML &= strHtmlBuilder.ToString
-                                    End If
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_CHECKBOX
-                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
-                                    If Not fld.fieldDictionary Is Nothing Then
-                                        If Not fld.fieldDictionary.Get(PdfName.AP) Is Nothing Then
-                                            Dim tmpDict As PdfDictionary = fld.fieldDictionary.GetAsDict(PdfName.AP)
-                                            If Not tmpDict.Get(PdfName.N) Is Nothing Then
-                                                tmpDict = tmpDict.GetAsDict(PdfName.N)
-                                                For Each k As PdfName In tmpDict.Keys.ToArray()
-                                                    If Not k.ToString().TrimStart("/"c) = "Off" Then
-                                                        fld.fieldValue = k.ToString().TrimStart("/"c)
-                                                    End If
-                                                Next
-                                            End If
-                                        End If
-                                    End If
-                                    Dim strCalcOnChange As String = ""
-                                    If PDFField_Calculations_Fields.Checked Then
-                                        Dim fldsCalc As String = ""
-                                        Select Case PDFField_Calculations_Fields_Type.SelectedIndex
-                                            Case 0
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 1
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 2
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 3
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 4
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                        End Select
-                                    ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
-                                    End If
-                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='checkbox' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' value='" & fld.fieldValue & "' ")
-                                    If Not strCalcScript = "" Then
-                                        strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
-                                    End If
-                                    strHtmlBuilder.Append(IIf(PDFField_Value_Checked.Checked, " CHECKED ", ""))
-                                    Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                    strHtmlBuilder.Append(" style=""-moz-appearance: none;")
-                                    strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                    strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                    strHtmlBuilder.Append("position:absolute;")
-                                    strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                    If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                        defaultFontSize = PDFField_FontSize.Text
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
-                                    Else
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
-                                    End If
-                                    strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                    If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                    Else
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                    End If
-                                    strHtmlBuilder.Append("outline-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                    Dim strStyle As String = PDFField_BorderStyle.Text
-                                    Select Case strStyle.ToString.ToLower
-                                        Case "solid", "dashed", "dotted", "inset"
-                                            strStyle = strStyle & ""
-                                        Case "beveled"
-                                            strStyle = "ridge"
-                                        Case "underline"
-                                            strStyle = "solid"
-                                    End Select
-                                    strHtmlBuilder.Append("outline-style:" & strStyle & ";")
-                                    strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                    strHtmlBuilder.Append("outline-width:" & strStyle & "px;")
-                                    strHtmlBuilder.Append(""" ")
-                                    strHtmlBuilder.Append(" class=""resizeText"" ")
-                                    strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                    strHtmlBuilder.Append(" />")
-                                    strHTML &= strHtmlBuilder.ToString
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_COMBO
-                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
-                                    Dim valList As New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemDisplay.Items
-                                        valList.Add(val1)
-                                    Next
-                                    fld.fieldOptionDisplay = valList.ToArray
-                                    valList = New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemValue.Items
-                                        valList.Add(val1)
-                                    Next
-                                    fld.fieldOptionExport = valList.ToArray
-                                    valList = New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemDisplay.SelectedItems
-                                        valList.Add(val1)
-                                    Next
-                                    Dim strCalcOnChange As String = ""
-                                    If PDFField_Calculations_Fields.Checked Then
-                                        Dim fldsCalc As String = ""
-                                        Select Case PDFField_Calculations_Fields_Type.SelectedIndex
-                                            Case 0
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 1
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 2
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 3
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 4
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                        End Select
-                                    ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
-                                    End If
-                                    fld.fieldListSelection = valList.ToArray
-                                    strHtmlBuilder.AppendLine("<select tabIndex=""" & fldTabIndexTemp & """ class=""resizeText"" name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' " & " ")
-                                    If Not strCalcScript = "" Then
-                                        strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
-                                    End If
-                                    Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                    strHtmlBuilder.Append(" style=""")
-                                    strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                    strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                    strHtmlBuilder.Append("position:absolute;")
-                                    strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                    If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                        defaultFontSize = PDFField_FontSize.Text
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
-                                    Else
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
-                                    End If
-                                    strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                    If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                    Else
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                    End If
-                                    strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                    Dim strStyle As String = PDFField_BorderStyle.Text
-                                    Select Case strStyle.ToString.ToLower
-                                        Case "solid", "dashed", "dotted", "inset"
-                                            strStyle = strStyle & ""
-                                        Case "beveled"
-                                            strStyle = "ridge"
-                                        Case "underline"
-                                            strStyle = "solid"
-                                    End Select
-                                    strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                    strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                    strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                    strHtmlBuilder.Append(""" ")
-                                    If PDFField_Required.Checked Then
-                                        strHtmlBuilder.Append(" required")
-                                    End If
-                                    strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                    strHtmlBuilder.Append(">")
-                                    If fld.fieldOptionExport.Length = fld.fieldOptionDisplay.Length Then
-                                        For intVal As Integer = 0 To fld.fieldOptionExport.Length - 1
-                                            If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "'>" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                            Else
-                                                Try
-                                                    If fld.fieldListSelection.Contains(fld.fieldOptionDisplay(intVal)) Then
-                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                    Else
-                                                        If Not fld.fieldOptionExport Is Nothing Then
-                                                            If fld.fieldOptionExport.Length > intVal Then
-                                                                If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                Else
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                End If
-                                                            Else
-                                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                            End If
-                                                        Else
-                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                        End If
-                                                    End If
-                                                Catch exFieldSel As Exception
-                                                    Err.Clear()
-                                                End Try
-                                            End If
-                                        Next
-                                    Else
-                                        If fld.fieldOptionExport.Length > 0 Then
-                                            Dim intVal As Integer = 0
-                                            For Each fldvalue As String In fld.fieldOptionExport
-                                                If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                    strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
-                                                Else
-                                                    Try
-                                                        If Not fld.fieldOptionExport Is Nothing Then
-                                                            If fld.fieldOptionExport.Length > intVal Then
-                                                                If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                Else
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                End If
-                                                            Else
-                                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                            End If
-                                                        End If
-                                                    Catch exFieldSel As Exception
-                                                        Err.Clear()
-                                                    End Try
-                                                End If
-                                                intVal += 1
-                                            Next
-                                        ElseIf fld.fieldOptionDisplay.Length > 0 Then
-                                            For Each fldvalue As String In fld.fieldOptionDisplay
-                                                If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                    strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
-                                                Else
-                                                    If fld.fieldListSelection.Contains(fldvalue) Then
-                                                        strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' selected ")
-                                                        strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
-                                                    Else
-                                                        strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ")
-                                                        strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
-                                                    End If
-                                                End If
-                                            Next
-                                        End If
-                                    End If
-                                    strHtmlBuilder.AppendLine("</select>")
-                                    strHTML &= strHtmlBuilder.ToString
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST
-                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
-                                    Dim valList As New List(Of String)
-                                    Dim valListValues As New List(Of String)
-                                    Dim valListDisplay As New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemDisplay.Items
-                                        valList.Add(val1)
-                                    Next
-                                    fld.fieldOptionDisplay = valList.ToArray
-                                    valList = New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemValue.Items
-                                        valList.Add(val1)
-                                    Next
-                                    fld.fieldOptionExport = valList.ToArray
-                                    valList = New List(Of String)
-                                    For Each val1 As String In ComboBox_ItemDisplay.SelectedItems
-                                        valList.Add(val1)
-                                    Next
-                                    fld.fieldListSelection = valList.ToArray
-                                    Dim strCalcOnChange As String = ""
-                                    If PDFField_Calculations_Fields.Checked Then
-                                        Dim fldsCalc As String = ""
-                                        Select Case PDFField_Calculations_Fields_Type.SelectedIndex
-                                            Case 0
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 1
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 2
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
-                                                strCalcScript &= ";};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 3
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                            Case 4
-                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                strCalcScript &= "function " & functionName & "(){"
-                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
-                                                Dim selCnt As Integer = -1
-                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                        selCnt += 1
-                                                    End If
-                                                Next
-                                                strCalcScript &= ");" & Environment.NewLine
-                                                strCalcScript &= "};" & Environment.NewLine
-                                                strCalcScript &= fldsCalc & Environment.NewLine
-                                                strCalcOnChange &= functionName & "();"
-                                        End Select
-                                    ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
-                                    End If
-                                    strHtmlBuilder.AppendLine("<select tabIndex=""" & fldTabIndexTemp & """ class=""resizeText"" name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' " & IIf(fld.fieldType = iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST, IIf(fld.fieldSize > 1, "size='" & fld.fieldSize & "' ", "size='3' "), "") & IIf(ListBox_Options_MultipleSelection.Checked, " MULTIPLE ", " ") & " ")
-                                    If Not strCalcScript = "" Then
-                                        strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
-                                    End If
-                                    Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                    strHtmlBuilder.Append(" style=""") '-moz-appearance: none;
-                                    strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                    strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                    strHtmlBuilder.Append("position:absolute;")
-                                    strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                    If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                        defaultFontSize = PDFField_FontSize.Text
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
-                                    Else
-                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
-                                        fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
-                                    End If
-                                    strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                    If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                    Else
-                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                    End If
-                                    strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                    Dim strStyle As String = PDFField_BorderStyle.Text
-                                    Select Case strStyle.ToString.ToLower
-                                        Case "solid", "dashed", "dotted", "inset"
-                                            strStyle = strStyle & ""
-                                        Case "beveled"
-                                            strStyle = "ridge"
-                                        Case "underline"
-                                            strStyle = "solid"
-                                    End Select
-                                    strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                    strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                    strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                    strHtmlBuilder.Append(""" ")
-                                    If PDFField_Required.Checked Then
-                                        strHtmlBuilder.Append(" required")
-                                    End If
-                                    strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                    strHtmlBuilder.Append(">")
-                                    If fld.fieldOptionExport.Length = fld.fieldOptionDisplay.Length Then
-                                        For intVal As Integer = 0 To fld.fieldOptionExport.Length - 1
-                                            If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "'>" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                            Else
-                                                Try
-                                                    If fld.fieldListSelection.Contains(fld.fieldOptionDisplay(intVal)) Then
-                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                    Else
-                                                        If Not fld.fieldOptionExport Is Nothing Then
-                                                            If fld.fieldOptionExport.Length > intVal Then
-                                                                If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                Else
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                End If
-                                                            Else
-                                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                            End If
-                                                        Else
-                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                        End If
-                                                    End If
-                                                Catch exFieldSel As Exception
-                                                    Err.Clear()
-                                                End Try
-                                            End If
-                                        Next
-                                    Else
-                                        If fld.fieldOptionExport.Length > 0 Then
-                                            Dim intVal As Integer = 0
-                                            For Each fldvalue As String In fld.fieldOptionExport
-                                                If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                    strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
-                                                Else
-                                                    Try
-                                                        If Not fld.fieldOptionExport Is Nothing Then
-                                                            If fld.fieldOptionExport.Length > intVal Then
-                                                                If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                Else
-                                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                                End If
-                                                            Else
-                                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
-                                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
-                                                            End If
-                                                        End If
-                                                    Catch exFieldSel As Exception
-                                                        Err.Clear()
-                                                    End Try
-                                                End If
-                                                intVal += 1
-                                            Next
-                                        ElseIf fld.fieldOptionDisplay.Length > 0 Then
-                                            For Each fldvalue As String In fld.fieldOptionDisplay
-                                                If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
-                                                    strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
-                                                Else
-                                                    If fld.fieldListSelection.Contains(fldvalue) Then
-                                                        strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ") 'selected 
-                                                        strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
-                                                    Else
-                                                        strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ")
-                                                        strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
-                                                    End If
-                                                End If
-                                            Next
-                                        End If
-                                    End If
-                                    strHtmlBuilder.AppendLine("</select>")
-                                    strHTML &= strHtmlBuilder.ToString
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_PUSHBUTTON
-                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
-                                    If Not PDFField_MultiLine.Checked Then
-                                        Dim labelLength As Integer = 0
-                                        Select Case PuchButton_Options_Behavior.SelectedIndex
-                                            Case 0
-                                                PuchButton_Options_State.SelectedIndex = 0
-                                                If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                Else
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                End If
-                                                strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
-                                                labelLength = PuchButton_Options_Label.Text.Length
-                                            Case 1
-                                                PuchButton_Options_State.SelectedIndex = 0
-                                                If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                Else
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                End If
-                                                strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ") 'up
-                                                strHtmlBuilder.Append(" onmouseout='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'up
-                                                strHtmlBuilder.Append(" onmouseup='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'up
-                                                labelLength = PuchButton_Options_Label.Text.Length
-                                                PuchButton_Options_State.SelectedIndex = 1
-                                                strHtmlBuilder.Append(" onmousedown='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'down
-                                                If labelLength < PuchButton_Options_Label.Text.Length Then
-                                                    labelLength = PuchButton_Options_Label.Text.Length
-                                                End If
-                                                PuchButton_Options_State.SelectedIndex = 2
-                                                strHtmlBuilder.Append(" onmouseover='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'rollover
-                                                If labelLength < PuchButton_Options_Label.Text.Length Then
-                                                    labelLength = PuchButton_Options_Label.Text.Length
-                                                End If
-                                            Case 2
-                                                PuchButton_Options_State.SelectedIndex = 0
-                                                If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                Else
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                End If
-                                                strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
-                                                labelLength = PuchButton_Options_Label.Text.Length
-                                            Case 3
-                                                PuchButton_Options_State.SelectedIndex = 0
-                                                If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                Else
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                End If
-                                                strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
-                                                labelLength = PuchButton_Options_Label.Text.Length
-                                            Case Else
-                                                If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                Else
-                                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
-                                                End If
-                                        End Select
-                                        Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                        strHtmlBuilder.Append(" style=""-moz-appearance: none;")
-                                        strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                        strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                        strHtmlBuilder.Append("position:absolute;")
-                                        strHtmlBuilder.Append("cursor:pointer;")
-                                        strHtmlBuilder.Append("text-align:" & "center" & ";")
-                                        If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
-                                            defaultFontSize = PDFField_FontSize.Text
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CInt(PDFField_FontSize.Text)))
-                                        Else
-                                            Dim ftSize As Integer = 12
-                                            If labelLength > 0 Then
-                                                Dim continueFontSize As Boolean = True
-                                                Do Until continueFontSize = False
-                                                    If (ftSize + 1) > r.Height - 4 Then
-                                                        continueFontSize = False
-                                                        '
-                                                    ElseIf ((ftSize + 1) * 0.75) * labelLength >= r.Width - 4 Then
-                                                        continueFontSize = False
-                                                    End If
-                                                    If continueFontSize Then
-                                                        ftSize += 1
-                                                    End If
-                                                Loop
-                                            End If
-                                            strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (14 * 2.86) & ");") ' strHtmlBuilder.Append("font-size:" & String.Format(CSng(ftSize / 14), "#.00") & "em;")
-                                            fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
-                                        End If
-                                        strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                        If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                        Else
-                                            strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                        End If
-                                        strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                        Dim strStyle As String = PDFField_BorderStyle.Text
-                                        Select Case strStyle.ToString.ToLower
-                                            Case "solid", "dashed", "dotted", "inset"
-                                                strStyle = strStyle & ""
-                                            Case "beveled"
-                                                strStyle = "ridge"
-                                            Case "underline"
-                                                strStyle = "solid"
-                                        End Select
-                                        strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                        strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                        strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                        strHtmlBuilder.Append(""" ")
-                                        strHtmlBuilder.Append(" class=""resizeText"" ")
-                                        strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
-                                        strHtmlBuilder.Append(" />")
-                                        strHTML &= strHtmlBuilder.ToString
-                                    End If
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_RADIOBUTTON
-                                    If lstFields(fldNm).Count > 0 Then
-                                        For intValues As Integer = 0 To lstFields(fldNm).Count - 1
-                                            A0_PDFFormField_LoadProperties(Session, fldNm, p, intValues)
-                                            fld = lstFields(fldNm)(intValues)
-                                            If Not fld.fieldDictionary Is Nothing Then
-                                                If Not fld.fieldDictionary.Get(PdfName.AP) Is Nothing Then
-                                                    Dim tmpDict As PdfDictionary = fld.fieldDictionary.GetAsDict(PdfName.AP)
-                                                    If Not tmpDict.Get(PdfName.N) Is Nothing Then
-                                                        tmpDict = tmpDict.GetAsDict(PdfName.N)
-                                                        For Each k As PdfName In tmpDict.Keys.ToArray()
-                                                            If Not k.ToString().TrimStart("/"c) = "Off" Then
-                                                                fld.fieldValue = k.ToString().TrimStart("/"c)
-                                                            End If
-                                                        Next
-                                                    End If
-                                                End If
-                                            End If
-                                            Dim strCalcOnChange As String = ""
-                                            If PDFField_Calculations_Fields.Checked Then
-                                                Dim fldsCalc As String = ""
-                                                Select Case PDFField_Calculations_Fields_Type.SelectedIndex
-                                                    Case 0 '+
-                                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                        strCalcScript &= "function " & functionName & "(){"
-                                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                        Dim selCnt As Integer = -1
-                                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                                selCnt += 1
-                                                            End If
-                                                        Next
-                                                        strCalcScript &= ";};" & Environment.NewLine
-                                                        strCalcScript &= fldsCalc & Environment.NewLine
-                                                        strCalcOnChange &= functionName & "();"
-                                                    Case 1 'x
-                                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                        strCalcScript &= "function " & functionName & "(){"
-                                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
-                                                        Dim selCnt As Integer = -1
-                                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
-                                                                strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                                selCnt += 1
-                                                            End If
-                                                        Next
-                                                        strCalcScript &= ";};" & Environment.NewLine
-                                                        strCalcScript &= fldsCalc & Environment.NewLine
-                                                        strCalcOnChange &= functionName & "();"
-                                                    Case 2 ' avg
-                                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                        strCalcScript &= "function " & functionName & "(){"
-                                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
-                                                        Dim selCnt As Integer = -1
-                                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                                selCnt += 1
-                                                            End If
-                                                        Next
-                                                        strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
-                                                        strCalcScript &= ";};" & Environment.NewLine
-                                                        strCalcScript &= fldsCalc & Environment.NewLine
-                                                        strCalcOnChange &= functionName & "();"
-                                                    Case 3 'min
-                                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                        strCalcScript &= "function " & functionName & "(){"
-                                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
-                                                        Dim selCnt As Integer = -1
-                                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                                selCnt += 1
-                                                            End If
-                                                        Next
-                                                        strCalcScript &= ");" & Environment.NewLine
-                                                        strCalcScript &= "};" & Environment.NewLine
-                                                        strCalcScript &= fldsCalc & Environment.NewLine
-                                                        strCalcOnChange &= functionName & "();"
-                                                    Case 4 'max
-                                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
-                                                        strCalcScript &= "function " & functionName & "(){"
-                                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
-                                                        Dim selCnt As Integer = -1
-                                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
-                                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
-                                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
-                                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
-                                                                selCnt += 1
-                                                            End If
-                                                        Next
-                                                        strCalcScript &= ");" & Environment.NewLine
-                                                        strCalcScript &= "};" & Environment.NewLine
-                                                        strCalcScript &= fldsCalc & Environment.NewLine
-                                                        strCalcOnChange &= functionName & "();"
-                                                End Select
-                                            ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
-                                            End If
-                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='radio' name='" & cFDFDoc.getFieldName(fld.fieldName) & "' id='" & cFDFDoc.getFieldName(fld.fieldName) & IIf(Not pField.Contains(cFDFDoc.getFieldName(fld.fieldName)), "", "_" & p) & "' value='" & fld.fieldValue & "' ")
-                                            If Not strCalcScript = "" Then
-                                                strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
-                                            End If
-                                            If Not pField.Contains(cFDFDoc.getFieldName(fld.fieldName)) Then
-                                                pField.Add(cFDFDoc.getFieldName(fld.fieldName))
-                                            End If
-                                            strHtmlBuilder.Append(IIf(PDFField_Value_Checked.Checked, " CHECKED ", ""))
-                                            If PDFField_Required.Checked Then
-                                                strHtmlBuilder.Append(" required")
-                                            End If
-                                            Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
-                                            strHtmlBuilder.Append(" style=""-moz-appearance: none;") '
-                                            strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
-                                            strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
-                                            strHtmlBuilder.Append("position:absolute;")
-                                            strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
-                                            If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
-                                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size:" & String.Format(CSng(PDFField_FontSize.Text / 14), "#.00") & "em;")
-                                                defaultFontSize = PDFField_FontSize.Text
-                                            Else
-                                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
-                                            End If
-                                            strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
-                                            If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
-                                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
-                                            Else
-                                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
-                                            End If
-                                            strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
-                                            Dim strStyle As String = PDFField_BorderStyle.Text
-                                            Select Case strStyle.ToString.ToLower
-                                                Case "solid", "dashed", "dotted", "inset"
-                                                    strStyle = strStyle & ""
-                                                Case "beveled"
-                                                    strStyle = "ridge"
-                                                Case "underline"
-                                                    strStyle = "solid"
-                                            End Select
-                                            strHtmlBuilder.Append("border-style:" & strStyle & ";")
-                                            strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
-                                            strHtmlBuilder.Append("border-width:" & strStyle & "px;")
-                                            strHtmlBuilder.Append(""" ")
-                                            strHtmlBuilder.AppendLine(" />")
-                                        Next
-                                        strHTML &= strHtmlBuilder.ToString
-                                    End If
-                                Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_SIGNATURE
-                            End Select
-                            If Not pField.Contains(fld.fieldName) Then
-                                pField.Add(fld.fieldName)
-                            End If
-                        Next
-                        If fldTabIndex < fldTabMax Then
-                            fldTabIndex = fldTabMax
-                        End If
-                        strHTML &= "</div>" & Environment.NewLine
-                        totalPageHeight += pdfReaderDoc.GetPageSizeWithRotation(p).Height * getPercent()
-                        strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
-                        strHTML &= Environment.NewLine & "$(document).ready(function() {var resizeText = function () {$('#page_" & p & " > input').each(function(index, element){if(!$(element).attr('defaultFontSize')==''){var preferredFontSize = parseInt(parseFloat($(element).attr('defaultFontSize') / 16)*100);var preferredSize = " & pageWidth & " * " & pageHeight & ";var currentSize = $(window).width() * $(window).height();var scalePercentage = Math.sqrt(currentSize) / Math.sqrt(preferredSize);var newFontSize = preferredFontSize * scalePercentage;console.log($(element).attr('id') + ':' + $(element).attr('defaultFontSize') + ':' + preferredFontSize);$(element).css('font-size',newFontSize + '%');};});};$(window).bind('resize', function() {resizeText();}).trigger('resize');});"
-                        strHTML &= "</script>" & Environment.NewLine
-                    Next
-                    strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
-                    strHTML &= "" & Environment.NewLine
-                    strHTML &= "$(function() {" & Environment.NewLine
-                    strHTML &= Environment.NewLine & "//$('.social').mask('000-00-0000');"
-                    strHTML &= Environment.NewLine & "//$('.datemask').mask('00/00/0000');"
-                    strHTML &= Environment.NewLine & maskInput.ToString()
-                    strHTML &= Environment.NewLine & "}"c & ")"c & ";"c & Environment.NewLine
-                    strHTML &= "" & Environment.NewLine
-                    If Not strCalcScript = "" Then
-                        strHTML &= (strCalcScript) & Environment.NewLine
-                    End If
-                    strHTML &= "</script>" & Environment.NewLine
-                    strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
-                    strHTML &= File.ReadAllText(ApplicationDataFolder(False, "") & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", fpath.ToString.Replace("\", "\\\\"))
-                    strHTML &= "</script>"
-                    strHTML &= Environment.NewLine & "</form>" & Environment.NewLine
-                    strHTML &= "</body>" & Environment.NewLine
-                    strHTML &= "</html>" & Environment.NewLine
-                    If Not String.IsNullOrEmpty(fn) Then
-                        System.IO.File.WriteAllText(fn, strHTML)
-                        Process.Start("explorer.exe", "/select,""" & (fn) & """")
-                        Process.Start(fn)
-                    Else
-                        Throw New Exception("File name Is empty")
-                    End If
-                    StatusToolStrip = "Status: HTML File created"
-                Catch ex As Exception
-                    StatusToolStrip = "Status: Error File NOT created - " & ex.Message.ToString
-                    TimeStampAdd(ex, debugMode)
-                Finally
-                    ToolStripProgressBar1.Visible = False
-                    DeleteTempFilesImageCache()
-                    Session = b
-                    LoadPDFReaderDoc(pdfOwnerPassword)
-                    A0_LoadPDF()
-                    Me.Show()
-                    Me.BringToFront()
-                End Try
-            Case MsgBoxResult.Cancel
-                Return
-            Case Else
-                Try
-                    StatusToolStrip = "Status: HTML File created"
-                Catch ex As Exception
-                    StatusToolStrip = "Status: Error File NOT created - " & ex.Message.ToString
-                    TimeStampAdd(ex, debugMode)
-                Finally
-                    DeleteTempFilesImageCache()
-                    Session = b
-                    LoadPDFReaderDoc(pdfOwnerPassword)
-                    A0_LoadPDF()
-                    Me.Show()
-                    Me.BringToFront()
-                End Try
-        End Select
+                End If
+            Catch exFields As Exception
+                Err.Clear()
+            End Try
+            b = System.Text.Encoding.UTF8.GetBytes(createHTMLFile("", includeFields, inlineImages, "", Me, "", False, fn, False, -1)) 'cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XML, True)
+            File.WriteAllBytes(fn, b)
+            Select Case MsgBox("Open HTML File?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Open:")
+                Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                    Process.Start(fn)
+                Case Else
+            End Select
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        'pnlFields.Hide()
+        'Dim b() As Byte = Session
+        'Dim chtml As New PDF2HTMLnet.PDF2HTMLnet(Session, pdfOwnerPassword, "form1", "", "_self")
+        'chtml.formMethod = "post"
+        'chtml.ShowTitles = True
+        'chtml.TitleReplaceStringsWithSpace = New String() {"_", "-", "."}
+        'Dim fn As String = fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\" & Path.GetFileNameWithoutExtension(fpath & "") & ".htm" & ""
+        'Dim sd As New SaveFileDialog
+        'sd.CheckPathExists = True
+        'sd.FileName = Path.GetFileName(fn & "")
+        'If Not Directory.Exists(fileDirectory() & "html\") Then
+        '    Directory.CreateDirectory(fileDirectory() & "html\")
+        'End If
+        'If Not Directory.Exists(fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\") Then
+        '    Directory.CreateDirectory(fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\")
+        'End If
+        'sd.InitialDirectory = fileDirectory() & "html\" & Path.GetFileNameWithoutExtension(fpath) & "\"
+        'sd.Filter = "HTM|*.htm|HTML|*.html|Text|*.txt|All Files|*.*"
+        'sd.FilterIndex = 0
+        'sd.DefaultExt = ".htm"
+        'Me.Show()
+        'Select Case sd.ShowDialog(Me)
+        '    Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+        '        fn = sd.FileName & ""
+        '    Case Else
+        '        Return
+        '        Exit Select
+        'End Select
+        'Select Case MsgBox("Export background and layout exactly as it appears?", MsgBoxStyle.YesNoCancel + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Export HTML:")
+        '    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+        '        Try
+        '            Dim totalPageHeight As Single = 0, pageWidth As Single, pageHeight As Single
+        '            Dim strHTML As String = ""
+        '            Dim useBase64ImageURL As Boolean = False
+        '            Select Case MsgBox("Inline base64 image URLs?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Inline Image URLs:")
+        '                Case MsgBoxResult.Yes, MsgBoxResult.Ok
+        '                    useBase64ImageURL = True
+        '                Case Else
+        '                    useBase64ImageURL = False
+        '            End Select
+        '            Dim strCalcScript As String = ""
+        '            strHTML &= "<html>"
+        '            strHTML &= "<head>"
+        '            strHTML &= "<style media=""all"" type=""text/css"">.lazy {display: none;}" & Environment.NewLine & "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none){html,body,form{font-size:28px}}" & Environment.NewLine & "</style>"
+        '            '
+        '            strHTML &= "</head>"
+        '            strHTML &= "<body style=""margin:0;padding:0;"">"
+        '            Dim clsInput As New clsPromptDialog
+        '            Dim htmlSubmitAction As String = clsInput.ShowDialog("HTML submit action URL?", "HTML Submit Action URL?", Me, "", "OK")
+        '            strHTML &= Environment.NewLine & "<form action=""" & htmlSubmitAction & """ method=""post"" id=""form"" " & Environment.NewLine
+        '            Dim pField As New List(Of String)
+        '            ToolStripProgressBar1.Maximum = pdfReaderDoc.NumberOfPages
+        '            ToolStripProgressBar1.Minimum = 1
+        '            ToolStripProgressBar1.Value = 1
+        '            ToolStripProgressBar1.Visible = True
+        '            Dim dir As String = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\"
+        '            If cLinks Is Nothing Then
+        '                cLinks = New clsLinks(pdfReaderDoc, Me)
+        '            ElseIf cLinks.Links.Count <= 0 Then
+        '                cLinks = New clsLinks(pdfReaderDoc, Me)
+        '                cLinks.LoadLinksOnPage(CInt(pageIndex))
+        '            End If
+        '            Dim fieldListFlowType As New Dictionary(Of String, Single)
+        '            Dim fldTabIndex As Integer = 0
+        '            Dim fldTabMax As Integer = 0
+        '            Dim maskInput As New System.Text.StringBuilder
+        '            For p As Integer = 1 To pdfReaderDoc.NumberOfPages
+        '                pageIndex = p - 1
+        '                ToolStripProgressBar1.Value = p
+        '                pnlFieldTabOrder_Load(True)
+        '                Dim lstFields As Dictionary(Of String, List(Of fieldInfo)) = GetAllFieldsOnPageiText(Session.ToArray(), pdfOwnerPassword, p, True)
+        '                pageWidth = pdfReaderDoc.GetPageSizeWithRotation(p).Width
+        '                pageHeight = pdfReaderDoc.GetPageSizeWithRotation(p).Height
+        '                LoadPDFReaderDoc(pdfOwnerPassword, True)
+        '                Dim pdfReaderDocClone As PdfReader = pdfReaderDoc.Clone
+        '                pdfReaderDocClone.RemoveFields()
+        '                Dim imgBytes() As Byte = A0_LoadImageGhostScript(getPDFBytes(pdfReaderDocClone), pdfOwnerPassword, p, pageWidth * getPercent() * 1.3F, pageHeight * getPercent() * 1.3F, False)
+        '                Dim img As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(imgBytes))
+        '                Dim imgStream As New MemoryStream
+        '                img.Save(imgStream, System.Drawing.Imaging.ImageFormat.Png)
+        '                strHTML &= "<div name=""page_" & p & """ id=""page_" & p & """ style=""background-size: 100%;margin:0 auto;padding:0;display:block;width:100%;max-width:100%;height:auto;position:relative;"">"
+        '                If useBase64ImageURL Then
+        '                    strHTML &= "<img src=""data:image/jpeg;base64," & System.Convert.ToBase64String(imgStream.ToArray()).ToString.Replace(" ", "+") & """ style=""width:100%;max-width:100%;height:auto;margin:0 auto;z-index:-1000;""/>"
+        '                Else
+        '                    Dim imgFileName As String = dir & "images\" & p.ToString() & "-" & Path.GetFileNameWithoutExtension(fn) & ".png"
+        '                    If Not Directory.Exists(dir & "images\") Then
+        '                        Directory.CreateDirectory(dir & "images\")
+        '                    End If
+        '                    File.WriteAllBytes(imgFileName, imgStream.ToArray())
+        '                    strHTML &= "<img src=""" & "images/" & p.ToString() & "-" & Path.GetFileNameWithoutExtension(fn) & ".png" & """ style=""width:100%;max-width:100%;height:auto;margin:0 auto;z-index:-1000;""/>"
+        '                End If
+        '                cLinks.LoadLinksOnPage(CInt(p - 1))
+        '                If cLinks.Links.Count > 0 Then
+        '                    For lnkIndex As Integer = 0 To cLinks.Links.Count - 1
+        '                        Dim lnkRectScreen As RectangleF = cLinks.Links(lnkIndex).Link_Rect
+        '                        Dim strHTMLField As String = ""
+        '                        Dim strHtmlBuilder As New System.Text.StringBuilder
+        '                        Dim perc As Single = getPercent()
+        '                        If cLinks.Links(lnkIndex).Link_Destination_PageIndex >= 0 And String.IsNullOrEmpty(cLinks.Links(lnkIndex).Link_Destination_URI) And cLinks.Links(lnkIndex).Link_ImageBytes Is Nothing Then
+        '                            Dim intDestPage As Integer = cLinks.Links(lnkIndex).Link_Destination_PageIndex + 0
+        '                            If intDestPage >= 0 Then
+        '                                strHtmlBuilder.AppendLine("<a name='p" & p & "_lnk" & lnkIndex & "' id='p" & p & "_lnk" & lnkIndex & "' href=""#page_" & CInt(intDestPage + 1).ToString() & """ ")
+        '                                Dim r As System.Drawing.RectangleF = lnkRectScreen
+        '                                strHtmlBuilder.Append(" style=""")
+        '                                strHtmlBuilder.Append("position:absolute;left:" & (r.Left / (pageWidth * perc)) * 100 & "%;right:" & (r.Right / (pageWidth * perc)) * 100 & "%;top:" & ((r.Top) / (pageHeight * perc)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight * perc)) * 100 & "%;")
+        '                                strHtmlBuilder.Append("height:" & (r.Height / (pageHeight * perc)) * 100 & "%;width:" & (r.Width / (pageWidth * perc)) * 100 & "%;")
+        '                                strHtmlBuilder.Append("background-color: Transparent;")
+        '                                strHtmlBuilder.Append("border-color:Transparent;")
+        '                                strHtmlBuilder.Append("border-width:0px;")
+        '                                strHtmlBuilder.Append(""" ")
+        '                                strHtmlBuilder.Append("> </a>")
+        '                                strHTML &= strHtmlBuilder.ToString
+        '                            End If
+        '                        ElseIf Not String.IsNullOrEmpty(cLinks.Links(lnkIndex).Link_Destination_URI) And cLinks.Links(lnkIndex).Link_ImageBytes Is Nothing Then
+        '                            Dim strDestUri As String = cLinks.Links(lnkIndex).Link_Destination_URI & ""
+        '                            strHtmlBuilder.AppendLine("<a target=""_blank"" name='p" & p & "_lnk" & lnkIndex & "' id='p" & p & "_lnk" & lnkIndex & "' href=""" & strDestUri & """ ")
+        '                            Dim r As System.Drawing.RectangleF = lnkRectScreen
+        '                            strHtmlBuilder.Append(" style=""")
+        '                            strHtmlBuilder.Append("position:absolute;left:" & (r.Left / (pageWidth * perc)) * 100 & "%;right:" & (r.Right / (pageWidth * perc)) * 100 & "%;top:" & ((r.Top) / ((pageHeight * perc))) * 100 & "%;bottom:" & ((r.Bottom) / ((pageHeight * perc))) * 100 & "%;")
+        '                            strHtmlBuilder.Append("height:" & (r.Height / (pageHeight * perc)) * 100 & "%;width:" & (r.Width / (pageWidth * perc)) * 100 & "%;")
+        '                            strHtmlBuilder.Append("background-color: Transparent;")
+        '                            strHtmlBuilder.Append("border-color:Transparent;")
+        '                            strHtmlBuilder.Append("border-width:0px;")
+        '                            strHtmlBuilder.Append(""" ")
+        '                            strHtmlBuilder.Append("> </a>")
+        '                            strHTML &= strHtmlBuilder.ToString
+        '                        End If
+        '                    Next
+        '                End If
+        '                strHTML &= (Environment.NewLine & "")
+        '                Try
+        '                    calculationOrderList = CalculationOrder
+        '                Catch ex As Exception
+        '                    TimeStampAdd(ex, debugMode)
+        '                End Try
+        '                Dim fldTabIndexTemp As Integer = fldTabIndex
+        '                For Each fldNm As String In lstFields.Keys.ToArray
+        '                    strHTML &= (Environment.NewLine & "")
+        '                    Try
+        '                        calculationOrderList = CalculationOrder
+        '                        fldTabIndexTemp = 0
+        '                        Try
+        '                            fields_tab_order = FieldTabOrder(True)
+        '                            Dim iTab As Integer = 0
+        '                            For Each fldRect As FieldName_Rectangle In fields_tab_order.ToArray()
+        '                                If Not fldRect.field_name Is Nothing Then
+        '                                    If Not String.IsNullOrEmpty(fldRect.field_name) Then
+        '                                        If fldRect.field_name.ToString.ToLower() & "" = fldNm.ToString.ToLower() Then
+        '                                            fldTabIndexTemp = fldTabIndex + iTab
+        '                                            Exit For
+        '                                        End If
+        '                                    End If
+        '                                End If
+        '                                iTab += 1
+        '                            Next
+        '                        Catch ex As Exception
+        '                            TimeStampAdd(ex, debugMode)
+        '                        End Try
+        '                        If fldTabIndexTemp > fldTabMax Then
+        '                            fldTabMax = fldTabIndexTemp
+        '                        End If
+        '                    Catch ex As Exception
+        '                        TimeStampAdd(ex, debugMode)
+        '                    End Try
+        '                    Dim fld As fieldInfo = lstFields(fldNm)(0)
+        '                    Dim strHTMLField As String = ""
+        '                    Dim strHtmlBuilder As New System.Text.StringBuilder
+        '                    Dim defaultFontSize As Integer = 12
+        '                    Select Case fld.fieldType
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_TEXT
+        '                            Dim currencySymbol As String = "", currencyPrepend As Boolean = True
+        '                            A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
+        '                            Dim inputType As String = "text"
+        '                            Dim classStringTextbox As String = fldNm & "_" & fld.fieldIndex, formatStringTextbox As String = ""
+        '                            Dim strJS As String = PDFField_Format_Custom_Format_Script.Text
+        '                            If PDFField_Format_Category.SelectedIndex > 0 Then
+        '                                classStringTextbox = fldNm & "_" & fld.fieldIndex
+        '                                If strJS.TrimStart("/"c).ToLower.StartsWith("AFNumber_Format".ToLower) Then
+        '                                    inputType = "number"
+        '                                    strJS = strJS.Replace(CStr("AFNumber_Format"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    Dim strJSParameters() As String = strJS.Split(","c)
+        '                                    Try
+        '                                        formatStringTextbox = "[.]"
+        '                                        For i As Integer = 0 To CInt(strJSParameters(0)) - 1
+        '                                            formatStringTextbox &= "0"
+        '                                        Next
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                        If PDFField_Validations_Range.Checked Then
+        '                                            If Not String.IsNullOrEmpty(PDFField_Validation_Range_To.Text) Then
+        '                                                Dim numPrefix As String = "", numPrefixCount As Integer = 0
+        '                                                If PDFField_Validation_Range_To.Text.Contains(".") Then
+        '                                                    numPrefixCount = PDFField_Validation_Range_To.Text.Split(".")(0).Length - 1
+        '                                                Else
+        '                                                    numPrefixCount = PDFField_Validation_Range_To.Text.Length - 1
+        '                                                End If
+        '                                                Select Case CInt(strJSParameters(1))
+        '                                                    Case 0
+        '                                                        For i As Integer = 0 To numPrefixCount
+        '                                                            If numPrefix.Contains(",") Then
+        '                                                                If numPrefix.Split(",")(0).Length >= 2 Then
+        '                                                                    numPrefix = "," & "0" & numPrefix
+        '                                                                Else
+        '                                                                    numPrefix = "0" & numPrefix
+        '                                                                End If
+        '                                                            Else
+        '                                                                If numPrefix.Length >= 2 Then
+        '                                                                    numPrefix = "," & "0" & numPrefix
+        '                                                                Else
+        '                                                                    numPrefix = "0" & numPrefix
+        '                                                                End If
+        '                                                            End If
+        '                                                        Next
+        '                                                        numPrefix = numPrefix.TrimStart(","c)
+        '                                                        formatStringTextbox = numPrefix & formatStringTextbox
+        '                                                    Case 1
+        '                                                        For i As Integer = 0 To numPrefixCount
+        '                                                            numPrefix = "0" & numPrefix
+        '                                                        Next
+        '                                                        numPrefix = numPrefix
+        '                                                        formatStringTextbox = "0" & formatStringTextbox
+        '                                                    Case 2
+        '                                                        formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
+        '                                                    Case 3
+        '                                                        formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
+        '                                                End Select
+        '                                            Else
+        '                                                Select Case CInt(strJSParameters(1))
+        '                                                    Case 0
+        '                                                        formatStringTextbox = "0,0" & formatStringTextbox
+        '                                                    Case 1
+        '                                                        formatStringTextbox = "0" & formatStringTextbox
+        '                                                    Case 2
+        '                                                        formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
+        '                                                    Case 3
+        '                                                        formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
+        '                                                End Select
+        '                                            End If
+        '                                        Else
+        '                                            Select Case CInt(strJSParameters(1))
+        '                                                Case 0
+        '                                                    formatStringTextbox = "0,0" & formatStringTextbox
+        '                                                Case 1
+        '                                                    formatStringTextbox = "0" & formatStringTextbox
+        '                                                Case 2
+        '                                                    formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
+        '                                                Case 3
+        '                                                    formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
+        '                                            End Select
+        '                                        End If
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                    Catch exF As Exception
+        '                                        PDFField_Format_Number_CurrencySymbol_Prepend.Checked = False
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                        Select Case CStr(strJSParameters(4) & "").Trim()
+        '                                            Case ""
+        '                                                formatStringTextbox = "" & formatStringTextbox
+        '                                            Case """"""
+        '                                                formatStringTextbox = "" & formatStringTextbox
+        '                                            Case CStr(" ""\u0024""").Trim()
+        '                                                currencySymbol = "&#036;"
+        '                                                currencyPrepend = True
+        '                                            Case CStr(" ""\u0020\u0044\u004d""").Trim()
+        '                                                currencySymbol = "(DM)"
+        '                                                currencyPrepend = False
+        '                                            Case CStr(" ""\u20ac""").Trim()
+        '                                                currencySymbol = "&euro;"
+        '                                                currencyPrepend = True
+        '                                            Case CStr(" ""\u0066\u006c""").Trim()
+        '                                                currencySymbol = "fl"
+        '                                                currencyPrepend = True
+        '                                            Case CStr(" ""\u0020\u0046""").Trim()
+        '                                                currencySymbol = "&#8355;"
+        '                                                currencyPrepend = False
+        '                                            Case CStr(" ""\u0020\u006b\u0072""").Trim()
+        '                                                currencySymbol = "kr"
+        '                                                currencyPrepend = False
+        '                                            Case CStr(" ""\u004c\u002e\u0020""").Trim()
+        '                                                currencySymbol = "&#8356; "
+        '                                                currencyPrepend = True
+        '                                            Case CStr(" ""\u0020\u0050\u0074\u0073""").Trim()
+        '                                                currencySymbol = "&#8359; "
+        '                                                currencyPrepend = False
+        '                                            Case CStr(" ""\u00a3""").Trim()
+        '                                                currencySymbol = "&pound;"
+        '                                                currencyPrepend = True
+        '                                            Case CStr(" ""\u00a5""").Trim()
+        '                                                currencySymbol = "&yen;"
+        '                                                currencyPrepend = True
+        '                                            Case Else
+        '                                                currencySymbol = ((strJSParameters(4).ToString().Replace("""", "").Replace(" ", "")) & "")
+        '                                                If currencySymbol.Contains("\u") Then
+        '                                                    currencySymbol = currencySymbol.Replace("\u", "&#x")
+        '                                                End If
+        '                                                If PDFField_Format_Number_CurrencySymbol_Prepend.Checked = True Then
+        '                                                    currencyPrepend = True
+        '                                                Else
+        '                                                    currencyPrepend = False
+        '                                                End If
+        '                                        End Select
+        '                                        currencyPrepend = PDFField_Format_Number_CurrencySymbol_Prepend.Checked
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFPercent_Format".ToLower) Then
+        '                                    strJS = strJS.Replace(CStr("AFPercent_Format"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    Dim strJSParameters() As String = strJS.Split(","c)
+        '                                    Try
+        '                                        formatStringTextbox = "[.]"
+        '                                        For i As Integer = 0 To CInt(strJSParameters(0)) - 1
+        '                                            formatStringTextbox &= "0"
+        '                                        Next
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    Try
+        '                                        Try
+        '                                            Select Case CInt(strJSParameters(1))
+        '                                                Case 0
+        '                                                    formatStringTextbox = "0,0" & formatStringTextbox
+        '                                                Case 1
+        '                                                    formatStringTextbox = "0" & formatStringTextbox
+        '                                                Case 2
+        '                                                    formatStringTextbox = "0.0" & formatStringTextbox.Replace(".", ",")
+        '                                                Case 3
+        '                                                    formatStringTextbox = "" & formatStringTextbox.Replace(".", ",")
+        '                                            End Select
+        '                                        Catch exF As Exception
+        '                                            TimeStampAdd(exF, debugMode)
+        '                                        End Try
+        '                                    Catch exF As Exception
+        '                                        TimeStampAdd(exF, debugMode)
+        '                                    End Try
+        '                                    formatStringTextbox &= "%"
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFDate_FormatEx".ToLower) Then
+        '                                    inputType = "date"
+        '                                    strJS = strJS.Replace(CStr("AFDate_FormatEx"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    strJS = strJS.TrimStart("""")
+        '                                    strJS = strJS.TrimEnd("""")
+        '                                    Dim selIndex As Integer = -1
+        '                                    For iVal As Integer = 0 To PDFField_Format_Dates.Items.Count - 1
+        '                                        If strJS = PDFField_Format_Dates.Items(iVal).ToString Then
+        '                                            selIndex = iVal
+        '                                            Exit For
+        '                                        End If
+        '                                    Next
+        '                                    If selIndex >= 0 Then
+        '                                        PDFField_Format_Dates.SelectedIndex = selIndex
+        '                                        For i As Integer = 0 To PDFField_Format_Dates.Items(PDFField_Format_Dates.SelectedIndex).ToString.ToCharArray().Length - 1
+        '                                            Dim chrX As Char = PDFField_Format_Dates.Items(PDFField_Format_Dates.SelectedIndex).ToString.ToCharArray()(i)
+        '                                            If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
+        '                                                formatStringTextbox &= "0"
+        '                                            Else
+        '                                                formatStringTextbox &= chrX
+        '                                            End If
+        '                                        Next
+        '                                    Else
+        '                                    End If
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFTime_Format(".ToLower) Then
+        '                                    inputType = "time"
+        '                                    Dim strJSTemp As String = strJS
+        '                                    strJS = strJS.Replace(CStr("AFTime_Format"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    strJS = strJS.TrimStart("""")
+        '                                    strJS = strJS.TrimEnd("""")
+        '                                    Dim selIndex As Integer = CInt(strJS)
+        '                                    If selIndex >= 0 Then
+        '                                        PDFField_Format_Dates.SelectedIndex = selIndex
+        '                                        For i As Integer = 0 To PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString.ToCharArray().Length - 1
+        '                                            Dim chrX As Char = PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString().ToCharArray()(i)
+        '                                            If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
+        '                                                formatStringTextbox &= "0"
+        '                                            Else
+        '                                                formatStringTextbox &= chrX
+        '                                            End If
+        '                                        Next
+        '                                    Else
+        '                                    End If
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFTime_FormatEx(".ToLower) Then
+        '                                    inputType = "time"
+        '                                    Dim strJSTemp As String = strJS
+        '                                    strJS = strJS.Replace(CStr("AFTime_FormatEx"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    strJS = strJS.TrimStart("""")
+        '                                    strJS = strJS.TrimEnd("""")
+        '                                    Dim selIndex As Integer = -1
+        '                                    For iVal As Integer = 0 To PDFField_Format_Times.Items.Count - 1
+        '                                        If strJS = PDFField_Format_Times.Items(iVal).ToString Then
+        '                                            selIndex = iVal
+        '                                            Exit For
+        '                                        End If
+        '                                    Next
+        '                                    If selIndex >= 0 Then
+        '                                        PDFField_Format_Dates.SelectedIndex = selIndex
+        '                                        For i As Integer = 0 To PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString.ToCharArray().Length - 1
+        '                                            Dim chrX As Char = PDFField_Format_Times.Items(PDFField_Format_Times.SelectedIndex).ToString().ToCharArray()(i)
+        '                                            If Not chrX = "/" And Not chrX = "\" And Not chrX = ":" Then
+        '                                                formatStringTextbox &= "0"
+        '                                            Else
+        '                                                formatStringTextbox &= chrX
+        '                                            End If
+        '                                        Next
+        '                                    Else
+        '                                    End If
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFSpecial_Format(".ToLower) Then
+        '                                    Dim strJSTemp As String = strJS
+        '                                    strJS = strJS.Replace(CStr("AFSpecial_Format"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    strJS = strJS.TrimStart("""")
+        '                                    strJS = strJS.TrimEnd("""")
+        '                                    Dim selIndex As Integer = CInt(strJS)
+        '                                    PDFField_Format_Category.SelectedIndex = 5
+        '                                    If selIndex >= 0 Then
+        '                                        PDFField_Format_Specials.SelectedIndex = selIndex
+        '                                        PDFField_Format_Special_Custom.Text = PDFField_Format_Specials.Items(selIndex).ToString
+        '                                        PDFField_Format_Special_Custom.Visible = False
+        '                                    Else
+        '                                        PDFField_Format_Specials.SelectedIndex = PDFField_Format_Specials.Items.Count - 1
+        '                                        PDFField_Format_Special_Custom.Text = strJSTemp.ToString
+        '                                        PDFField_Format_Special_Custom.Visible = True
+        '                                    End If
+        '                                ElseIf strJS.TrimStart("/"c).ToLower.StartsWith("AFSpecial_FormatEx(".ToLower) Then
+        '                                    Dim strJSTemp As String = strJS
+        '                                    strJS = strJS.Replace(CStr("AFSpecial_FormatEx"), "")
+        '                                    strJS = strJS.TrimEnd(CStr(";"))
+        '                                    strJS = strJS.TrimEnd(CStr(")"))
+        '                                    strJS = strJS.TrimStart(CStr("("))
+        '                                    strJS = strJS.TrimStart("""")
+        '                                    strJS = strJS.TrimEnd("""")
+        '                                    Dim selIndex As Integer = -1
+        '                                    PDFField_Format_Category.SelectedIndex = 5
+        '                                    For iVal As Integer = 0 To PDFField_Format_Specials.Items.Count - 1
+        '                                        If strJS = PDFField_Format_Specials.Items(iVal).ToString Then
+        '                                            selIndex = iVal
+        '                                            Exit For
+        '                                        End If
+        '                                    Next
+        '                                    If selIndex >= 0 Then
+        '                                        PDFField_Format_Specials.SelectedIndex = selIndex
+        '                                        PDFField_Format_Special_Custom.Text = PDFField_Format_Specials.Items(selIndex).ToString
+        '                                        PDFField_Format_Special_Custom.Visible = False
+        '                                    Else
+        '                                        PDFField_Format_Specials.SelectedIndex = PDFField_Format_Specials.Items.Count - 1
+        '                                        PDFField_Format_Special_Custom.Text = strJS.ToString
+        '                                        PDFField_Format_Special_Custom.Visible = True
+        '                                    End If
+        '                                Else
+        '                                    PDFField_Format_Category.SelectedIndex = 6
+        '                                End If
+        '                            End If
+        '                            If Not String.IsNullOrEmpty(formatStringTextbox) Then
+        '                                maskInput.AppendLine("// $('." & classStringTextbox & "').mask('" & formatStringTextbox & "');")
+        '                            End If
+        '                            'range
+        '                            Dim strMin As String = "", strMax As String = ""
+        '                            If PDFField_Validations_Range.Checked Then
+        '                                If Not String.IsNullOrEmpty(PDFField_Validation_Range_From.Text) Then
+        '                                    If IsNumeric(PDFField_Validation_Range_From.Text) Then
+        '                                        strMin = "min=""" & PDFField_Validation_Range_From.Text & """ "
+        '                                    End If
+        '                                End If
+        '                                If Not String.IsNullOrEmpty(PDFField_Validation_Range_To.Text) Then
+        '                                    If IsNumeric(PDFField_Validation_Range_To.Text) Then
+        '                                        strMax = "max=""" & PDFField_Validation_Range_To.Text & """ "
+        '                                    End If
+        '                                End If
+        '                            End If
+        '                            Dim strCalcOnChange As String = ""
+        '                            If PDFField_Calculations_Fields.Checked Then
+        '                                Dim fldsCalc As String = ""
+        '                                Select Case PDFField_Calculations_Fields_Type.SelectedIndex
+        '                                    Case 0
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 1
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 2
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 3
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 4
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                End Select
+        '                            ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
+        '                            End If
+        '                            If Not PDFField_MultiLine.Checked Then
+        '                                strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='text' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' value='" & PDFField_Value.Text & "' ")
+        '                                If PDFField_MaxLenChk.Checked And IsNumeric(PDFField_MaxLen.Text) > 0 Then
+        '                                    strHtmlBuilder.Append(" maxlength=""" & PDFField_MaxLen.Text & """ ")
+        '                                End If
+        '                                strHtmlBuilder.Append(strMin & strMax)
+        '                                If Not String.IsNullOrEmpty(formatStringTextbox) Then
+        '                                    If Not String.IsNullOrEmpty(currencySymbol.Trim()) Then
+        '                                        If currencyPrepend = True Then
+        '                                            strHtmlBuilder.Append("onblur='this.value = """ & currencySymbol & """ + numeral(this.value).format(""" & formatStringTextbox & """);' ")
+        '                                        Else
+        '                                            strHtmlBuilder.Append("onblur='this.value = numeral(this.value).format(""" & formatStringTextbox & """) + """ & currencySymbol & """;' ")
+        '                                        End If
+        '                                        strHtmlBuilder.Append("onfocus ='this.value = numeral(this.value.toString().replace(""" & currencySymbol & ""","""")).value();' ;' ")
+        '                                    Else
+        '                                        strHtmlBuilder.Append("onblur='this.value = numeral(this.value).format(""" & formatStringTextbox & """);' ")
+        '                                        strHtmlBuilder.Append("onfocus ='this.value = numeral(this.value.toString()).value();' ")
+        '                                    End If
+        '                                End If
+        '                                If Not strCalcScript = "" Then
+        '                                    strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
+        '                                End If
+        '                                Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                                If Not String.IsNullOrEmpty(formatStringTextbox) Then
+        '                                    strHtmlBuilder.Append(" class=""" & classStringTextbox & """ ")
+        '                                End If
+        '                                strHtmlBuilder.Append(" style=""")
+        '                                strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                                strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                                strHtmlBuilder.Append("position:absolute;")
+        '                                strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                                If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                    defaultFontSize = PDFField_FontSize.Text
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
+        '                                Else
+        '                                    Dim ftSize As Integer = 12
+        '                                    If Not String.IsNullOrEmpty(PDFField_Value.Text) Then
+        '                                        Dim continueFontSize As Boolean = True
+        '                                        Do Until continueFontSize = False
+        '                                            If (ftSize + 1) > r.Height - 4 Then
+        '                                                continueFontSize = False
+        '                                            ElseIf (ftSize + 1) * PDFField_Value.Text.Length >= r.Width - 4 Then
+        '                                                continueFontSize = False
+        '                                            End If
+        '                                            If continueFontSize Then
+        '                                                ftSize += 1
+        '                                            End If
+        '                                        Loop
+        '                                    End If
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & 14 * 2.86 & ");")
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
+        '                                End If
+        '                                strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                                If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                                Else
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                                End If
+        '                                strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                                Dim strStyle As String = PDFField_BorderStyle.Text
+        '                                Select Case strStyle.ToString.ToLower
+        '                                    Case "solid", "dashed", "dotted", "inset"
+        '                                        strStyle = strStyle & ""
+        '                                    Case "beveled"
+        '                                        strStyle = "ridge"
+        '                                    Case "underline"
+        '                                        strStyle = "solid"
+        '                                End Select
+        '                                strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                                strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                                strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                                strHtmlBuilder.Append(""" ")
+        '                                strHtmlBuilder.Append(" class=""resizeText"" ")
+        '                                If PDFField_Required.Checked Then
+        '                                    strHtmlBuilder.Append(" required")
+        '                                End If
+        '                                strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                                strHtmlBuilder.Append(" />")
+        '                                strHTML &= strHtmlBuilder.ToString
+        '                            Else
+        '                                strHtmlBuilder.AppendLine("<textarea tabIndex=""" & fldTabIndexTemp & """ name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                If PDFField_MaxLenChk.Checked And IsNumeric(PDFField_MaxLen.Text) > 0 Then
+        '                                    strHtmlBuilder.Append(" maxlength=""" & PDFField_MaxLen.Text & """ ")
+        '                                End If
+        '                                Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                                strHtmlBuilder.Append(" style=""")
+        '                                strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                                strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                                strHtmlBuilder.Append("position:absolute;")
+        '                                strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                                If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                    defaultFontSize = PDFField_FontSize.Text
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
+        '                                Else
+        '                                    Dim ftSize As Integer = 12
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (14 * 2.86) & ");")
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
+        '                                End If
+        '                                strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                                If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                                Else
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                                End If
+        '                                strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                                Dim strStyle As String = PDFField_BorderStyle.Text
+        '                                Select Case strStyle.ToString.ToLower
+        '                                    Case "solid", "dashed", "dotted", "inset"
+        '                                        strStyle = strStyle & ""
+        '                                    Case "beveled"
+        '                                        strStyle = "ridge"
+        '                                    Case "underline"
+        '                                        strStyle = "solid"
+        '                                End Select
+        '                                strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                                strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                                strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                                strHtmlBuilder.Append(""" ")
+        '                                strHtmlBuilder.Append(" class=""resizeText"" ")
+        '                                If PDFField_Required.Checked Then
+        '                                    strHtmlBuilder.Append(" required")
+        '                                End If
+        '                                strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                                strHtmlBuilder.Append(">" & PDFField_Value.Text & "</textarea>")
+        '                                strHTML &= strHtmlBuilder.ToString
+        '                            End If
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_CHECKBOX
+        '                            A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
+        '                            If Not fld.fieldDictionary Is Nothing Then
+        '                                If Not fld.fieldDictionary.Get(PdfName.AP) Is Nothing Then
+        '                                    Dim tmpDict As PdfDictionary = fld.fieldDictionary.GetAsDict(PdfName.AP)
+        '                                    If Not tmpDict.Get(PdfName.N) Is Nothing Then
+        '                                        tmpDict = tmpDict.GetAsDict(PdfName.N)
+        '                                        For Each k As PdfName In tmpDict.Keys.ToArray()
+        '                                            If Not k.ToString().TrimStart("/"c) = "Off" Then
+        '                                                fld.fieldValue = k.ToString().TrimStart("/"c)
+        '                                            End If
+        '                                        Next
+        '                                    End If
+        '                                End If
+        '                            End If
+        '                            Dim strCalcOnChange As String = ""
+        '                            If PDFField_Calculations_Fields.Checked Then
+        '                                Dim fldsCalc As String = ""
+        '                                Select Case PDFField_Calculations_Fields_Type.SelectedIndex
+        '                                    Case 0
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 1
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 2
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 3
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 4
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                End Select
+        '                            ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
+        '                            End If
+        '                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='checkbox' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' value='" & fld.fieldValue & "' ")
+        '                            If Not strCalcScript = "" Then
+        '                                strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
+        '                            End If
+        '                            strHtmlBuilder.Append(IIf(PDFField_Value_Checked.Checked, " CHECKED ", ""))
+        '                            Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                            strHtmlBuilder.Append(" style=""-moz-appearance: none;")
+        '                            strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                            strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                            strHtmlBuilder.Append("position:absolute;")
+        '                            strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                            If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                defaultFontSize = PDFField_FontSize.Text
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
+        '                            Else
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
+        '                            End If
+        '                            strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                            If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                            Else
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                            End If
+        '                            strHtmlBuilder.Append("outline-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                            Dim strStyle As String = PDFField_BorderStyle.Text
+        '                            Select Case strStyle.ToString.ToLower
+        '                                Case "solid", "dashed", "dotted", "inset"
+        '                                    strStyle = strStyle & ""
+        '                                Case "beveled"
+        '                                    strStyle = "ridge"
+        '                                Case "underline"
+        '                                    strStyle = "solid"
+        '                            End Select
+        '                            strHtmlBuilder.Append("outline-style:" & strStyle & ";")
+        '                            strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                            strHtmlBuilder.Append("outline-width:" & strStyle & "px;")
+        '                            strHtmlBuilder.Append(""" ")
+        '                            strHtmlBuilder.Append(" class=""resizeText"" ")
+        '                            strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                            strHtmlBuilder.Append(" />")
+        '                            strHTML &= strHtmlBuilder.ToString
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_COMBO
+        '                            A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
+        '                            Dim valList As New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemDisplay.Items
+        '                                valList.Add(val1)
+        '                            Next
+        '                            fld.fieldOptionDisplay = valList.ToArray
+        '                            valList = New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemValue.Items
+        '                                valList.Add(val1)
+        '                            Next
+        '                            fld.fieldOptionExport = valList.ToArray
+        '                            valList = New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemDisplay.SelectedItems
+        '                                valList.Add(val1)
+        '                            Next
+        '                            Dim strCalcOnChange As String = ""
+        '                            If PDFField_Calculations_Fields.Checked Then
+        '                                Dim fldsCalc As String = ""
+        '                                Select Case PDFField_Calculations_Fields_Type.SelectedIndex
+        '                                    Case 0
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 1
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 2
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 3
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 4
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                End Select
+        '                            ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
+        '                            End If
+        '                            fld.fieldListSelection = valList.ToArray
+        '                            strHtmlBuilder.AppendLine("<select tabIndex=""" & fldTabIndexTemp & """ class=""resizeText"" name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' " & " ")
+        '                            If Not strCalcScript = "" Then
+        '                                strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
+        '                            End If
+        '                            Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                            strHtmlBuilder.Append(" style=""")
+        '                            strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                            strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                            strHtmlBuilder.Append("position:absolute;")
+        '                            strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                            If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                defaultFontSize = PDFField_FontSize.Text
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
+        '                            Else
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
+        '                            End If
+        '                            strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                            If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                            Else
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                            End If
+        '                            strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                            Dim strStyle As String = PDFField_BorderStyle.Text
+        '                            Select Case strStyle.ToString.ToLower
+        '                                Case "solid", "dashed", "dotted", "inset"
+        '                                    strStyle = strStyle & ""
+        '                                Case "beveled"
+        '                                    strStyle = "ridge"
+        '                                Case "underline"
+        '                                    strStyle = "solid"
+        '                            End Select
+        '                            strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                            strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                            strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                            strHtmlBuilder.Append(""" ")
+        '                            If PDFField_Required.Checked Then
+        '                                strHtmlBuilder.Append(" required")
+        '                            End If
+        '                            strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                            strHtmlBuilder.Append(">")
+        '                            If fld.fieldOptionExport.Length = fld.fieldOptionDisplay.Length Then
+        '                                For intVal As Integer = 0 To fld.fieldOptionExport.Length - 1
+        '                                    If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "'>" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                    Else
+        '                                        Try
+        '                                            If fld.fieldListSelection.Contains(fld.fieldOptionDisplay(intVal)) Then
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                            Else
+        '                                                If Not fld.fieldOptionExport Is Nothing Then
+        '                                                    If fld.fieldOptionExport.Length > intVal Then
+        '                                                        If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        Else
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        End If
+        '                                                    Else
+        '                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                    End If
+        '                                                Else
+        '                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                End If
+        '                                            End If
+        '                                        Catch exFieldSel As Exception
+        '                                            Err.Clear()
+        '                                        End Try
+        '                                    End If
+        '                                Next
+        '                            Else
+        '                                If fld.fieldOptionExport.Length > 0 Then
+        '                                    Dim intVal As Integer = 0
+        '                                    For Each fldvalue As String In fld.fieldOptionExport
+        '                                        If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                            strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
+        '                                        Else
+        '                                            Try
+        '                                                If Not fld.fieldOptionExport Is Nothing Then
+        '                                                    If fld.fieldOptionExport.Length > intVal Then
+        '                                                        If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        Else
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        End If
+        '                                                    Else
+        '                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                    End If
+        '                                                End If
+        '                                            Catch exFieldSel As Exception
+        '                                                Err.Clear()
+        '                                            End Try
+        '                                        End If
+        '                                        intVal += 1
+        '                                    Next
+        '                                ElseIf fld.fieldOptionDisplay.Length > 0 Then
+        '                                    For Each fldvalue As String In fld.fieldOptionDisplay
+        '                                        If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                            strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
+        '                                        Else
+        '                                            If fld.fieldListSelection.Contains(fldvalue) Then
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' selected ")
+        '                                                strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
+        '                                            Else
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ")
+        '                                                strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
+        '                                            End If
+        '                                        End If
+        '                                    Next
+        '                                End If
+        '                            End If
+        '                            strHtmlBuilder.AppendLine("</select>")
+        '                            strHTML &= strHtmlBuilder.ToString
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST
+        '                            A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
+        '                            Dim valList As New List(Of String)
+        '                            Dim valListValues As New List(Of String)
+        '                            Dim valListDisplay As New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemDisplay.Items
+        '                                valList.Add(val1)
+        '                            Next
+        '                            fld.fieldOptionDisplay = valList.ToArray
+        '                            valList = New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemValue.Items
+        '                                valList.Add(val1)
+        '                            Next
+        '                            fld.fieldOptionExport = valList.ToArray
+        '                            valList = New List(Of String)
+        '                            For Each val1 As String In ComboBox_ItemDisplay.SelectedItems
+        '                                valList.Add(val1)
+        '                            Next
+        '                            fld.fieldListSelection = valList.ToArray
+        '                            Dim strCalcOnChange As String = ""
+        '                            If PDFField_Calculations_Fields.Checked Then
+        '                                Dim fldsCalc As String = ""
+        '                                Select Case PDFField_Calculations_Fields_Type.SelectedIndex
+        '                                    Case 0
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 1
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 2
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
+        '                                        strCalcScript &= ";};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 3
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                    Case 4
+        '                                        Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                        strCalcScript &= "function " & functionName & "(){"
+        '                                        strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
+        '                                        Dim selCnt As Integer = -1
+        '                                        For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                            If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                selCnt += 1
+        '                                            End If
+        '                                        Next
+        '                                        strCalcScript &= ");" & Environment.NewLine
+        '                                        strCalcScript &= "};" & Environment.NewLine
+        '                                        strCalcScript &= fldsCalc & Environment.NewLine
+        '                                        strCalcOnChange &= functionName & "();"
+        '                                End Select
+        '                            ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
+        '                            End If
+        '                            strHtmlBuilder.AppendLine("<select tabIndex=""" & fldTabIndexTemp & """ class=""resizeText"" name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' " & IIf(fld.fieldType = iTextSharp.text.pdf.AcroFields.FIELD_TYPE_LIST, IIf(fld.fieldSize > 1, "size='" & fld.fieldSize & "' ", "size='3' "), "") & IIf(ListBox_Options_MultipleSelection.Checked, " MULTIPLE ", " ") & " ")
+        '                            If Not strCalcScript = "" Then
+        '                                strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
+        '                            End If
+        '                            Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                            strHtmlBuilder.Append(" style=""") '-moz-appearance: none;
+        '                            strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                            strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                            strHtmlBuilder.Append("position:absolute;")
+        '                            strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                            If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                defaultFontSize = PDFField_FontSize.Text
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(PDFField_FontSize.Text)))
+        '                            Else
+        '                                strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
+        '                                fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CSng(12)))
+        '                            End If
+        '                            strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                            If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                            Else
+        '                                strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                            End If
+        '                            strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                            Dim strStyle As String = PDFField_BorderStyle.Text
+        '                            Select Case strStyle.ToString.ToLower
+        '                                Case "solid", "dashed", "dotted", "inset"
+        '                                    strStyle = strStyle & ""
+        '                                Case "beveled"
+        '                                    strStyle = "ridge"
+        '                                Case "underline"
+        '                                    strStyle = "solid"
+        '                            End Select
+        '                            strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                            strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                            strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                            strHtmlBuilder.Append(""" ")
+        '                            If PDFField_Required.Checked Then
+        '                                strHtmlBuilder.Append(" required")
+        '                            End If
+        '                            strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                            strHtmlBuilder.Append(">")
+        '                            If fld.fieldOptionExport.Length = fld.fieldOptionDisplay.Length Then
+        '                                For intVal As Integer = 0 To fld.fieldOptionExport.Length - 1
+        '                                    If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "'>" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                    Else
+        '                                        Try
+        '                                            If fld.fieldListSelection.Contains(fld.fieldOptionDisplay(intVal)) Then
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                            Else
+        '                                                If Not fld.fieldOptionExport Is Nothing Then
+        '                                                    If fld.fieldOptionExport.Length > intVal Then
+        '                                                        If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        Else
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        End If
+        '                                                    Else
+        '                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                    End If
+        '                                                Else
+        '                                                    strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                    strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                End If
+        '                                            End If
+        '                                        Catch exFieldSel As Exception
+        '                                            Err.Clear()
+        '                                        End Try
+        '                                    End If
+        '                                Next
+        '                            Else
+        '                                If fld.fieldOptionExport.Length > 0 Then
+        '                                    Dim intVal As Integer = 0
+        '                                    For Each fldvalue As String In fld.fieldOptionExport
+        '                                        If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                            strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
+        '                                        Else
+        '                                            Try
+        '                                                If Not fld.fieldOptionExport Is Nothing Then
+        '                                                    If fld.fieldOptionExport.Length > intVal Then
+        '                                                        If fld.fieldListSelection.Contains(fld.fieldOptionExport(intVal)) Then
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' selected ") '
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        Else
+        '                                                            strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                            strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                        End If
+        '                                                    Else
+        '                                                        strHtmlBuilder.AppendLine("<option value='" & fld.fieldOptionExport(intVal) & "' ")
+        '                                                        strHtmlBuilder.AppendLine(">" & fld.fieldOptionDisplay(intVal) & "</option>")
+        '                                                    End If
+        '                                                End If
+        '                                            Catch exFieldSel As Exception
+        '                                                Err.Clear()
+        '                                            End Try
+        '                                        End If
+        '                                        intVal += 1
+        '                                    Next
+        '                                ElseIf fld.fieldOptionDisplay.Length > 0 Then
+        '                                    For Each fldvalue As String In fld.fieldOptionDisplay
+        '                                        If ComboBox_ItemDisplay.SelectedItems Is Nothing Then
+        '                                            strHtmlBuilder.AppendLine("<option value='" & fldvalue & "'>" & fldvalue & "</option>")
+        '                                        Else
+        '                                            If fld.fieldListSelection.Contains(fldvalue) Then
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ") 'selected 
+        '                                                strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
+        '                                            Else
+        '                                                strHtmlBuilder.AppendLine("<option value='" & fldvalue & "' ")
+        '                                                strHtmlBuilder.AppendLine(">" & fldvalue & "</option>")
+        '                                            End If
+        '                                        End If
+        '                                    Next
+        '                                End If
+        '                            End If
+        '                            strHtmlBuilder.AppendLine("</select>")
+        '                            strHTML &= strHtmlBuilder.ToString
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_PUSHBUTTON
+        '                            A0_PDFFormField_LoadProperties(Session, fldNm, p, fld.fieldIndex)
+        '                            If Not PDFField_MultiLine.Checked Then
+        '                                Dim labelLength As Integer = 0
+        '                                Select Case PuchButton_Options_Behavior.SelectedIndex
+        '                                    Case 0
+        '                                        PuchButton_Options_State.SelectedIndex = 0
+        '                                        If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        Else
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        End If
+        '                                        strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
+        '                                        labelLength = PuchButton_Options_Label.Text.Length
+        '                                    Case 1
+        '                                        PuchButton_Options_State.SelectedIndex = 0
+        '                                        If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        Else
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        End If
+        '                                        strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ") 'up
+        '                                        strHtmlBuilder.Append(" onmouseout='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'up
+        '                                        strHtmlBuilder.Append(" onmouseup='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'up
+        '                                        labelLength = PuchButton_Options_Label.Text.Length
+        '                                        PuchButton_Options_State.SelectedIndex = 1
+        '                                        strHtmlBuilder.Append(" onmousedown='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'down
+        '                                        If labelLength < PuchButton_Options_Label.Text.Length Then
+        '                                            labelLength = PuchButton_Options_Label.Text.Length
+        '                                        End If
+        '                                        PuchButton_Options_State.SelectedIndex = 2
+        '                                        strHtmlBuilder.Append(" onmouseover='JavaScript:this.value=""" & PuchButton_Options_Label.Text & """;' ") 'rollover
+        '                                        If labelLength < PuchButton_Options_Label.Text.Length Then
+        '                                            labelLength = PuchButton_Options_Label.Text.Length
+        '                                        End If
+        '                                    Case 2
+        '                                        PuchButton_Options_State.SelectedIndex = 0
+        '                                        If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        Else
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        End If
+        '                                        strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
+        '                                        labelLength = PuchButton_Options_Label.Text.Length
+        '                                    Case 3
+        '                                        PuchButton_Options_State.SelectedIndex = 0
+        '                                        If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        Else
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        End If
+        '                                        strHtmlBuilder.Append(" value ='" & PuchButton_Options_Label.Text & "' ")
+        '                                        labelLength = PuchButton_Options_Label.Text.Length
+        '                                    Case Else
+        '                                        If PuchButton_Options_Label.Text.ToString.ToLower.Contains("reset") Then
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='reset' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        Else
+        '                                            strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='submit' name='" & fld.fieldName & "' id='" & fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex) & "' ")
+        '                                        End If
+        '                                End Select
+        '                                Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                                strHtmlBuilder.Append(" style=""-moz-appearance: none;")
+        '                                strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                                strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                                strHtmlBuilder.Append("position:absolute;")
+        '                                strHtmlBuilder.Append("cursor:pointer;")
+        '                                strHtmlBuilder.Append("text-align:" & "center" & ";")
+        '                                If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");")
+        '                                    defaultFontSize = PDFField_FontSize.Text
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / CInt(PDFField_FontSize.Text)))
+        '                                Else
+        '                                    Dim ftSize As Integer = 12
+        '                                    If labelLength > 0 Then
+        '                                        Dim continueFontSize As Boolean = True
+        '                                        Do Until continueFontSize = False
+        '                                            If (ftSize + 1) > r.Height - 4 Then
+        '                                                continueFontSize = False
+        '                                                '
+        '                                            ElseIf ((ftSize + 1) * 0.75) * labelLength >= r.Width - 4 Then
+        '                                                continueFontSize = False
+        '                                            End If
+        '                                            If continueFontSize Then
+        '                                                ftSize += 1
+        '                                            End If
+        '                                        Loop
+        '                                    End If
+        '                                    strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (14 * 2.86) & ");") ' strHtmlBuilder.Append("font-size:" & String.Format(CSng(ftSize / 14), "#.00") & "em;")
+        '                                    fieldListFlowType.Add(fld.fieldName & IIf(Not pField.Contains(fld.fieldName), "", "_" & p & "_" & fld.fieldIndex), CSng(r.Width / ftSize))
+        '                                End If
+        '                                strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                                If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                                Else
+        '                                    strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                                End If
+        '                                strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                                Dim strStyle As String = PDFField_BorderStyle.Text
+        '                                Select Case strStyle.ToString.ToLower
+        '                                    Case "solid", "dashed", "dotted", "inset"
+        '                                        strStyle = strStyle & ""
+        '                                    Case "beveled"
+        '                                        strStyle = "ridge"
+        '                                    Case "underline"
+        '                                        strStyle = "solid"
+        '                                End Select
+        '                                strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                                strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                                strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                                strHtmlBuilder.Append(""" ")
+        '                                strHtmlBuilder.Append(" class=""resizeText"" ")
+        '                                strHtmlBuilder.Append(" defaultFontSize=""" & CStr(IIf(String.IsNullOrEmpty(defaultFontSize & ""), "12", defaultFontSize)) & """ ")
+        '                                strHtmlBuilder.Append(" />")
+        '                                strHTML &= strHtmlBuilder.ToString
+        '                            End If
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_RADIOBUTTON
+        '                            If lstFields(fldNm).Count > 0 Then
+        '                                For intValues As Integer = 0 To lstFields(fldNm).Count - 1
+        '                                    A0_PDFFormField_LoadProperties(Session, fldNm, p, intValues)
+        '                                    fld = lstFields(fldNm)(intValues)
+        '                                    If Not fld.fieldDictionary Is Nothing Then
+        '                                        If Not fld.fieldDictionary.Get(PdfName.AP) Is Nothing Then
+        '                                            Dim tmpDict As PdfDictionary = fld.fieldDictionary.GetAsDict(PdfName.AP)
+        '                                            If Not tmpDict.Get(PdfName.N) Is Nothing Then
+        '                                                tmpDict = tmpDict.GetAsDict(PdfName.N)
+        '                                                For Each k As PdfName In tmpDict.Keys.ToArray()
+        '                                                    If Not k.ToString().TrimStart("/"c) = "Off" Then
+        '                                                        fld.fieldValue = k.ToString().TrimStart("/"c)
+        '                                                    End If
+        '                                                Next
+        '                                            End If
+        '                                        End If
+        '                                    End If
+        '                                    Dim strCalcOnChange As String = ""
+        '                                    If PDFField_Calculations_Fields.Checked Then
+        '                                        Dim fldsCalc As String = ""
+        '                                        Select Case PDFField_Calculations_Fields_Type.SelectedIndex
+        '                                            Case 0 '+
+        '                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                                strCalcScript &= "function " & functionName & "(){"
+        '                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                                Dim selCnt As Integer = -1
+        '                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                        selCnt += 1
+        '                                                    End If
+        '                                                Next
+        '                                                strCalcScript &= ";};" & Environment.NewLine
+        '                                                strCalcScript &= fldsCalc & Environment.NewLine
+        '                                                strCalcOnChange &= functionName & "();"
+        '                                            Case 1 'x
+        '                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                                strCalcScript &= "function " & functionName & "(){"
+        '                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = "
+        '                                                Dim selCnt As Integer = -1
+        '                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange=function(){" & functionName & "();};"
+        '                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " * ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                        selCnt += 1
+        '                                                    End If
+        '                                                Next
+        '                                                strCalcScript &= ";};" & Environment.NewLine
+        '                                                strCalcScript &= fldsCalc & Environment.NewLine
+        '                                                strCalcOnChange &= functionName & "();"
+        '                                            Case 2 ' avg
+        '                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                                strCalcScript &= "function " & functionName & "(){"
+        '                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = (("
+        '                                                Dim selCnt As Integer = -1
+        '                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                        strCalcScript &= CStr(IIf(selCnt >= 0, " + ", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                        selCnt += 1
+        '                                                    End If
+        '                                                Next
+        '                                                strCalcScript &= ") / " & PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Count & ")"
+        '                                                strCalcScript &= ";};" & Environment.NewLine
+        '                                                strCalcScript &= fldsCalc & Environment.NewLine
+        '                                                strCalcOnChange &= functionName & "();"
+        '                                            Case 3 'min
+        '                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                                strCalcScript &= "function " & functionName & "(){"
+        '                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.min("
+        '                                                Dim selCnt As Integer = -1
+        '                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                        selCnt += 1
+        '                                                    End If
+        '                                                Next
+        '                                                strCalcScript &= ");" & Environment.NewLine
+        '                                                strCalcScript &= "};" & Environment.NewLine
+        '                                                strCalcScript &= fldsCalc & Environment.NewLine
+        '                                                strCalcOnChange &= functionName & "();"
+        '                                            Case 4 'max
+        '                                                Dim functionName As String = "calcOnChange_" & fldNm.ToString.Replace(" ", "_").Replace(".", "_").Replace("-", "_")
+        '                                                strCalcScript &= "function " & functionName & "(){"
+        '                                                strCalcScript &= "document.getElementById('" & fldNm & "').value = Math.max("
+        '                                                Dim selCnt As Integer = -1
+        '                                                For lstIdx As Integer = 0 To PDFField_Calculations_Fields_FieldsListBox.Items.Count - 1
+        '                                                    If PDFField_Calculations_Fields_FieldsListBox.SelectedIndices.Contains(lstIdx) Then
+        '                                                        fldsCalc &= "document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').onchange= function(){" & functionName & "();};"
+        '                                                        strCalcScript &= CStr(IIf(selCnt >= 0, ",", " ")) & "parseFloat(document.getElementById('" & PDFField_Calculations_Fields_FieldsListBox.Items(lstIdx).ToString & "').value)"
+        '                                                        selCnt += 1
+        '                                                    End If
+        '                                                Next
+        '                                                strCalcScript &= ");" & Environment.NewLine
+        '                                                strCalcScript &= "};" & Environment.NewLine
+        '                                                strCalcScript &= fldsCalc & Environment.NewLine
+        '                                                strCalcOnChange &= functionName & "();"
+        '                                        End Select
+        '                                    ElseIf PDFField_Calculations_SimpleFieldNotation.Checked Then
+        '                                    End If
+        '                                    strHtmlBuilder.AppendLine("<input tabIndex=""" & fldTabIndexTemp & """ type='radio' name='" & cFDFDoc.getFieldName(fld.fieldName) & "' id='" & cFDFDoc.getFieldName(fld.fieldName) & IIf(Not pField.Contains(cFDFDoc.getFieldName(fld.fieldName)), "", "_" & p) & "' value='" & fld.fieldValue & "' ")
+        '                                    If Not strCalcScript = "" Then
+        '                                        strHtmlBuilder.Append("onchange='" & strCalcOnChange & "' ")
+        '                                    End If
+        '                                    If Not pField.Contains(cFDFDoc.getFieldName(fld.fieldName)) Then
+        '                                        pField.Add(cFDFDoc.getFieldName(fld.fieldName))
+        '                                    End If
+        '                                    strHtmlBuilder.Append(IIf(PDFField_Value_Checked.Checked, " CHECKED ", ""))
+        '                                    If PDFField_Required.Checked Then
+        '                                        strHtmlBuilder.Append(" required")
+        '                                    End If
+        '                                    Dim r As System.Drawing.RectangleF = fld.fieldPositionScreen
+        '                                    strHtmlBuilder.Append(" style=""-moz-appearance: none;") '
+        '                                    strHtmlBuilder.Append("position:absolute;left:" & (r.Left / pageWidth) * 100 & "%;right:" & (r.Right / pageWidth) * 100 & "%;top:" & ((r.Top) / (pageHeight)) * 100 & "%;bottom:" & ((r.Bottom) / (pageHeight)) * 100 & "%;")
+        '                                    strHtmlBuilder.Append("height:" & (r.Height / pageHeight) * 100 & "%;width:" & (r.Width / pageWidth) * 100 & "%;")
+        '                                    strHtmlBuilder.Append("position:absolute;")
+        '                                    strHtmlBuilder.Append("text-align:" & PDFField_TextAlign.Text & ";")
+        '                                    If (PDFField_FontSize.Text.ToLower) <> "Auto".ToLower Then
+        '                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(PDFField_FontSize.Text) * 2.86) & ");") 'strHtmlBuilder.Append("font-size:" & String.Format(CSng(PDFField_FontSize.Text / 14), "#.00") & "em;")
+        '                                        defaultFontSize = PDFField_FontSize.Text
+        '                                    Else
+        '                                        strHtmlBuilder.Append("font-size: calc(100vw / 1920 * " & (CSng(14) * 2.86) & ");")
+        '                                    End If
+        '                                    strHtmlBuilder.Append("color:" & ColorTranslator.ToHtml(PDFField_TextColorPicker.BackColor) & ";")
+        '                                    If Not (PDFField_BackgroundColorPicker.BackColor) = System.Drawing.Color.Transparent Then
+        '                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(PDFField_BackgroundColorPicker.BackColor) & ";")
+        '                                    Else
+        '                                        strHtmlBuilder.Append("background-color:" & ColorTranslator.ToHtml(System.Drawing.Color.White) & ";")
+        '                                    End If
+        '                                    strHtmlBuilder.Append("border-color:" & ColorTranslator.ToHtml(PDFField_BorderColorPicker.BackColor) & ";")
+        '                                    Dim strStyle As String = PDFField_BorderStyle.Text
+        '                                    Select Case strStyle.ToString.ToLower
+        '                                        Case "solid", "dashed", "dotted", "inset"
+        '                                            strStyle = strStyle & ""
+        '                                        Case "beveled"
+        '                                            strStyle = "ridge"
+        '                                        Case "underline"
+        '                                            strStyle = "solid"
+        '                                    End Select
+        '                                    strHtmlBuilder.Append("border-style:" & strStyle & ";")
+        '                                    strStyle = CStr(PDFField_BorderWidth.SelectedIndex + 1).ToString
+        '                                    strHtmlBuilder.Append("border-width:" & strStyle & "px;")
+        '                                    strHtmlBuilder.Append(""" ")
+        '                                    strHtmlBuilder.AppendLine(" />")
+        '                                Next
+        '                                strHTML &= strHtmlBuilder.ToString
+        '                            End If
+        '                        Case iTextSharp.text.pdf.AcroFields.FIELD_TYPE_SIGNATURE
+        '                    End Select
+        '                    If Not pField.Contains(fld.fieldName) Then
+        '                        pField.Add(fld.fieldName)
+        '                    End If
+        '                Next
+        '                If fldTabIndex < fldTabMax Then
+        '                    fldTabIndex = fldTabMax
+        '                End If
+        '                strHTML &= "</div>" & Environment.NewLine
+        '                totalPageHeight += pdfReaderDoc.GetPageSizeWithRotation(p).Height * getPercent()
+        '                strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
+        '                strHTML &= Environment.NewLine & "$(document).ready(function() {var resizeText = function () {$('#page_" & p & " > input').each(function(index, element){if(!$(element).attr('defaultFontSize')==''){var preferredFontSize = parseInt(parseFloat($(element).attr('defaultFontSize') / 16)*100);var preferredSize = " & pageWidth & " * " & pageHeight & ";var currentSize = $(window).width() * $(window).height();var scalePercentage = Math.sqrt(currentSize) / Math.sqrt(preferredSize);var newFontSize = preferredFontSize * scalePercentage;console.log($(element).attr('id') + ':' + $(element).attr('defaultFontSize') + ':' + preferredFontSize);$(element).css('font-size',newFontSize + '%');};});};$(window).bind('resize', function() {resizeText();}).trigger('resize');});"
+        '                strHTML &= "</script>" & Environment.NewLine
+        '            Next
+        '            strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
+        '            strHTML &= "" & Environment.NewLine
+        '            strHTML &= "$(function() {" & Environment.NewLine
+        '            strHTML &= Environment.NewLine & "//$('.social').mask('000-00-0000');"
+        '            strHTML &= Environment.NewLine & "//$('.datemask').mask('00/00/0000');"
+        '            strHTML &= Environment.NewLine & maskInput.ToString()
+        '            strHTML &= Environment.NewLine & "}"c & ")"c & ";"c & Environment.NewLine
+        '            strHTML &= "" & Environment.NewLine
+        '            If Not strCalcScript = "" Then
+        '                strHTML &= (strCalcScript) & Environment.NewLine
+        '            End If
+        '            strHTML &= "</script>" & Environment.NewLine
+        '            strHTML &= "<script type=""text/javascript"">" & Environment.NewLine
+        '            strHTML &= File.ReadAllText(ApplicationDataFolder(False, "") & "html\downloadFDF.js").ToString().Replace("{ PDFPATH }", fpath.ToString.Replace("\", "\\\\"))
+        '            strHTML &= "</script>"
+        '            strHTML &= Environment.NewLine & "</form>" & Environment.NewLine
+        '            strHTML &= "</body>" & Environment.NewLine
+        '            strHTML &= "</html>" & Environment.NewLine
+        '            If Not String.IsNullOrEmpty(fn) Then
+        '                System.IO.File.WriteAllText(fn, strHTML)
+        '                Process.Start("explorer.exe", "/select,""" & (fn) & """")
+        '                Process.Start(fn)
+        '            Else
+        '                Throw New Exception("File name Is empty")
+        '            End If
+        '            StatusToolStrip = "Status: HTML File created"
+        '        Catch ex As Exception
+        '            StatusToolStrip = "Status: Error File NOT created - " & ex.Message.ToString
+        '            TimeStampAdd(ex, debugMode)
+        '        Finally
+        '            ToolStripProgressBar1.Visible = False
+        '            DeleteTempFilesImageCache()
+        '            Session = b
+        '            LoadPDFReaderDoc(pdfOwnerPassword)
+        '            A0_LoadPDF()
+        '            Me.Show()
+        '            Me.BringToFront()
+        '        End Try
+        '    Case MsgBoxResult.Cancel
+        '        Return
+        '    Case Else
+        '        Try
+        '            StatusToolStrip = "Status: HTML File created"
+        '        Catch ex As Exception
+        '            StatusToolStrip = "Status: Error File NOT created - " & ex.Message.ToString
+        '            TimeStampAdd(ex, debugMode)
+        '        Finally
+        '            DeleteTempFilesImageCache()
+        '            Session = b
+        '            LoadPDFReaderDoc(pdfOwnerPassword)
+        '            A0_LoadPDF()
+        '            Me.Show()
+        '            Me.BringToFront()
+        '        End Try
+        'End Select
     End Sub
     Public Function createHTMLFile(Optional pageRange As String = "", Optional blnIncludeFields As Boolean = True, Optional useBase64ImageURL As Boolean = True, Optional htmlSubmitAction As String = "", Optional ByRef ParentForm As Form = Nothing, Optional strBody As String = "", Optional formActionNoPrompt As Boolean = False, Optional htmlPath As String = "", Optional excludeStyleSheets As Boolean = False, Optional minPageWidth As Integer = 720) As String
         Try
