@@ -33058,8 +33058,16 @@ OPENFILE_KNOWN_FILENAME:
                         writer = Nothing
                         doc.Dispose()
                         doc = Nothing
-                        jpg.Dispose()
-                        bitmap.Dispose()
+                        Try
+                            jpg.Dispose()
+                        Catch ex2 As Exception
+                            Err.Clear()
+                        End Try
+                        Try
+                            bitmap.Dispose()
+                        Catch ex2 As Exception
+                            Err.Clear()
+                        End Try
                         If loadDoc Then
                             A0_LoadPDF(True)
                             LoadPageList(Me.btnPage)
