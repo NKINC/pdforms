@@ -2213,7 +2213,8 @@ TRYELSE:
                                     Dim box As System.Drawing.RectangleF = GetFieldPositionsReverse2(Session(), fps(i).position)
                                     If Math.Abs(box.Left - rectPDF.Left) < 1 And Math.Abs(box.Bottom - rectPDF.Bottom) < 1 And Math.Abs(box.Right - rectPDF.Right) < 1 And Math.Abs(box.Top - rectPDF.Top) < 1 Then
                                         Return i
-                                        '
+                                        ''ElseIf New iTextSharp.text.Rectangle(rectPDF.Left, rectPDF.Bottom, rectPDF.Right, rectPDF.Top) Is fps(i).position Then
+                                        'Return i
                                     End If
                                 End If
                             Next
@@ -5214,6 +5215,53 @@ CloseUp:
             'comboBox4Selected = cmbselTemp
         End Try
     End Sub
+    'Public Sub A0_LoadAllFieldsOnPageCombo(selName As String)
+    '    'Dim cmbselTemp = comboBox4Selected
+    '    Dim selIdx As Integer = -1
+    '    Try
+    '        selIdx = ComboBox4.SelectedIndex
+    '        Dim fldsCombo As New List(Of String)
+    '        fldsCombo.Add("Select a field")
+    '        fldsCombo.AddRange(GetAllFieldsOnPage(pdfReaderDoc.Clone, CInt(btnPage.SelectedIndex + 1), False, True).ToArray())
+    '        Dim fldsComboTemp(ComboBox4.Items.Count - 1) As String
+    '        ComboBox4.Items.CopyTo(fldsComboTemp, 0)
+    '        If Not fldsComboTemp.Length = fldsCombo.Count Then
+    '            ComboBox4.Items.Clear()
+    '            ComboBox4.Items.AddRange(fldsCombo.ToArray())
+    '        Else
+    '            For i As Integer = 0 To fldsCombo.Count - 1
+    '                If Not fldsComboTemp(i) = fldsCombo(i) Then
+    '                    '.Add(ComboBox4.Items(i))
+    '                    ComboBox4.Items.Clear()
+    '                    ComboBox4.Items.AddRange(fldsCombo.ToArray())
+    '                    Exit For
+    '                End If
+    '            Next
+    '        End If
+    '    Catch ex As Exception
+    '        Err.Clear()
+    '    Finally
+    '        If Not selName = "" Then
+    '            If ComboBox4.Items.Contains(selName) Then
+    '                Dim pd = cUserRect.pauseDraw
+    '                If Not ComboBox4.SelectedItem = selName Then
+    '                    cUserRect.pauseDraw = True
+    '                    ComboBox4.SelectedItem = selName
+    '                    cUserRect.pauseDraw = pd
+    '                End If
+
+    '            End If
+    '        Else
+    '            Dim pd = cUserRect.pauseDraw
+    '            If Not ComboBox4.SelectedIndex = selIdx Then
+    '                cUserRect.pauseDraw = True
+    '                ComboBox4.SelectedIndex = selIdx
+    '                cUserRect.pauseDraw = pd
+    '            End If
+    '        End If
+    '        'comboBox4Selected = cmbselTemp
+    '    End Try
+    'End Sub
 
     Public Function A0_PDFFormField_Modify(ByVal b() As Byte, ByVal fldname As String, ByVal newFldName As String, ByVal textcolor As iTextSharp.text.BaseColor, ByVal bgcolor As iTextSharp.text.BaseColor, ByVal bordercolor As iTextSharp.text.BaseColor, ByVal newRectScreen As iTextSharp.text.Rectangle, Optional ByVal pageNumber As Integer = -1, Optional ByVal removeKidFieldIdx As Integer = -1, Optional calculateOrder As Boolean = False) As Byte()
         Dim newRect As iTextSharp.text.Rectangle = cUserRect.rectPDFReversed 'New iTextSharp.text.Rectangle(cUserRect.rect.Left, getPDFHeight() - cUserRect.rect.Bottom, cUserRect.rect.Right, getPDFHeight() - cUserRect.rect.Top) 'getRectanglePDF(newRectScreen)
@@ -5285,7 +5333,8 @@ CloseUp:
                         LoadPDFReaderDoc(pdfOwnerPassword, False)
                         cUserRect._highLightFieldName = newFldName
                         fldRectangles = getFieldRectangles(True)
-                        rectTmp = fldRectangles(newFldName)
+                        fldKidIndex = getKidFieldIndexByRectanglePDF(rectTmp, newFldName)
+                        rectTmp = fldRectangles(newFldName & "#" & fldKidIndex)
                         cUserRect.rect = rectTmp
                         btnWidth.Text = rectTmp.Width
                         btnHeight.Text = rectTmp.Height
@@ -5293,7 +5342,7 @@ CloseUp:
                         btnRight.Text = rectTmp.Right
                         btnTop.Text = rectTmp.Top
                         btnBottom.Text = rectTmp.Bottom
-                        fldKidIndex = getKidFieldIndexByRectanglePDF(rectTmp, newFldName)
+                        'fldKidIndex = getKidFieldIndexByRectanglePDF(rectTmp, newFldName)
                         PDFField_Index.Text = fldKidIndex.ToString()
                         If Not dsBrowser Is Nothing Then
                             If Not dsBrowser.disableLoad = True Then
@@ -5311,7 +5360,8 @@ CloseUp:
                 End If
                 cUserRect.pauseDraw = True
                 A0_LoadAllFieldsOnPageCombo(fldNameHighlighted & "[" & fldKidIndex & "]")
-                cUserRect.pauseDraw = pd
+                cUserRect.pauseDraw = False
+                comboBox4Selected = False
                 Try
                     If isFieldInCalculationOrder(fldNameHighlighted, False) Then
                         calculateFields()
@@ -5324,6 +5374,7 @@ CloseUp:
             End Try
         End Try
         Return b
+
     End Function
     Public Sub A0_PDFFormField_LoadFieldWithRectF(ByVal rectFScreen As System.Drawing.RectangleF, ByVal fldName As String, Optional ByVal bytesNew() As Byte = Nothing, Optional ByVal reloadPDFImage As Boolean = False)
         Try
@@ -28022,8 +28073,44 @@ GoTo_RenameTXT:
                                     ImportImage(fpath, showPrompts)
                                     LoadPDFReaderDoc(pdfOwnerPassword & "", True)
                                 Case "htm", "html"
+                                    'addOpenHistoryListItem(fpath)
+                                    'ConvertHTMLFileFromFile(fpath & "")
+                                    'Return
                                     addOpenHistoryListItem(fpath)
-                                    ConvertHTMLFileFromFile(fpath & "")
+                                    fp = fpath
+                                    If Not String.IsNullOrEmpty(fp.ToString()) Then
+                                        fpath = fp.ToString()
+                                        If IsValidUrl(fpath) Or FileExists(fpath) Then
+                                            addOpenHistoryListItem(fpath)
+                                            'ConvertHTMLFileFromUrl(fpath)
+                                            Dim dMultipleChoice As New dialogMultiChoice(Me)
+                                            dMultipleChoice.lblMessage.Text = "Import HTML page as..."
+                                            Dim clsBut As New List(Of dialogMultiChoice.clsButton)
+                                            Dim btn As dialogMultiChoice.clsButton
+                                            btn = New dialogMultiChoice.clsButton("as HTML", True, DialogResult.OK)
+                                            clsBut.Add(btn)
+                                            btn = New dialogMultiChoice.clsButton("as Image", True, DialogResult.Yes)
+                                            clsBut.Add(btn)
+                                            btn = New dialogMultiChoice.clsButton("", False, DialogResult.No)
+                                            clsBut.Add(btn)
+                                            btn = New dialogMultiChoice.clsButton("Cancel", True, DialogResult.Cancel)
+                                            clsBut.Add(btn)
+                                            Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
+                                                Case DialogResult.OK
+                                                    Convert_ImportURl2HTMLFile(fpath & "")
+                                                Case DialogResult.Yes
+                                                    Convert_ImportURl2ImageFile(fpath & "")
+                                                Case Else
+                                                    Return
+                                            End Select
+                                        ElseIf FileExists(fp.ToString()) Then
+                                            OpenFileDialog1.FileName = fp.ToString()
+                                            GoTo GOTO_KNOWN_FILENAME
+                                        End If
+                                    Else
+                                        Return
+                                    End If
+                                    'ConvertHTMLFileFromFile(fpath & "")
                                     Return
                                 Case Else
                                     b = Session("output")
@@ -30836,8 +30923,6 @@ GoTo_RETURN:
                         comboBox4Selected = False
                         Exit Sub
                     End If
-                Else
-
                 End If
             ElseIf _clickPoints.Count > 2 Then
                 _clickPoints(_clickPoints.Count - 1) = (e.Location)
@@ -30887,7 +30972,7 @@ GoTo_RETURN:
                 End If
             End If
             _dragging = False
-            If Not fldNameHighlighted.isNullOrEmpty() Then
+            If Not String.IsNullOrEmpty(fldNameHighlighted & "") Then
                 If pdfReaderDoc.AcroFields.GetFieldType(fldNameHighlighted) = iTextSharp.text.pdf.AcroFields.FIELD_TYPE_RADIOBUTTON Then
                     If fldKidIndex < 0 Then
                         GoTo STARTHERE
@@ -30993,14 +31078,14 @@ GoTo_RETURN:
                     GoTo STARTHERE
                 End If
 RedoFieldName:
-                'PDFField_Dimensions_Paste_0_Left_llx.Checked = False
-                'PDFField_Dimensions_Paste_2_Right_urx.Checked = False
-                'PDFField_Dimensions_Paste_4_Width.Checked = False
-                'PDFField_Dimensions_Paste_5_Height.Checked = False
-                'PDFField_Dimensions_Paste_1_Bottom_lly.Checked = False
-                'PDFField_Dimensions_Paste_3_Top_ury.Checked = False
+                PDFField_Dimensions_Paste_0_Left_llx.Checked = False
+                PDFField_Dimensions_Paste_2_Right_urx.Checked = False
+                PDFField_Dimensions_Paste_4_Width.Checked = False
+                PDFField_Dimensions_Paste_5_Height.Checked = False
+                PDFField_Dimensions_Paste_1_Bottom_lly.Checked = False
+                PDFField_Dimensions_Paste_3_Top_ury.Checked = False
                 Dim fldName As String = ComboBox1.Items(ComboBox1.SelectedIndex).ToString() & "Field_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
-                If PDFField_Copy.Checked And Not fldNameHighlightedCopy.isNullOrEmpty() Then
+                If PDFField_Copy.Checked And Not String.IsNullOrEmpty(fldNameHighlightedCopy & "") Then
                     fldName = fldNameHighlightedCopy
                     fldNameHighlighted = fldNameHighlightedCopy
                     PDFField_Name.Text = fldNameHighlightedCopy '"ButtonField_" & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 3).ToUpper().ToString()
@@ -31069,7 +31154,7 @@ STARTHERE:
                             btnBottom.Text = _clickPoints(1).Y
                             ptOrigin.Y = _clickPoints(0).Y
                         End If
-
+                        btnHeight.Text = Math.Abs(CSng(btnBottom.Text) - CSng(btnTop.Text))
                         If _clickPoints(0).X > _clickPoints(1).X Then
                             btnLeft.Text = _clickPoints(1).X
                             btnRight.Text = _clickPoints(0).X
@@ -31079,28 +31164,7 @@ STARTHERE:
                             btnRight.Text = _clickPoints(1).X
                             ptOrigin.X = _clickPoints(0).X
                         End If
-                        If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
-                            btnLeft.Text = _dimensionsList(0) + 0
-                        End If
-                        If PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
-                            btnBottom.Text = _dimensionsList(1) + 0
-                        End If
-                        If PDFField_Dimensions_Paste_2_Right_urx.Checked Then
-                            btnRight.Text = _dimensionsList(2) + 0
-                        End If
-                        If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
-                            btnTop.Text = _dimensionsList(3) + 0
-                        End If
-                        If PDFField_Dimensions_Paste_4_Width.Checked Then
-                            btnWidth.Text = _dimensionsList(4) + 0
-                        Else
-                            btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
-                        End If
-                        If PDFField_Dimensions_Paste_5_Height.Checked Then
-                            btnHeight.Text = _dimensionsList(5) + 0
-                        Else
-                            btnHeight.Text = Math.Abs(CSng(btnBottom.Text) - CSng(btnTop.Text))
-                        End If
+                        btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
                         If isDimensionsChecked() Then
                         Else
                             cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
@@ -31111,6 +31175,15 @@ STARTHERE:
                         End If
                     End If
                     Try
+                        If PDFField_Dimensions_Paste_4_Width.Checked And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked And Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
+                            btnWidth.Text = _dimensionsList(4) + 0
+                        End If
+                        If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
+                            btnLeft.Text = _dimensionsList(0) + 0
+                        End If
+                        If PDFField_Dimensions_Paste_2_Right_urx.Checked Then
+                            btnRight.Text = _dimensionsList(2) + 0
+                        End If
                         If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
                             btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
                         ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
@@ -31122,6 +31195,12 @@ STARTHERE:
                             Else
                                 btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
                             End If
+                        End If
+                        If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
+                            btnTop.Text = _dimensionsList(3) + 0
+                        End If
+                        If PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
+                            btnBottom.Text = _dimensionsList(1) + 0
                         End If
                         If PDFField_Dimensions_Paste_3_Top_ury.Checked Or PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
                             If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
@@ -31151,89 +31230,9 @@ STARTHERE:
                                 End If
                             End If
                         End If
-                        If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
-                            btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
-                        ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
-                            btnWidth.Text = _dimensionsList(4) + 0
-                            If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
-                                btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
-                            ElseIf PDFField_Dimensions_Paste_2_Right_urx.Checked Then
-                                btnLeft.Text = CSng(btnRight.Text) - CSng(btnWidth.Text)
-                            Else
-                                btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
-                            End If
-                        End If
-                        If PDFField_Dimensions_Paste_3_Top_ury.Checked Or PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
-                            If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                                btnHeight.Text = CSng(btnTop.Text) - CSng(btnBottom.Text)
-                            Else
-                                btnHeight.Text = CSng(btnBottom.Text) - CSng(btnTop.Text)
-                            End If
-                        ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then 'And (Not PDFField_Dimensions_Paste_3_Top_ury.Checked Or Not PDFField_Dimensions_Paste_1_Bottom_lly.Checked) Then
-                            btnHeight.Text = _dimensionsList(5) + 0
-                            If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
-                                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                                    btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
-                                Else
-                                    btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
-                                End If
-                            ElseIf PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
-                                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                                    btnTop.Text = CSng(btnBottom.Text) + CSng(btnHeight.Text)
-                                Else
-                                    btnTop.Text = CSng(btnBottom.Text) - CSng(btnHeight.Text)
-                                End If
-                            Else
-                                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                                    btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
-                                Else
-                                    btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
-                                End If
-                            End If
-                        End If
-                        'If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
-                        '    btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
-                        'ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
-                        '    btnWidth.Text = _dimensionsList(4) + 0
-                        '    If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
-                        '        btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
-                        '    ElseIf PDFField_Dimensions_Paste_2_Right_urx.Checked Then
-                        '        btnLeft.Text = CSng(btnRight.Text) - CSng(btnWidth.Text)
-                        '    Else
-                        '        btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
-                        '    End If
-                        'End If
-                        'If PDFField_Dimensions_Paste_3_Top_ury.Checked Or PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
-                        '    If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                        '        btnHeight.Text = CSng(btnTop.Text) - CSng(btnBottom.Text)
-                        '    Else
-                        '        btnHeight.Text = CSng(btnBottom.Text) - CSng(btnTop.Text)
-                        '    End If
-                        'ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then 'And (Not PDFField_Dimensions_Paste_3_Top_ury.Checked Or Not PDFField_Dimensions_Paste_1_Bottom_lly.Checked) Then
-                        '    btnHeight.Text = _dimensionsList(5) + 0
-                        '    If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
-                        '        If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                        '            btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
-                        '        Else
-                        '            btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
-                        '        End If
-                        '    ElseIf PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
-                        '        If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                        '            btnTop.Text = CSng(btnBottom.Text) + CSng(btnHeight.Text)
-                        '        Else
-                        '            btnTop.Text = CSng(btnBottom.Text) - CSng(btnHeight.Text)
-                        '        End If
-                        '    Else
-                        '        If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
-                        '            btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
-                        '        Else
-                        '            btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
-                        '        End If
-                        '    End If
-                        'End If
                         Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), h - CSng(btnBottom.Text) + 0, CSng(btnRight.Text), h - CSng(btnTop.Text) + 0)
                         Try
-                            If isDimensionsChecked() And Not fldNameHighlighted.isNullOrEmpty() Then
+                            If isDimensionsChecked() And Not String.IsNullOrEmpty(fldNameHighlighted) Then
                                 Dim r2 As RectangleF = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text) + 0, CSng(btnWidth.Text), CSng(btnHeight.Text))
                                 r2 = getRectangleScreen(r2)
                                 Dim r3 As RectangleF = cUserRect.rectScreen
@@ -31242,7 +31241,7 @@ STARTHERE:
                                     r = getRectanglePDF(r)
                                     r = GetFieldPositionsReverse(Session(), r)
                                     If Not PDFField_Copy.Checked Then
-                                        If Not PDFField_Copy.Checked And Not fldNameHighlighted.isNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
+                                        If Not PDFField_Copy.Checked And Not String.IsNullOrEmpty(fldNameHighlighted & "") And CheckfieldNameExits(fldNameHighlighted & "") Then
                                             mMove = True
                                             _dragging = False
                                             cUserRect.rect = (GetFieldPositionsReverse(r))
@@ -31268,10 +31267,10 @@ STARTHERE:
                         TimeStampAdd(exDimensions, debugMode) ' NK 2016-06-30exDimensions Else Err.Clear() 'NK DM
                     End Try
                 Else
-                    If fldKidIndex < 0 And (Not fldNameHighlighted.isNullOrEmpty() And Not cUserRect.rect = Nothing) Then
+                    If fldKidIndex < 0 And (Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing) Then
                         fldKidIndex = getKidFieldIndexByRectanglePDF(cUserRect.rect, fldNameHighlighted)
                     End If
-                    If fldKidIndex >= 0 And Not fldNameHighlighted.isNullOrEmpty() Then
+                    If fldKidIndex >= 0 And Not String.IsNullOrEmpty(fldNameHighlighted) Then
                         'A0_PDFFormField_LoadProperties(Session, fldNameHighlighted, Nothing, fldKidIndex)
                     End If
                 End If
@@ -31283,9 +31282,7 @@ STARTHERE:
             Try
                 If Not cUserRect.rect = Nothing Then
                     Dim r As System.Drawing.RectangleF = cUserRect.rect
-                    'ToolStripStatusLabel1.Text = "(" & r.Left & "," & (getPDFHeight(Session) - r.Top) & "," & r.Width & "," & r.Height & ")"
-                    ToolStripStatusLabel1.Text = "(" & CInt(r.Width) & "," & CInt(r.Height) & ")," & CInt(cUserRect.rectScreen.Width) & "," & CInt(cUserRect.rectScreen.Height) & ""
-                    ToolStripStatusLabel1.Visible = True
+                    ToolStripStatusLabel1.Text = "(" & r.Left & "," & (getPDFHeight(Session) - r.Top) & "," & r.Width & "," & r.Height & ")"
                 End If
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
@@ -31350,7 +31347,7 @@ GOTORETURN:
             mMove = False
             Try
                 If e.Button = Windows.Forms.MouseButtons.Right Then
-                    If Not fldNameHighlighted.isNullOrEmpty() Then
+                    If Not String.IsNullOrEmpty(fldNameHighlighted & "") Then
                         CancelToolStripMenuItem.Visible = False
                         DeleteToolStripMenuItem.Visible = True
                         CopyToolStripMenuItem.Visible = True
@@ -31364,7 +31361,7 @@ GOTORETURN:
                         CopyAppearanceToolStripMenuItem.Visible = True
                         FieldPropertiesToolStripMenuItem.Visible = Not pnlFields.Visible
                         ContextMenuStripRightClick2.Show(A0_PictureBox2, e.Location)
-                    ElseIf Not fldNameHighlightedCopy.isNullOrEmpty() Then
+                    ElseIf Not String.IsNullOrEmpty(fldNameHighlightedCopy & "") Then
                         CancelToolStripMenuItem.Visible = True
                         If PDFField_CopyAppearance.Checked And _copy_Appearance_frmMain.IsCopied Then
                             CancelCopyAppearanceToolStripMenuItem.Visible = True
@@ -31389,6 +31386,7 @@ GOTORETURN:
             End Try
             Try
                 cUserRect.mIsClick = False
+
             Catch ex As Exception
                 Err.Clear()
             End Try
@@ -31410,7 +31408,7 @@ GOTORETURN:
             Catch ex As Exception
                 Err.Clear()
             End Try
-
+            PdfForm_FieldNames_UpdateButton()
         End Try
     End Sub
     Private Sub btnHighLite_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHighLite.Click
@@ -33058,16 +33056,8 @@ OPENFILE_KNOWN_FILENAME:
                         writer = Nothing
                         doc.Dispose()
                         doc = Nothing
-                        Try
-                            jpg.Dispose()
-                        Catch ex2 As Exception
-                            Err.Clear()
-                        End Try
-                        Try
-                            bitmap.Dispose()
-                        Catch ex2 As Exception
-                            Err.Clear()
-                        End Try
+                        jpg.Dispose()
+                        bitmap.Dispose()
                         If loadDoc Then
                             A0_LoadPDF(True)
                             LoadPageList(Me.btnPage)
@@ -37257,8 +37247,24 @@ GOTO_ENDSELECT:
         End Try
     End Sub
     Private Sub cmbPercent_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmbPercent.SelectedIndexChanged
+        'If Session Is Nothing Then Return
+        'If Session.Length <= 0 Then Return
+        'Try
+        '    clearImageCacheHistory()
+        '    PictureBox1_Panel.Focus()
+        '    tmpPercent = Nothing
+        '    tmpPercent = getPercent()
+        'Catch ex As Exception
+        '    cmbPercent.Text = "100%"
+        '    tmpPercent = 1.0F
+        '    TimeStampAdd(ex, debugMode)
+        'End Try
+        'If Not cUserRect.pauseDraw Then
+        '    A0_FireRefresh(Me, New EventArgs())
+        'End If
         If Session Is Nothing Then Return
         If Session.Length <= 0 Then Return
+        'If cUserRect.pauseDraw Then Return
         Try
             clearImageCacheHistory()
             PictureBox1_Panel.Focus()
@@ -38794,9 +38800,11 @@ GOTO_SAVE_FILE:
     End Sub
     Public Sub PdfForm_FieldNames_UpdateButton()
         Try
-            If String.IsNullOrEmpty(PDFField_Name.Text & "") Then
+            If PDFField_Copy.Checked = True Then
                 GoTo GOTO_ADDFIELD
-            ElseIf CheckfieldNameExits(PDFField_Name.Text & "") Then
+            ElseIf String.IsNullOrEmpty(PDFField_Name.Text & "") Or IsNumeric(PDFField_Index.Text & "") = False Then
+                GoTo GOTO_ADDFIELD
+            ElseIf CInt(PDFField_Index.Text) > -1 And CheckfieldNameExits(PDFField_Name.Text & "") Then
                 btnField_AddTextField.Text = "Update Field"
                 btnField_AddCheckBox.Text = "Update Field"
                 btnField_AddListBox.Text = "Update Field"
@@ -40313,6 +40321,8 @@ GOTO_ADDFIELD:
             lblFieldType.Text = PDFField_Name.Text & ""
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
+        Finally
+            PdfForm_FieldNames_UpdateButton()
         End Try
     End Sub
     Private Sub ImportBlankPageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImportBlankPageToolStripMenuItem.Click
