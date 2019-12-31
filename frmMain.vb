@@ -5370,7 +5370,9 @@ CloseUp:
                     TimeStampAdd(ex, debugMode) ' NK 2016-06-30exMain Else Err.Clear() ' Err.Clear()  ' NK3 ' 
                 End Try
             Catch exLoadProps As Exception
-                TimeStampAdd(exLoadProps, debugMode) ' NK 2016-06-30 'NK DM
+                TimeStampAdd(exLoadProps, debugMode) ' NK 2016-06-30 'NK DM  
+            Finally
+                PdfForm_FieldNames_UpdateButton()
             End Try
         End Try
         Return b
@@ -33735,6 +33737,7 @@ OPENFILE_KNOWN_FILENAME:
                         AddHandler tm.MouseHover, AddressOf MenuItemEventHanderMouseHover
                         AddHandler tm.Click, AddressOf MenuItemEventHandler
                         Dim tmX As ToolStripMenuItem
+                        'tmX = New ToolStripMenuItem("Open With Default")
                         Select Case System.IO.Path.GetExtension(fp).ToString().TrimStart("."c)
                             Case "pdf"
                                 tmX = New ToolStripMenuItem("Open With Default")
@@ -33751,21 +33754,23 @@ OPENFILE_KNOWN_FILENAME:
                                 tm.DropDown.ShowItemToolTips = False
                                 AddHandler tmX.Click, AddressOf MenuItemEventHandler
                                 tm.DropDownItems.Add(tmX)
-                                tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
-                                tmX.TextAlign = ContentAlignment.MiddleLeft
-                                tmX.ForeColor = Color.DarkRed
-                                tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
-                                tmX.Alignment = ToolStripItemAlignment.Left
-                                tmX.Width = 10
-                                tmX.Padding = New System.Windows.Forms.Padding(0)
-                                tmX.Margin = New System.Windows.Forms.Padding(0)
-                                tmX.Name = "openwithExplorer_" & idx.ToString
-                                tmX.Text = "Open with Windows Explorer"
-                                tmX.ToolTipText = ""
-                                tm.DropDown.ShowItemToolTips = False
-                                AddHandler tmX.Click, AddressOf MenuItemEventHandler
-                                tm.DropDownItems.Add(tmX)
-                            Case "fdf", "xfdf", "xdp", "xml"
+                                If Not IsValidUrl(fp) Then
+                                    tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithExplorer_" & idx.ToString
+                                    tmX.Text = "Open with Windows Explorer"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
+                                End If
+                            Case "fdf", "xfdf", "xdp", "xml", "json", "html", "htm", "xhtml", "aspx"
                                 tmX = New ToolStripMenuItem("Open With Default")
                                 tmX.TextAlign = ContentAlignment.MiddleLeft
                                 tmX.ForeColor = Color.DarkRed
@@ -33794,7 +33799,24 @@ OPENFILE_KNOWN_FILENAME:
                                 tm.DropDown.ShowItemToolTips = False
                                 AddHandler tmX.Click, AddressOf MenuItemEventHandler
                                 tm.DropDownItems.Add(tmX)
-                                tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
+                                If Not IsValidUrl(fp) Then
+                                    tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithExplorer_" & idx.ToString
+                                    tmX.Text = "Open with Windows Explorer"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
+                                End If
+                            Case Else
+                                tmX = New ToolStripMenuItem("Open With Default")
                                 tmX.TextAlign = ContentAlignment.MiddleLeft
                                 tmX.ForeColor = Color.DarkRed
                                 tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
@@ -33802,13 +33824,12 @@ OPENFILE_KNOWN_FILENAME:
                                 tmX.Width = 10
                                 tmX.Padding = New System.Windows.Forms.Padding(0)
                                 tmX.Margin = New System.Windows.Forms.Padding(0)
-                                tmX.Name = "openwithExplorer_" & idx.ToString
-                                tmX.Text = "Open with Windows Explorer"
+                                tmX.Name = "openwithDefault_" & idx.ToString
+                                tmX.Text = "Open with default viewer"
                                 tmX.ToolTipText = ""
                                 tm.DropDown.ShowItemToolTips = False
                                 AddHandler tmX.Click, AddressOf MenuItemEventHandler
                                 tm.DropDownItems.Add(tmX)
-                            Case "json"
                                 tmX = New ToolStripMenuItem("Open With Notepad")
                                 tmX.TextAlign = ContentAlignment.MiddleLeft
                                 tmX.ForeColor = Color.DarkRed
@@ -33823,20 +33844,22 @@ OPENFILE_KNOWN_FILENAME:
                                 tm.DropDown.ShowItemToolTips = False
                                 AddHandler tmX.Click, AddressOf MenuItemEventHandler
                                 tm.DropDownItems.Add(tmX)
-                                tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
-                                tmX.TextAlign = ContentAlignment.MiddleLeft
-                                tmX.ForeColor = Color.DarkRed
-                                tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
-                                tmX.Alignment = ToolStripItemAlignment.Left
-                                tmX.Width = 10
-                                tmX.Padding = New System.Windows.Forms.Padding(0)
-                                tmX.Margin = New System.Windows.Forms.Padding(0)
-                                tmX.Name = "openwithExplorer_" & idx.ToString
-                                tmX.Text = "Open with Windows Explorer"
-                                tmX.ToolTipText = ""
-                                tm.DropDown.ShowItemToolTips = False
-                                AddHandler tmX.Click, AddressOf MenuItemEventHandler
-                                tm.DropDownItems.Add(tmX)
+                                If Not IsValidUrl(fp) Then
+                                    tmX = New ToolStripMenuItem("Open Directory With Windows Explorer")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithExplorer_" & idx.ToString
+                                    tmX.Text = "Open with Windows Explorer"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
+                                End If
                         End Select
                         tmX = New ToolStripMenuItem("Remove")
                         tmX.TextAlign = ContentAlignment.MiddleLeft
