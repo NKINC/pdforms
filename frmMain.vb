@@ -2915,15 +2915,18 @@ TRYELSE:
         End If
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         ElseIf CheckfieldNameExits(PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), PDFField_Name.Text & "", PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         Else
             lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         End If
@@ -2931,6 +2934,66 @@ TRYELSE:
 
         Return
 ReturnSub:
+        '        Dim rectTempScreen As System.Drawing.RectangleF = cUserRect.rectScreen
+        '        Dim rectTempPDF As System.Drawing.RectangleF = cUserRect.rect
+        '        If PDFField_Dimensions_Paste_0_Left_llx.Checked Or PDFField_Dimensions_Paste_2_Right_urx.Checked Then
+        '            btnWidth.Text = CSng(btnRight.Text) - CSng(btnLeft.Text)
+        '        ElseIf PDFField_Dimensions_Paste_4_Width.Checked Then 'And (Not PDFField_Dimensions_Paste_0_Left_llx.Checked Or Not PDFField_Dimensions_Paste_2_Right_urx.Checked) Then
+        '            btnWidth.Text = _dimensionsList(4) + 0
+        '            If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
+        '                btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
+        '            ElseIf PDFField_Dimensions_Paste_2_Right_urx.Checked Then
+        '                btnLeft.Text = CSng(btnRight.Text) - CSng(btnWidth.Text)
+        '            Else
+        '                btnRight.Text = CSng(btnLeft.Text) + CSng(btnWidth.Text)
+        '            End If
+        '        End If
+        '        If PDFField_Dimensions_Paste_3_Top_ury.Checked Or PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
+        '            If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
+        '                btnHeight.Text = CSng(btnTop.Text) - CSng(btnBottom.Text)
+        '            Else
+        '                btnHeight.Text = CSng(btnBottom.Text) - CSng(btnTop.Text)
+        '            End If
+        '        ElseIf PDFField_Dimensions_Paste_5_Height.Checked Then 'And (Not PDFField_Dimensions_Paste_3_Top_ury.Checked Or Not PDFField_Dimensions_Paste_1_Bottom_lly.Checked) Then
+        '            btnHeight.Text = _dimensionsList(5) + 0
+        '            If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
+        '                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
+        '                    btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
+        '                Else
+        '                    btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
+        '                End If
+        '            ElseIf PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
+        '                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
+        '                    btnTop.Text = CSng(btnBottom.Text) + CSng(btnHeight.Text)
+        '                Else
+        '                    btnTop.Text = CSng(btnBottom.Text) - CSng(btnHeight.Text)
+        '                End If
+        '            Else
+        '                If CSng(btnTop.Text) > CSng(btnBottom.Text) Then
+        '                    btnBottom.Text = CSng(btnTop.Text) - CSng(btnHeight.Text)
+        '                Else
+        '                    btnBottom.Text = CSng(btnTop.Text) + CSng(btnHeight.Text)
+        '                End If
+        '            End If
+        '        End If
+        '        If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
+        '            Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+        '            r = GetFieldPositionsReverse(Session(), r)
+        '            Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
+        '        ElseIf CheckfieldNameExits(PDFField_Name.Text & "") Then
+        '            Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+        '            r = GetFieldPositionsReverse(Session(), r)
+        '            Session("output") = A0_PDFFormField_Modify(Session("output"), PDFField_Name.Text & "", PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
+        '        Else
+        '            lblFieldType.Text = "PROPERTIES"
+        '            Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+        '            r = GetFieldPositionsReverse(Session(), r)
+        '            Session("output") = A0_PDFFormField_Modify(Session("output"), "", PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
+        '        End If
+        '        calculateFields()
+
+        '        Return
+        'ReturnSub:
     End Sub
     Private Sub btnComboBox_Add_Click(ByVal sender As Object, ByVal e As System.EventArgs)
         If CheckfieldNameExits(PDFField_Name.Text & "") Then
@@ -3076,15 +3139,18 @@ ReturnSub:
         End If
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         End If
@@ -29202,17 +29268,20 @@ RedoFieldName:
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text))
             cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r, -1, -1, True)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
             cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r, -1, -1, True)
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
             cUserRect.rect = New System.Drawing.RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r, -1, -1, True)
         End If
         calculateFields()
@@ -29507,12 +29576,14 @@ GOTO_END:
         Dim r As iTextSharp.text.Rectangle, r2 As System.Drawing.RectangleF = cUserRect.rect
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             r = New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
             cUserRect.rect = r2
             A0_LoadPDF(True)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             r = New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
             cUserRect.rect = r2
@@ -29520,6 +29591,7 @@ GOTO_END:
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             r = New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
             cUserRect.rect = r2
@@ -31559,15 +31631,18 @@ GOTORETURN:
         End If
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         End If
@@ -31636,15 +31711,18 @@ GOTORETURN:
         End If
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         End If
@@ -36153,15 +36231,18 @@ OPENFILE_KNOWN_FILENAME:
         End If
         If Not fldNameHighlighted.IsNullOrEmpty() And CheckfieldNameExits(fldNameHighlighted & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), fldNameHighlighted, Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         ElseIf CheckfieldNameExits(Me.PDFField_Name.Text & "") Then
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), Me.PDFField_Name.Text & "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         Else
             Me.lblFieldType.Text = "PROPERTIES"
             Dim r As New iTextSharp.text.Rectangle(CSng(btnLeft.Text), CSng(btnBottom.Text), CSng(btnRight.Text), CSng(btnTop.Text)) 'Dim r As New iTextSharp.text.Rectangle(CSng(cUserRect.rect.Left), CSng(cUserRect.rect.Bottom), CSng(cUserRect.rect.Right), CSng(cUserRect.rect.Top))
+            cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
             r = GetFieldPositionsReverse(Session(), r)
             Session("output") = A0_PDFFormField_Modify(Session("output"), "", Me.PDFField_Name.Text & "", New BaseColor(PDFField_TextColorPicker.BackColor.R, PDFField_TextColorPicker.BackColor.G, PDFField_TextColorPicker.BackColor.B, PDFField_TextColorPicker.BackColor.A), New BaseColor(PDFField_BackgroundColorPicker.BackColor.R, PDFField_BackgroundColorPicker.BackColor.G, PDFField_BackgroundColorPicker.BackColor.B, PDFField_BackgroundColorPicker.BackColor.A), New BaseColor(PDFField_BorderColorPicker.BackColor.R, PDFField_BorderColorPicker.BackColor.G, PDFField_BorderColorPicker.BackColor.B, PDFField_BorderColorPicker.BackColor.A), r)
         End If
@@ -50493,99 +50574,57 @@ OPENFILE_KNOWN_FILENAME:
         End Try
     End Sub
     Private Sub btnWidth_TextChanged(sender As Object, e As EventArgs) Handles btnWidth.TextChanged
-        Dim rectTemp As RectangleF = Nothing
         Try
-            If Not pauseBtnTextChanged And Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing Then
-                rectTemp = cUserRect.rect
-                Dim pb As Boolean = pauseBtnTextChanged
-                pauseBtnTextChanged = True
-                btnHeight.Text = Math.Abs(CSng(btnTop.Text) - CSng(btnBottom.Text))
-                btnRight.Text = Math.Abs(CSng(btnLeft.Text) + CSng(btnWidth.Text))
-                pauseBtnTextChanged = pb
-                If Not cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text)) Then
-                    cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
-                End If
-                cUserRect.DrawPictureBoxImageBox()
+            If PDFField_Dimensions_Paste_4_Width.Checked Then
+                btnWidth.Text = _dimensionsList(4).ToString()
             End If
         Catch ex As Exception
-            Err.Clear()
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
         End Try
     End Sub
     Private Sub btnHeight_TextChanged(sender As Object, e As EventArgs) Handles btnHeight.TextChanged
-    End Sub
-    Private Sub btnLeft_TextChanged(sender As Object, e As EventArgs) Handles btnLeft.TextChanged
-        Dim rectTemp As RectangleF = Nothing
         Try
-            If Not pauseBtnTextChanged And Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing Then
-                rectTemp = cUserRect.rect
-                Dim pb As Boolean = pauseBtnTextChanged
-                pauseBtnTextChanged = True
-                btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
-                btnHeight.Text = Math.Abs(CSng(btnTop.Text) - CSng(btnBottom.Text))
-                pauseBtnTextChanged = pb
-                If Not cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text)) Then
-                    cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
-                End If
-                cUserRect.DrawPictureBoxImageBox()
+            If PDFField_Dimensions_Paste_5_Height.Checked Then
+                btnHeight.Text = _dimensionsList(5).ToString()
             End If
         Catch ex As Exception
-            Err.Clear()
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
+        End Try
+    End Sub
+    Private Sub btnLeft_TextChanged(sender As Object, e As EventArgs) Handles btnLeft.TextChanged
+        Try
+            If PDFField_Dimensions_Paste_0_Left_llx.Checked Then
+                btnLeft.Text = _dimensionsList(0).ToString()
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
         End Try
     End Sub
     Private Sub btnRight_TextChanged(sender As Object, e As EventArgs) Handles btnRight.TextChanged
-        Dim rectTemp As RectangleF = Nothing
         Try
-            If Not pauseBtnTextChanged And Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing Then
-                rectTemp = cUserRect.rect
-                pauseBtnTextChanged = True
-                btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
-                btnHeight.Text = Math.Abs(CSng(btnTop.Text) - CSng(btnBottom.Text))
-                pauseBtnTextChanged = False
-                If Not cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text)) Then
-                    cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
-                End If
-                cUserRect.DrawPictureBoxImageBox()
+            If PDFField_Dimensions_Paste_2_Right_urx.Checked Then
+                btnRight.Text = _dimensionsList(2).ToString()
             End If
         Catch ex As Exception
-            Err.Clear()
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
         End Try
     End Sub
     Private Sub btnTop_TextChanged(sender As Object, e As EventArgs) Handles btnTop.TextChanged
-        Dim rectTemp As RectangleF = Nothing
         Try
-            If Not pauseBtnTextChanged And Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing Then
-                rectTemp = cUserRect.rect
-                Dim pb As Boolean = pauseBtnTextChanged
-                pauseBtnTextChanged = True
-                btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
-                btnHeight.Text = Math.Abs(CSng(btnTop.Text) - CSng(btnBottom.Text))
-                pauseBtnTextChanged = pb
-                If Not cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text)) Then
-                    cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
-                End If
-                cUserRect.DrawPictureBoxImageBox()
+            If PDFField_Dimensions_Paste_3_Top_ury.Checked Then
+                btnTop.Text = _dimensionsList(3).ToString()
             End If
         Catch ex As Exception
-            Err.Clear()
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
         End Try
     End Sub
     Private Sub btnBottom_TextChanged(sender As Object, e As EventArgs) Handles btnBottom.TextChanged
-        Dim rectTemp As RectangleF = Nothing
         Try
-            If Not pauseBtnTextChanged And Not String.IsNullOrEmpty(fldNameHighlighted) And Not cUserRect.rect = Nothing Then
-                rectTemp = cUserRect.rect
-                Dim pb As Boolean = pauseBtnTextChanged
-                pauseBtnTextChanged = True
-                btnWidth.Text = Math.Abs(CSng(btnRight.Text) - CSng(btnLeft.Text))
-                btnHeight.Text = Math.Abs(CSng(btnTop.Text) - CSng(btnBottom.Text))
-                pauseBtnTextChanged = pb
-                If Not cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text)) Then
-                    cUserRect.rect = New RectangleF(CSng(btnLeft.Text), CSng(btnTop.Text), CSng(btnWidth.Text), CSng(btnHeight.Text))
-                End If
-                cUserRect.DrawPictureBoxImageBox()
+            If PDFField_Dimensions_Paste_1_Bottom_lly.Checked Then
+                btnBottom.Text = _dimensionsList(1).ToString()
             End If
         Catch ex As Exception
-            Err.Clear()
+            TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
         End Try
     End Sub
     Private Sub Button7_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button7.Click
