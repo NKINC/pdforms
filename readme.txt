@@ -2,7 +2,7 @@
 
 SUMMARY:
 DATE: 2018-03-15
-Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+Copyright 2018 NK-INC.COM All Rights reserved.
 PdForms.net utilizes iTextSharp technologies.
 Website: www.pdforms.net (open source), www.pdforms.com (about)
 
