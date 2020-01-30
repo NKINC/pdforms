@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("PDF2HTML")>
-<Assembly: AssemblyCopyright("Copyright ©  2010 Nicholas Kowalewicz. All Rights Reserved.")>
+<Assembly: AssemblyCopyright("Copyright ©  2010 NK-INC.COM. All Rights Reserved.")>
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)>
