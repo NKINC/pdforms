@@ -1,4 +1,4 @@
 ﻿iTextSharp Release Notes:
-EDITS to the iTextSharp project are noted in comments "EDITED NICHOLAS KOWALEWICZ"
+EDITS to the iTextSharp project are noted in comments "EDITED NK-INC.COM"
 Acrofields.GetAppearance
 Acrofields.RemoveField
