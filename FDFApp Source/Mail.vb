@@ -13,8 +13,8 @@ Imports System.Security.Cryptography
 Namespace FDFApp
     Public Class Mail
         ''' <summary>
-        ''' Created by Nicholas Kowalewicz - NK-INC.COM
-        ''' Copyright (c) 2017 Nicholas Kowalewicz (NK-INC.COM). All rights reserved. 
+        ''' Created by NK-INC.COM - NK-INC.COM
+        ''' Copyright (c) 2017 NK-INC.COM (NK-INC.COM). All rights reserved. 
         ''' Mail is a class in FDFToolkit.net (FDFApp).
         ''' FDFToolkit.net (FDFApp) utilizes iTextSharp technologies.
         ''' Website: www.fdftoolkit.net

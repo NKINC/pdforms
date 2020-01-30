@@ -18,8 +18,8 @@ Namespace FDFApp
     Public Class FDFApp_Class
         Implements IDisposable
         ''' <summary>
-        ''' Created by Nicholas Kowalewicz 
-        ''' Copyright (c) 2017 Nicholas Kowalewicz. All rights reserved.
+        ''' Created by NK-INC.COM 
+        ''' Copyright (c) 2017 NK-INC.COM. All rights reserved.
         ''' FDFApp_Class is a class in FDFToolkit.net (FDFApp).
         ''' FDFToolkit.net (FDFApp) utilizes iTextSharp technologies.
         ''' Website: www.fdftoolkit.net

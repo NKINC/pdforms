@@ -13,8 +13,8 @@ Namespace FDFApp
     Public Class FDFErrors
         Implements IDisposable
         ''' <summary>
-        ''' Created by Nicholas Kowalewicz - NK-INC.COM
-        ''' Copyright (c) 2017 Nicholas Kowalewicz (NK-INC.COM). All rights reserved.
+        ''' Created by NK-INC.COM - NK-INC.COM
+        ''' Copyright (c) 2017 NK-INC.COM (NK-INC.COM). All rights reserved.
         ''' FDFErrors is a class in FDFToolkit.net (FDFApp).
         ''' FDFToolkit.net (FDFApp) utilizes iTextSharp technologies.
         ''' Website: www.fdftoolkit.net
