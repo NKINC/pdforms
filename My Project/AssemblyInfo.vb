@@ -11,9 +11,9 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("PdForms.Net")>
 <Assembly: AssemblyDescription("PdForms.net - an open-source pdf editor.")>
-<Assembly: AssemblyCompany("Nicholas Kowalewicz")>
+<Assembly: AssemblyCompany("NK-INC.COM")>
 <Assembly: AssemblyProduct("PdFormsNet")>
-<Assembly: AssemblyCopyright("Copyright © 2018 Nicholas Kowalewicz. All rights reserved.")>
+<Assembly: AssemblyCopyright("Copyright © 2018 NK-INC.COM. All rights reserved.")>
 <Assembly: AssemblyTrademark("PdForms.net")>
 
 <Assembly: ComVisible(False)>
