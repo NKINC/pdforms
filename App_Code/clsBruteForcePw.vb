@@ -2,7 +2,7 @@
 Imports FDFApp
 Public Class clsBruteForcePw
     ''' <summary>
-    ''' PdForms.net- Created by Nicholas Kowalewicz (www.PdForms.net)
+    ''' PdForms.net- Created by NK-INC.COM (www.PdForms.net)
     ''' Copyright 2017 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Email Contact: hello@pdforms.net

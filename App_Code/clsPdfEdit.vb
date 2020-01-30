@@ -13,7 +13,7 @@ Imports FDFApp.FDFDoc_Class
 Public Class clsPdfEdit
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+    ''' Copyright 2018 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
