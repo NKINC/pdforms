@@ -11,8 +11,8 @@ Imports System.Runtime.InteropServices
 Public Class PDF2HTMLnet
     Implements IDisposable
     ''' <summary>
-    ''' PDF2HTMLnet - Created by Nicholas Kowalewicz (NK-INC.COM)
-    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
+    ''' PDF2HTMLnet - Created by NK-INC.COM (NK-INC.COM)
+    ''' Copyright 2018 NK-INC.COM All Rights reserved.
     ''' PDF2HTMLnet utilizes iTextSharp technologies.
     ''' Website: www.nk-inc.com
     ''' </summary>
