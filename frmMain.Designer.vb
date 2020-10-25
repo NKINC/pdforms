@@ -23,7 +23,6 @@ Partial Class frmMain
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmMain))
         Me.btnNav_First = New System.Windows.Forms.Button()
         Me.btnNav_Previous = New System.Windows.Forms.Button()
         Me.btnPage = New System.Windows.Forms.ComboBox()
@@ -110,13 +109,13 @@ Partial Class frmMain
         Me.ListBox_Options_Commit = New System.Windows.Forms.CheckBox()
         Me.ListBox_Options_MultipleSelection = New System.Windows.Forms.CheckBox()
         Me.ListBox_Options_Sort = New System.Windows.Forms.CheckBox()
-        Me.ComboBox_ItemDisplay = New System.Windows.Forms.ListBox()
-        Me.ComboBox_ItemValue = New System.Windows.Forms.ListBox()
         Me.ComboBox_Additional_Options = New System.Windows.Forms.Panel()
         Me.ComboBox_SortItems = New System.Windows.Forms.CheckBox()
         Me.ComboBox_CommitImmediately = New System.Windows.Forms.CheckBox()
         Me.ComboBox_AllowEnterCustomText = New System.Windows.Forms.CheckBox()
         Me.ComboBox_CheckSpelling = New System.Windows.Forms.CheckBox()
+        Me.ComboBox_ItemDisplay = New System.Windows.Forms.ListBox()
+        Me.ComboBox_ItemValue = New System.Windows.Forms.ListBox()
         Me.PDFEdit_Options_RadioButtons = New System.Windows.Forms.Panel()
         Me.RadioButton_CheckedByDefault = New System.Windows.Forms.CheckBox()
         Me.RadioButton_Checked = New System.Windows.Forms.CheckBox()
@@ -161,8 +160,9 @@ Partial Class frmMain
         Me.Label6 = New System.Windows.Forms.Label()
         Me.PDFField_Name = New System.Windows.Forms.TextBox()
         Me.Label44 = New System.Windows.Forms.Label()
-        Me.PDFField_Value = New System.Windows.Forms.TextBox()
         Me.Label5 = New System.Windows.Forms.Label()
+        Me.PDFField_Listbox_Value = New System.Windows.Forms.ListBox()
+        Me.PDFField_Value = New System.Windows.Forms.TextBox()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
         Me.PDFField_CopyAppearance = New System.Windows.Forms.CheckBox()
         Me.Panel3 = New System.Windows.Forms.Panel()
@@ -457,6 +457,7 @@ Partial Class frmMain
         Me.RemoveCurrentPageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RemoveAllPagesExceptThisOneToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator11 = New System.Windows.Forms.ToolStripSeparator()
+        Me.AddHyperlinkToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.AddWatermarkToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.InsertBarCodeToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.InsertImageOverPageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -481,9 +482,12 @@ Partial Class frmMain
         Me.RemoveSignatureFlagsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CleanUpFormFieldsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.RemoveUnusedObjectsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripMenuItemExportImageMagick = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveRawSessionToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveAsToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.SaveAsOneImageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.SaveAsCopyToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.NewDocumentToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.CreatePDFFromToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FromBlankPageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -511,6 +515,10 @@ Partial Class frmMain
         Me.CopyFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CopyBytesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.CopyPageImageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ClearClipboardToolStripMenuItem2 = New System.Windows.Forms.ToolStripMenuItem()
+        Me.SavePageImageToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.CopyFileLocationToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator14 = New System.Windows.Forms.ToolStripSeparator()
         Me.OpenContainingFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenApplicationFolderToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -576,6 +584,7 @@ Partial Class frmMain
         Me.PDFReferenceToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.XFAJSReferenceToolStripMenuItem1 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator6 = New System.Windows.Forms.ToolStripSeparator()
+        Me.ToolStripComboBoxImageProcessor = New System.Windows.Forms.ToolStripComboBox()
         Me.ShowLogToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ClearLogToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CloseToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -694,77 +703,77 @@ Partial Class frmMain
         Me.CopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.CancelCopyAppearanceToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FieldPropertiesToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.PDFEdit_Options_Textboxes.SuspendLayout()
-        Me.PDFEdit_Options_SubmitButtons.SuspendLayout()
-        Me.grpBoxPuchButton_IconAndLabel.SuspendLayout()
-        CType(Me.PuchButton_Options_PictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.grpBoxPuchButton_IconPlacement.SuspendLayout()
-        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Vertical, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Horizontal, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.PDFEdit_Options_ComboBoxes.SuspendLayout()
-        Me.ListBox_Additional_Options.SuspendLayout()
-        Me.ComboBox_Additional_Options.SuspendLayout()
-        Me.PDFEdit_Options_RadioButtons.SuspendLayout()
-        Me.pnlFields.SuspendLayout()
-        Me.TabControl1.SuspendLayout()
-        Me.TabPage1.SuspendLayout()
-        Me.Panel1.SuspendLayout()
-        Me.TabPage2.SuspendLayout()
-        Me.Panel3.SuspendLayout()
-        CType(Me.PDFField_TextColorPicker, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.Panel2.SuspendLayout()
-        CType(Me.PDFField_BackgroundColorPicker_Transparent, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.PDFField_BorderColorPicker_Transparent, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.PDFField_BackgroundColorPicker, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.PDFField_BorderColorPicker, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.TabPage4.SuspendLayout()
-        Me.PDFEdit_Actions.SuspendLayout()
-        Me.Panel4.SuspendLayout()
-        Me.PDFField_Action_Panel_SubmitForm.SuspendLayout()
-        Me.PDFField_Action_Panel_SubmitForm_DataSelectionPanel.SuspendLayout()
-        Me.PDFField_Action_Panel_SubmitForm_FieldSelectionPanel.SuspendLayout()
-        Me.PDFField_Action_Panel_JavaScript.SuspendLayout()
-        Me.PDFField_Action_Panel_Named.SuspendLayout()
-        Me.PDFField_Action_Panel_List.SuspendLayout()
-        Me.PDFField_Action_Panel_SubmitForm_FieldsList_Panel.SuspendLayout()
-        Me.GroupBox1.SuspendLayout()
-        Me.TabPage5.SuspendLayout()
-        Me.pnlPDFField_Format_Number.SuspendLayout()
-        Me.pnlPDFField_Format_Custom.SuspendLayout()
-        Me.pnlPDFField_Format_Special.SuspendLayout()
-        Me.pnlPDFField_Format_Time.SuspendLayout()
-        Me.pnlPDFField_Format_Date.SuspendLayout()
-        Me.pnlPDFField_Format_Percentage.SuspendLayout()
-        Me.TabPage6.SuspendLayout()
-        Me.GroupBox3.SuspendLayout()
-        Me.TabPage7.SuspendLayout()
-        Me.GroupBox4.SuspendLayout()
-        Me.TabPage8.SuspendLayout()
-        Me.PDFEdit_DataFields.SuspendLayout()
-        Me.TabPage9.SuspendLayout()
-        Me.GroupBox5.SuspendLayout()
-        Me.TabPage10.SuspendLayout()
-        Me.GroupBox6.SuspendLayout()
-        Me.TabPage11.SuspendLayout()
-        Me.TabPage12.SuspendLayout()
-        CType(Me.ImageRotation_PictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.TabPage13.SuspendLayout()
-        Me.TabPage3.SuspendLayout()
-        Me.StatusStrip1.SuspendLayout()
-        Me.FlowLayoutPanel1.SuspendLayout()
-        Me.ContextMenuStrip1.SuspendLayout()
-        Me.PictureBox1_Panel.SuspendLayout()
-        Me.pnlPageSize.SuspendLayout()
-        Me.pnlFieldTabOrder.SuspendLayout()
-        Me.pnlCalculationOrder.SuspendLayout()
-        Me.pnlCompression.SuspendLayout()
-        CType(Me.A0_PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.A0_PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
-        Me.pnlPDFEncryption.SuspendLayout()
-        Me.groupBoxEncryption.SuspendLayout()
-        Me.groupBoxPermissions.SuspendLayout()
-        Me.ContextMenuStripRightClick2.SuspendLayout()
-        Me.SuspendLayout()
+        Me.PDFEdit_Options_Textboxes.SuspendLayout
+        Me.PDFEdit_Options_SubmitButtons.SuspendLayout
+        Me.grpBoxPuchButton_IconAndLabel.SuspendLayout
+        CType(Me.PuchButton_Options_PictureBox, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.grpBoxPuchButton_IconPlacement.SuspendLayout
+        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Vertical, System.ComponentModel.ISupportInitialize).BeginInit
+        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Horizontal, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.PDFEdit_Options_ComboBoxes.SuspendLayout
+        Me.ListBox_Additional_Options.SuspendLayout
+        Me.ComboBox_Additional_Options.SuspendLayout
+        Me.PDFEdit_Options_RadioButtons.SuspendLayout
+        Me.pnlFields.SuspendLayout
+        Me.TabControl1.SuspendLayout
+        Me.TabPage1.SuspendLayout
+        Me.Panel1.SuspendLayout
+        Me.TabPage2.SuspendLayout
+        Me.Panel3.SuspendLayout
+        CType(Me.PDFField_TextColorPicker, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.Panel2.SuspendLayout
+        CType(Me.PDFField_BackgroundColorPicker_Transparent, System.ComponentModel.ISupportInitialize).BeginInit
+        CType(Me.PDFField_BorderColorPicker_Transparent, System.ComponentModel.ISupportInitialize).BeginInit
+        CType(Me.PDFField_BackgroundColorPicker, System.ComponentModel.ISupportInitialize).BeginInit
+        CType(Me.PDFField_BorderColorPicker, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.TabPage4.SuspendLayout
+        Me.PDFEdit_Actions.SuspendLayout
+        Me.Panel4.SuspendLayout
+        Me.PDFField_Action_Panel_SubmitForm.SuspendLayout
+        Me.PDFField_Action_Panel_SubmitForm_DataSelectionPanel.SuspendLayout
+        Me.PDFField_Action_Panel_SubmitForm_FieldSelectionPanel.SuspendLayout
+        Me.PDFField_Action_Panel_JavaScript.SuspendLayout
+        Me.PDFField_Action_Panel_Named.SuspendLayout
+        Me.PDFField_Action_Panel_List.SuspendLayout
+        Me.PDFField_Action_Panel_SubmitForm_FieldsList_Panel.SuspendLayout
+        Me.GroupBox1.SuspendLayout
+        Me.TabPage5.SuspendLayout
+        Me.pnlPDFField_Format_Number.SuspendLayout
+        Me.pnlPDFField_Format_Custom.SuspendLayout
+        Me.pnlPDFField_Format_Special.SuspendLayout
+        Me.pnlPDFField_Format_Time.SuspendLayout
+        Me.pnlPDFField_Format_Date.SuspendLayout
+        Me.pnlPDFField_Format_Percentage.SuspendLayout
+        Me.TabPage6.SuspendLayout
+        Me.GroupBox3.SuspendLayout
+        Me.TabPage7.SuspendLayout
+        Me.GroupBox4.SuspendLayout
+        Me.TabPage8.SuspendLayout
+        Me.PDFEdit_DataFields.SuspendLayout
+        Me.TabPage9.SuspendLayout
+        Me.GroupBox5.SuspendLayout
+        Me.TabPage10.SuspendLayout
+        Me.GroupBox6.SuspendLayout
+        Me.TabPage11.SuspendLayout
+        Me.TabPage12.SuspendLayout
+        CType(Me.ImageRotation_PictureBox, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.TabPage13.SuspendLayout
+        Me.TabPage3.SuspendLayout
+        Me.StatusStrip1.SuspendLayout
+        Me.FlowLayoutPanel1.SuspendLayout
+        Me.ContextMenuStrip1.SuspendLayout
+        Me.PictureBox1_Panel.SuspendLayout
+        Me.pnlPageSize.SuspendLayout
+        Me.pnlFieldTabOrder.SuspendLayout
+        Me.pnlCalculationOrder.SuspendLayout
+        Me.pnlCompression.SuspendLayout
+        CType(Me.A0_PictureBox2, System.ComponentModel.ISupportInitialize).BeginInit
+        CType(Me.A0_PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit
+        Me.pnlPDFEncryption.SuspendLayout
+        Me.groupBoxEncryption.SuspendLayout
+        Me.groupBoxPermissions.SuspendLayout
+        Me.ContextMenuStripRightClick2.SuspendLayout
+        Me.SuspendLayout
         '
         'btnNav_First
         '
@@ -1504,9 +1513,9 @@ Partial Class frmMain
         Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.btnComboBox_ItemClear)
         Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.btnComboBox_ItemDefault)
         Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.ListBox_Additional_Options)
+        Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.ComboBox_Additional_Options)
         Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.ComboBox_ItemDisplay)
         Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.ComboBox_ItemValue)
-        Me.PDFEdit_Options_ComboBoxes.Controls.Add(Me.ComboBox_Additional_Options)
         Me.PDFEdit_Options_ComboBoxes.Location = New System.Drawing.Point(8, 16)
         Me.PDFEdit_Options_ComboBoxes.Name = "PDFEdit_Options_ComboBoxes"
         Me.PDFEdit_Options_ComboBoxes.Size = New System.Drawing.Size(424, 296)
@@ -1687,23 +1696,6 @@ Partial Class frmMain
         Me.ListBox_Options_Sort.Text = "Sort items"
         Me.ListBox_Options_Sort.UseVisualStyleBackColor = True
         '
-        'ComboBox_ItemDisplay
-        '
-        Me.ComboBox_ItemDisplay.FormattingEnabled = True
-        Me.ComboBox_ItemDisplay.Location = New System.Drawing.Point(112, 56)
-        Me.ComboBox_ItemDisplay.Name = "ComboBox_ItemDisplay"
-        Me.ComboBox_ItemDisplay.Size = New System.Drawing.Size(200, 134)
-        Me.ComboBox_ItemDisplay.TabIndex = 583
-        '
-        'ComboBox_ItemValue
-        '
-        Me.ComboBox_ItemValue.FormattingEnabled = True
-        Me.ComboBox_ItemValue.Location = New System.Drawing.Point(112, 56)
-        Me.ComboBox_ItemValue.Name = "ComboBox_ItemValue"
-        Me.ComboBox_ItemValue.Size = New System.Drawing.Size(200, 134)
-        Me.ComboBox_ItemValue.TabIndex = 584
-        Me.ComboBox_ItemValue.Visible = False
-        '
         'ComboBox_Additional_Options
         '
         Me.ComboBox_Additional_Options.Controls.Add(Me.ComboBox_SortItems)
@@ -1754,6 +1746,23 @@ Partial Class frmMain
         Me.ComboBox_CheckSpelling.TabIndex = 597
         Me.ComboBox_CheckSpelling.Text = "Check spelling"
         Me.ComboBox_CheckSpelling.UseVisualStyleBackColor = True
+        '
+        'ComboBox_ItemDisplay
+        '
+        Me.ComboBox_ItemDisplay.FormattingEnabled = True
+        Me.ComboBox_ItemDisplay.Location = New System.Drawing.Point(112, 56)
+        Me.ComboBox_ItemDisplay.Name = "ComboBox_ItemDisplay"
+        Me.ComboBox_ItemDisplay.Size = New System.Drawing.Size(200, 134)
+        Me.ComboBox_ItemDisplay.TabIndex = 583
+        '
+        'ComboBox_ItemValue
+        '
+        Me.ComboBox_ItemValue.FormattingEnabled = True
+        Me.ComboBox_ItemValue.Location = New System.Drawing.Point(112, 56)
+        Me.ComboBox_ItemValue.Name = "ComboBox_ItemValue"
+        Me.ComboBox_ItemValue.Size = New System.Drawing.Size(200, 134)
+        Me.ComboBox_ItemValue.TabIndex = 584
+        Me.ComboBox_ItemValue.Visible = False
         '
         'PDFEdit_Options_RadioButtons
         '
@@ -2060,8 +2069,9 @@ Partial Class frmMain
         Me.TabPage1.Controls.Add(Me.Label44)
         Me.TabPage1.Controls.Add(Me.PDFField_Tooltip)
         Me.TabPage1.Controls.Add(Me.lblPDFField_Tooltip)
-        Me.TabPage1.Controls.Add(Me.PDFField_Value)
         Me.TabPage1.Controls.Add(Me.Label5)
+        Me.TabPage1.Controls.Add(Me.PDFField_Listbox_Value)
+        Me.TabPage1.Controls.Add(Me.PDFField_Value)
         Me.TabPage1.Location = New System.Drawing.Point(4, 22)
         Me.TabPage1.Name = "TabPage1"
         Me.TabPage1.Padding = New System.Windows.Forms.Padding(3)
@@ -2243,16 +2253,6 @@ Partial Class frmMain
         Me.Label44.Text = "Name"
         Me.Label44.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         '
-        'PDFField_Value
-        '
-        Me.PDFField_Value.ForeColor = System.Drawing.SystemColors.ControlText
-        Me.PDFField_Value.Location = New System.Drawing.Point(88, 98)
-        Me.PDFField_Value.Multiline = True
-        Me.PDFField_Value.Name = "PDFField_Value"
-        Me.PDFField_Value.Size = New System.Drawing.Size(280, 64)
-        Me.PDFField_Value.TabIndex = 941
-        Me.PDFField_Value.Text = "PDFField_Value"
-        '
         'Label5
         '
         Me.Label5.ForeColor = System.Drawing.SystemColors.ControlText
@@ -2262,6 +2262,24 @@ Partial Class frmMain
         Me.Label5.TabIndex = 938
         Me.Label5.Text = "Common Properties"
         Me.Label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        '
+        'PDFField_Listbox_Value
+        '
+        Me.PDFField_Listbox_Value.FormattingEnabled = True
+        Me.PDFField_Listbox_Value.Location = New System.Drawing.Point(88, 92)
+        Me.PDFField_Listbox_Value.Name = "PDFField_Listbox_Value"
+        Me.PDFField_Listbox_Value.Size = New System.Drawing.Size(280, 69)
+        Me.PDFField_Listbox_Value.TabIndex = 997
+        '
+        'PDFField_Value
+        '
+        Me.PDFField_Value.ForeColor = System.Drawing.SystemColors.ControlText
+        Me.PDFField_Value.Location = New System.Drawing.Point(88, 98)
+        Me.PDFField_Value.Multiline = True
+        Me.PDFField_Value.Name = "PDFField_Value"
+        Me.PDFField_Value.Size = New System.Drawing.Size(280, 64)
+        Me.PDFField_Value.TabIndex = 941
+        Me.PDFField_Value.Text = "PDFField_Value"
         '
         'TabPage2
         '
@@ -4904,10 +4922,10 @@ Partial Class frmMain
         '
         'TabPage3
         '
-        Me.TabPage3.Controls.Add(Me.PDFEdit_Options_RadioButtons)
-        Me.TabPage3.Controls.Add(Me.PDFEdit_Options_SubmitButtons)
         Me.TabPage3.Controls.Add(Me.PDFEdit_Options_ComboBoxes)
         Me.TabPage3.Controls.Add(Me.PDFEdit_Options_Textboxes)
+        Me.TabPage3.Controls.Add(Me.PDFEdit_Options_RadioButtons)
+        Me.TabPage3.Controls.Add(Me.PDFEdit_Options_SubmitButtons)
         Me.TabPage3.Location = New System.Drawing.Point(4, 22)
         Me.TabPage3.Name = "TabPage3"
         Me.TabPage3.Size = New System.Drawing.Size(441, 319)
@@ -5291,14 +5309,14 @@ Partial Class frmMain
         'ContextMenuStrip1
         '
         Me.ContextMenuStrip1.Font = New System.Drawing.Font("Arial", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel)
-        Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.OpenAppDataToolStripMenuItem1, Me.OpenTempFolderToolStripMenuItem1, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
+        Me.ContextMenuStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.PDFDocumentToolStripMenuItem, Me.SaveToolStripMenuItem, Me.SaveRawSessionToolStripMenuItem, Me.SaveAsToolStripMenuItem, Me.NewDocumentToolStripMenuItem1, Me.CreatePDFFromToolStripMenuItem, Me.OpenToolStripMenuItem, Me.OpenDocumentFromURLToolStripMenuItem, Me.OpenWithPasswordToolStripMenuItem, Me.RefreshreopenToolStripMenuItem, Me.PropertiesToolStripMenuItem, Me.ClipboardToolStripMenuItem, Me.ToolStripSeparator14, Me.OpenContainingFolderToolStripMenuItem, Me.OpenApplicationFolderToolStripMenuItem, Me.OpenAppDataToolStripMenuItem1, Me.OpenTempFolderToolStripMenuItem1, Me.ToolStripMenuItemLicense, Me.ToolStripSeparator10, Me.UnlockDocumentSecurityToolStripMenuItem, Me.ToolStripSeparator4, Me.ViewToolStripMenuItem, Me.ToolStripSeparator7, Me.OpenFilesFoldersListToolStripMenuItem, Me.FieldsBrowserToolStripMenuItem, Me.DataSourceBrowserToolStripMenuItem, Me.FTPToolStripMenuItem1, Me.ScanPDFsToolStripMenuItem, Me.ToolStripSeparator17, Me.PrintDocumentToolStripMenuItem, Me.EmailDocumentToolStripMenuItem, Me.MassPopulateToolStripMenuItem, Me.CreateHTMLFormToolStripMenuItem, Me.ToolStripSeparator1, Me.OpenWithToolStripMenuItem, Me.PreviewWithToolStripMenuItem, Me.AssociationExtensionsToolStripMenuItem, Me.ToolStripSeparator3, Me.ReferencesToolStripMenuItem, Me.ToolStripSeparator6, Me.ToolStripComboBoxImageProcessor, Me.ShowLogToolStripMenuItem, Me.ClearLogToolStripMenuItem, Me.CloseToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.ContextMenuStrip1.Name = "ContextMenuStrip1"
-        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 890)
+        Me.ContextMenuStrip1.Size = New System.Drawing.Size(297, 917)
         '
         'PDFDocumentToolStripMenuItem
         '
         Me.PDFDocumentToolStripMenuItem.BackColor = System.Drawing.SystemColors.Control
-        Me.PDFDocumentToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AttachmentsToolStripMenuItem, Me.ImportBlankPageToolStripMenuItem, Me.AppendPDFDocumentToolStripMenuItem, Me.ImportImageToolStripMenuItem, Me.ImportImageFromClipboardToolStripMenuItem, Me.AppendPageFromScannerToolStripMenuItem, Me.AppendPageFromTWAINScannerToolStripMenuItem, Me.AppendPageFromWebToolStripMenuItem, Me.ImportFileToolStripMenuItem, Me.AppendPagesFromDirectoryToolStripMenuItem, Me.ToolStripSeparator13, Me.ToolStripMenuItemResetForm, Me.ToolStripMenuItemClearAllValues, Me.ImportDataToolStripMenuItem, Me.FlattenFormFieldsToolStripMenuItem, Me.RemoveFormFieldsToolStripMenuItem, Me.RemoveXFAToolStripMenuItem, Me.ToolStripSeparator15, Me.SplitIntoMultiplePDFFilesToolStripMenuItem, Me.ToolStripSeparator5, Me.ReplaceCurrentPageToolStripMenuItem, Me.SelectPageRangeToolStripMenuItem, Me.RemoveCurrentPageToolStripMenuItem, Me.RemoveAllPagesExceptThisOneToolStripMenuItem, Me.ToolStripSeparator11, Me.AddWatermarkToolStripMenuItem, Me.InsertBarCodeToolStripMenuItem, Me.InsertImageOverPageToolStripMenuItem, Me.InsertImageUnderPageToolStripMenuItem, Me.InsertFlashObjectOverPageToolStripMenuItem, Me.InsertSignatureOverPageToolStripMenuItem, Me.OptimizeImagesToolStripMenuItem, Me.RotatePageToolStripMenuItem, Me.ExtractImagesToolStripMenuItem, Me.ExtractTextFromPDFDocumentToolStripMenuItem, Me.ToolStripSeparator2, Me.FieldTabOrderToolStripMenuItem, Me.FieldCalculationOrderToolStripMenuItem, Me.PageSizeToolStripMenuItem, Me.CompressDocumentToolStripMenuItem, Me.PDFEncryptionToolStripMenuItem, Me.ToolStripSeparator12, Me.RemovePDFUsageRightsToolStripMenuItem, Me.RemoveSignatureFlagsToolStripMenuItem, Me.CleanUpFormFieldsToolStripMenuItem, Me.RemoveUnusedObjectsToolStripMenuItem})
+        Me.PDFDocumentToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AttachmentsToolStripMenuItem, Me.ImportBlankPageToolStripMenuItem, Me.AppendPDFDocumentToolStripMenuItem, Me.ImportImageToolStripMenuItem, Me.ImportImageFromClipboardToolStripMenuItem, Me.AppendPageFromScannerToolStripMenuItem, Me.AppendPageFromTWAINScannerToolStripMenuItem, Me.AppendPageFromWebToolStripMenuItem, Me.ImportFileToolStripMenuItem, Me.AppendPagesFromDirectoryToolStripMenuItem, Me.ToolStripSeparator13, Me.ToolStripMenuItemResetForm, Me.ToolStripMenuItemClearAllValues, Me.ImportDataToolStripMenuItem, Me.FlattenFormFieldsToolStripMenuItem, Me.RemoveFormFieldsToolStripMenuItem, Me.RemoveXFAToolStripMenuItem, Me.ToolStripSeparator15, Me.SplitIntoMultiplePDFFilesToolStripMenuItem, Me.ToolStripSeparator5, Me.ReplaceCurrentPageToolStripMenuItem, Me.SelectPageRangeToolStripMenuItem, Me.RemoveCurrentPageToolStripMenuItem, Me.RemoveAllPagesExceptThisOneToolStripMenuItem, Me.ToolStripSeparator11, Me.AddHyperlinkToolStripMenuItem1, Me.AddWatermarkToolStripMenuItem, Me.InsertBarCodeToolStripMenuItem, Me.InsertImageOverPageToolStripMenuItem, Me.InsertImageUnderPageToolStripMenuItem, Me.InsertFlashObjectOverPageToolStripMenuItem, Me.InsertSignatureOverPageToolStripMenuItem, Me.OptimizeImagesToolStripMenuItem, Me.RotatePageToolStripMenuItem, Me.ExtractImagesToolStripMenuItem, Me.ExtractTextFromPDFDocumentToolStripMenuItem, Me.ToolStripSeparator2, Me.FieldTabOrderToolStripMenuItem, Me.FieldCalculationOrderToolStripMenuItem, Me.PageSizeToolStripMenuItem, Me.CompressDocumentToolStripMenuItem, Me.PDFEncryptionToolStripMenuItem, Me.ToolStripSeparator12, Me.RemovePDFUsageRightsToolStripMenuItem, Me.RemoveSignatureFlagsToolStripMenuItem, Me.CleanUpFormFieldsToolStripMenuItem, Me.RemoveUnusedObjectsToolStripMenuItem, Me.ToolStripMenuItemExportImageMagick})
         Me.PDFDocumentToolStripMenuItem.Font = New System.Drawing.Font("Arial", 14.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel)
         Me.PDFDocumentToolStripMenuItem.Margin = New System.Windows.Forms.Padding(0, 2, -1, 2)
         Me.PDFDocumentToolStripMenuItem.Name = "PDFDocumentToolStripMenuItem"
@@ -5477,6 +5495,12 @@ Partial Class frmMain
         Me.ToolStripSeparator11.Name = "ToolStripSeparator11"
         Me.ToolStripSeparator11.Size = New System.Drawing.Size(323, 6)
         '
+        'AddHyperlinkToolStripMenuItem1
+        '
+        Me.AddHyperlinkToolStripMenuItem1.Name = "AddHyperlinkToolStripMenuItem1"
+        Me.AddHyperlinkToolStripMenuItem1.Size = New System.Drawing.Size(326, 22)
+        Me.AddHyperlinkToolStripMenuItem1.Text = "Add Hyperlink"
+        '
         'AddWatermarkToolStripMenuItem
         '
         Me.AddWatermarkToolStripMenuItem.Name = "AddWatermarkToolStripMenuItem"
@@ -5622,6 +5646,12 @@ Partial Class frmMain
         Me.RemoveUnusedObjectsToolStripMenuItem.Size = New System.Drawing.Size(326, 22)
         Me.RemoveUnusedObjectsToolStripMenuItem.Text = "Remove Unused Objects"
         '
+        'ToolStripMenuItemExportImageMagick
+        '
+        Me.ToolStripMenuItemExportImageMagick.Name = "ToolStripMenuItemExportImageMagick"
+        Me.ToolStripMenuItemExportImageMagick.Size = New System.Drawing.Size(326, 22)
+        Me.ToolStripMenuItemExportImageMagick.Text = "Export ImageMagick"
+        '
         'SaveToolStripMenuItem
         '
         Me.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem"
@@ -5636,9 +5666,22 @@ Partial Class frmMain
         '
         'SaveAsToolStripMenuItem
         '
+        Me.SaveAsToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.SaveAsOneImageToolStripMenuItem, Me.SaveAsCopyToolStripMenuItem})
         Me.SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem"
         Me.SaveAsToolStripMenuItem.Size = New System.Drawing.Size(296, 22)
         Me.SaveAsToolStripMenuItem.Text = "Save As"
+        '
+        'SaveAsOneImageToolStripMenuItem
+        '
+        Me.SaveAsOneImageToolStripMenuItem.Name = "SaveAsOneImageToolStripMenuItem"
+        Me.SaveAsOneImageToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
+        Me.SaveAsOneImageToolStripMenuItem.Text = "Save As One Image"
+        '
+        'SaveAsCopyToolStripMenuItem
+        '
+        Me.SaveAsCopyToolStripMenuItem.Name = "SaveAsCopyToolStripMenuItem"
+        Me.SaveAsCopyToolStripMenuItem.Size = New System.Drawing.Size(200, 22)
+        Me.SaveAsCopyToolStripMenuItem.Text = "Save As Copy"
         '
         'NewDocumentToolStripMenuItem1
         '
@@ -5683,7 +5726,7 @@ Partial Class frmMain
         '
         Me.FromScannerToolStripMenuItem.Name = "FromScannerToolStripMenuItem"
         Me.FromScannerToolStripMenuItem.Size = New System.Drawing.Size(304, 22)
-        Me.FromScannerToolStripMenuItem.Text = "From WIA Scanner (single page)..."
+        Me.FromScannerToolStripMenuItem.Text = "From Scanner"
         '
         'FromTWAINScannerToolStripMenuItem
         '
@@ -5791,7 +5834,7 @@ Partial Class frmMain
         '
         'ClipboardToolStripMenuItem
         '
-        Me.ClipboardToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CopyFileToolStripMenuItem, Me.CopyBytesToolStripMenuItem, Me.OpenFileToolStripMenuItem})
+        Me.ClipboardToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CopyFileToolStripMenuItem, Me.CopyBytesToolStripMenuItem, Me.OpenFileToolStripMenuItem, Me.CopyPageImageToolStripMenuItem, Me.ClearClipboardToolStripMenuItem2, Me.SavePageImageToolStripMenuItem, Me.CopyFileLocationToolStripMenuItem1})
         Me.ClipboardToolStripMenuItem.Name = "ClipboardToolStripMenuItem"
         Me.ClipboardToolStripMenuItem.Size = New System.Drawing.Size(296, 22)
         Me.ClipboardToolStripMenuItem.Text = "Clipboard"
@@ -5799,21 +5842,45 @@ Partial Class frmMain
         'CopyFileToolStripMenuItem
         '
         Me.CopyFileToolStripMenuItem.Name = "CopyFileToolStripMenuItem"
-        Me.CopyFileToolStripMenuItem.Size = New System.Drawing.Size(148, 22)
+        Me.CopyFileToolStripMenuItem.Size = New System.Drawing.Size(188, 22)
         Me.CopyFileToolStripMenuItem.Text = "Copy File"
         '
         'CopyBytesToolStripMenuItem
         '
         Me.CopyBytesToolStripMenuItem.Name = "CopyBytesToolStripMenuItem"
-        Me.CopyBytesToolStripMenuItem.Size = New System.Drawing.Size(148, 22)
+        Me.CopyBytesToolStripMenuItem.Size = New System.Drawing.Size(188, 22)
         Me.CopyBytesToolStripMenuItem.Text = "Copy Bytes"
         Me.CopyBytesToolStripMenuItem.Visible = False
         '
         'OpenFileToolStripMenuItem
         '
         Me.OpenFileToolStripMenuItem.Name = "OpenFileToolStripMenuItem"
-        Me.OpenFileToolStripMenuItem.Size = New System.Drawing.Size(148, 22)
+        Me.OpenFileToolStripMenuItem.Size = New System.Drawing.Size(188, 22)
         Me.OpenFileToolStripMenuItem.Text = "Open File"
+        '
+        'CopyPageImageToolStripMenuItem
+        '
+        Me.CopyPageImageToolStripMenuItem.Name = "CopyPageImageToolStripMenuItem"
+        Me.CopyPageImageToolStripMenuItem.Size = New System.Drawing.Size(188, 22)
+        Me.CopyPageImageToolStripMenuItem.Text = "Copy Page Image"
+        '
+        'ClearClipboardToolStripMenuItem2
+        '
+        Me.ClearClipboardToolStripMenuItem2.Name = "ClearClipboardToolStripMenuItem2"
+        Me.ClearClipboardToolStripMenuItem2.Size = New System.Drawing.Size(188, 22)
+        Me.ClearClipboardToolStripMenuItem2.Text = "Clear Clipboard"
+        '
+        'SavePageImageToolStripMenuItem
+        '
+        Me.SavePageImageToolStripMenuItem.Name = "SavePageImageToolStripMenuItem"
+        Me.SavePageImageToolStripMenuItem.Size = New System.Drawing.Size(188, 22)
+        Me.SavePageImageToolStripMenuItem.Text = "Save Page Image"
+        '
+        'CopyFileLocationToolStripMenuItem1
+        '
+        Me.CopyFileLocationToolStripMenuItem1.Name = "CopyFileLocationToolStripMenuItem1"
+        Me.CopyFileLocationToolStripMenuItem1.Size = New System.Drawing.Size(188, 22)
+        Me.CopyFileLocationToolStripMenuItem1.Text = "Copy file location"
         '
         'ToolStripSeparator14
         '
@@ -6222,6 +6289,12 @@ Partial Class frmMain
         '
         Me.ToolStripSeparator6.Name = "ToolStripSeparator6"
         Me.ToolStripSeparator6.Size = New System.Drawing.Size(293, 6)
+        '
+        'ToolStripComboBoxImageProcessor
+        '
+        Me.ToolStripComboBoxImageProcessor.Items.AddRange(New Object() {"ImageMagick.net Imaging", "GhostScript.net Imaging"})
+        Me.ToolStripComboBoxImageProcessor.Name = "ToolStripComboBoxImageProcessor"
+        Me.ToolStripComboBoxImageProcessor.Size = New System.Drawing.Size(121, 23)
         '
         'ShowLogToolStripMenuItem
         '
@@ -6975,6 +7048,7 @@ Partial Class frmMain
         Me.A0_PictureBox2.Margin = New System.Windows.Forms.Padding(3, 33, 3, 3)
         Me.A0_PictureBox2.Name = "A0_PictureBox2"
         Me.A0_PictureBox2.Size = New System.Drawing.Size(560, 584)
+        Me.A0_PictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage
         Me.A0_PictureBox2.TabIndex = 966
         Me.A0_PictureBox2.TabStop = False
         '
@@ -6987,6 +7061,7 @@ Partial Class frmMain
         Me.A0_PictureBox1.Margin = New System.Windows.Forms.Padding(3, 33, 3, 3)
         Me.A0_PictureBox1.Name = "A0_PictureBox1"
         Me.A0_PictureBox1.Size = New System.Drawing.Size(560, 584)
+        Me.A0_PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage
         Me.A0_PictureBox1.TabIndex = 0
         Me.A0_PictureBox1.TabStop = False
         Me.A0_PictureBox1.Visible = False
@@ -7393,123 +7468,122 @@ Partial Class frmMain
         Me.Controls.Add(Me.StatusStrip1)
         Me.Controls.Add(Me.PictureBox1_Panel)
         Me.DoubleBuffered = True
-        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "frmMain"
         Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "PDFormsNet"
         Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
         Me.PDFEdit_Options_Textboxes.ResumeLayout(False)
-        Me.PDFEdit_Options_Textboxes.PerformLayout()
+        Me.PDFEdit_Options_Textboxes.PerformLayout
         Me.PDFEdit_Options_SubmitButtons.ResumeLayout(False)
         Me.grpBoxPuchButton_IconAndLabel.ResumeLayout(False)
-        Me.grpBoxPuchButton_IconAndLabel.PerformLayout()
-        CType(Me.PuchButton_Options_PictureBox, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.grpBoxPuchButton_IconAndLabel.PerformLayout
+        CType(Me.PuchButton_Options_PictureBox, System.ComponentModel.ISupportInitialize).EndInit
         Me.grpBoxPuchButton_IconPlacement.ResumeLayout(False)
-        Me.grpBoxPuchButton_IconPlacement.PerformLayout()
-        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Vertical, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Horizontal, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.grpBoxPuchButton_IconPlacement.PerformLayout
+        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Vertical, System.ComponentModel.ISupportInitialize).EndInit
+        CType(Me.PuchButton_Options_Icon_Trackbar_Offset_Horizontal, System.ComponentModel.ISupportInitialize).EndInit
         Me.PDFEdit_Options_ComboBoxes.ResumeLayout(False)
-        Me.PDFEdit_Options_ComboBoxes.PerformLayout()
+        Me.PDFEdit_Options_ComboBoxes.PerformLayout
         Me.ListBox_Additional_Options.ResumeLayout(False)
-        Me.ListBox_Additional_Options.PerformLayout()
+        Me.ListBox_Additional_Options.PerformLayout
         Me.ComboBox_Additional_Options.ResumeLayout(False)
-        Me.ComboBox_Additional_Options.PerformLayout()
+        Me.ComboBox_Additional_Options.PerformLayout
         Me.PDFEdit_Options_RadioButtons.ResumeLayout(False)
-        Me.PDFEdit_Options_RadioButtons.PerformLayout()
+        Me.PDFEdit_Options_RadioButtons.PerformLayout
         Me.pnlFields.ResumeLayout(False)
-        Me.pnlFields.PerformLayout()
+        Me.pnlFields.PerformLayout
         Me.TabControl1.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
-        Me.TabPage1.PerformLayout()
+        Me.TabPage1.PerformLayout
         Me.Panel1.ResumeLayout(False)
-        Me.Panel1.PerformLayout()
+        Me.Panel1.PerformLayout
         Me.TabPage2.ResumeLayout(False)
-        Me.TabPage2.PerformLayout()
+        Me.TabPage2.PerformLayout
         Me.Panel3.ResumeLayout(False)
-        Me.Panel3.PerformLayout()
-        CType(Me.PDFField_TextColorPicker, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.Panel3.PerformLayout
+        CType(Me.PDFField_TextColorPicker, System.ComponentModel.ISupportInitialize).EndInit
         Me.Panel2.ResumeLayout(False)
-        Me.Panel2.PerformLayout()
-        CType(Me.PDFField_BackgroundColorPicker_Transparent, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.PDFField_BorderColorPicker_Transparent, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.PDFField_BackgroundColorPicker, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.PDFField_BorderColorPicker, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.Panel2.PerformLayout
+        CType(Me.PDFField_BackgroundColorPicker_Transparent, System.ComponentModel.ISupportInitialize).EndInit
+        CType(Me.PDFField_BorderColorPicker_Transparent, System.ComponentModel.ISupportInitialize).EndInit
+        CType(Me.PDFField_BackgroundColorPicker, System.ComponentModel.ISupportInitialize).EndInit
+        CType(Me.PDFField_BorderColorPicker, System.ComponentModel.ISupportInitialize).EndInit
         Me.TabPage4.ResumeLayout(False)
         Me.PDFEdit_Actions.ResumeLayout(False)
         Me.Panel4.ResumeLayout(False)
         Me.PDFField_Action_Panel_SubmitForm.ResumeLayout(False)
-        Me.PDFField_Action_Panel_SubmitForm.PerformLayout()
+        Me.PDFField_Action_Panel_SubmitForm.PerformLayout
         Me.PDFField_Action_Panel_SubmitForm_DataSelectionPanel.ResumeLayout(False)
-        Me.PDFField_Action_Panel_SubmitForm_DataSelectionPanel.PerformLayout()
+        Me.PDFField_Action_Panel_SubmitForm_DataSelectionPanel.PerformLayout
         Me.PDFField_Action_Panel_SubmitForm_FieldSelectionPanel.ResumeLayout(False)
-        Me.PDFField_Action_Panel_SubmitForm_FieldSelectionPanel.PerformLayout()
+        Me.PDFField_Action_Panel_SubmitForm_FieldSelectionPanel.PerformLayout
         Me.PDFField_Action_Panel_JavaScript.ResumeLayout(False)
-        Me.PDFField_Action_Panel_JavaScript.PerformLayout()
+        Me.PDFField_Action_Panel_JavaScript.PerformLayout
         Me.PDFField_Action_Panel_Named.ResumeLayout(False)
         Me.PDFField_Action_Panel_List.ResumeLayout(False)
         Me.PDFField_Action_Panel_SubmitForm_FieldsList_Panel.ResumeLayout(False)
         Me.GroupBox1.ResumeLayout(False)
-        Me.GroupBox1.PerformLayout()
+        Me.GroupBox1.PerformLayout
         Me.TabPage5.ResumeLayout(False)
         Me.pnlPDFField_Format_Number.ResumeLayout(False)
-        Me.pnlPDFField_Format_Number.PerformLayout()
+        Me.pnlPDFField_Format_Number.PerformLayout
         Me.pnlPDFField_Format_Custom.ResumeLayout(False)
-        Me.pnlPDFField_Format_Custom.PerformLayout()
+        Me.pnlPDFField_Format_Custom.PerformLayout
         Me.pnlPDFField_Format_Special.ResumeLayout(False)
-        Me.pnlPDFField_Format_Special.PerformLayout()
+        Me.pnlPDFField_Format_Special.PerformLayout
         Me.pnlPDFField_Format_Time.ResumeLayout(False)
-        Me.pnlPDFField_Format_Time.PerformLayout()
+        Me.pnlPDFField_Format_Time.PerformLayout
         Me.pnlPDFField_Format_Date.ResumeLayout(False)
-        Me.pnlPDFField_Format_Date.PerformLayout()
+        Me.pnlPDFField_Format_Date.PerformLayout
         Me.pnlPDFField_Format_Percentage.ResumeLayout(False)
         Me.TabPage6.ResumeLayout(False)
-        Me.TabPage6.PerformLayout()
+        Me.TabPage6.PerformLayout
         Me.GroupBox3.ResumeLayout(False)
-        Me.GroupBox3.PerformLayout()
+        Me.GroupBox3.PerformLayout
         Me.TabPage7.ResumeLayout(False)
         Me.GroupBox4.ResumeLayout(False)
-        Me.GroupBox4.PerformLayout()
+        Me.GroupBox4.PerformLayout
         Me.TabPage8.ResumeLayout(False)
         Me.PDFEdit_DataFields.ResumeLayout(False)
-        Me.PDFEdit_DataFields.PerformLayout()
+        Me.PDFEdit_DataFields.PerformLayout
         Me.TabPage9.ResumeLayout(False)
         Me.GroupBox5.ResumeLayout(False)
-        Me.GroupBox5.PerformLayout()
+        Me.GroupBox5.PerformLayout
         Me.TabPage10.ResumeLayout(False)
         Me.GroupBox6.ResumeLayout(False)
-        Me.GroupBox6.PerformLayout()
+        Me.GroupBox6.PerformLayout
         Me.TabPage11.ResumeLayout(False)
-        Me.TabPage11.PerformLayout()
+        Me.TabPage11.PerformLayout
         Me.TabPage12.ResumeLayout(False)
-        Me.TabPage12.PerformLayout()
-        CType(Me.ImageRotation_PictureBox, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.TabPage12.PerformLayout
+        CType(Me.ImageRotation_PictureBox, System.ComponentModel.ISupportInitialize).EndInit
         Me.TabPage13.ResumeLayout(False)
-        Me.TabPage13.PerformLayout()
+        Me.TabPage13.PerformLayout
         Me.TabPage3.ResumeLayout(False)
         Me.StatusStrip1.ResumeLayout(False)
-        Me.StatusStrip1.PerformLayout()
+        Me.StatusStrip1.PerformLayout
         Me.FlowLayoutPanel1.ResumeLayout(False)
         Me.ContextMenuStrip1.ResumeLayout(False)
         Me.PictureBox1_Panel.ResumeLayout(False)
         Me.pnlPageSize.ResumeLayout(False)
-        Me.pnlPageSize.PerformLayout()
+        Me.pnlPageSize.PerformLayout
         Me.pnlFieldTabOrder.ResumeLayout(False)
-        Me.pnlFieldTabOrder.PerformLayout()
+        Me.pnlFieldTabOrder.PerformLayout
         Me.pnlCalculationOrder.ResumeLayout(False)
         Me.pnlCompression.ResumeLayout(False)
-        Me.pnlCompression.PerformLayout()
-        CType(Me.A0_PictureBox2, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.A0_PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.pnlCompression.PerformLayout
+        CType(Me.A0_PictureBox2, System.ComponentModel.ISupportInitialize).EndInit
+        CType(Me.A0_PictureBox1, System.ComponentModel.ISupportInitialize).EndInit
         Me.pnlPDFEncryption.ResumeLayout(False)
-        Me.pnlPDFEncryption.PerformLayout()
+        Me.pnlPDFEncryption.PerformLayout
         Me.groupBoxEncryption.ResumeLayout(False)
-        Me.groupBoxEncryption.PerformLayout()
+        Me.groupBoxEncryption.PerformLayout
         Me.groupBoxPermissions.ResumeLayout(False)
-        Me.groupBoxPermissions.PerformLayout()
+        Me.groupBoxPermissions.PerformLayout
         Me.ContextMenuStripRightClick2.ResumeLayout(False)
         Me.ResumeLayout(False)
-        Me.PerformLayout()
+        Me.PerformLayout
 
     End Sub
     Public WithEvents A0_PictureBox1 As System.Windows.Forms.PictureBox
@@ -8185,4 +8259,14 @@ Partial Class frmMain
     Friend WithEvents ComboBox4 As ComboBox
     Friend WithEvents OpenAppDataToolStripMenuItem1 As ToolStripMenuItem
     Friend WithEvents OpenTempFolderToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents CopyPageImageToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ClearClipboardToolStripMenuItem2 As ToolStripMenuItem
+    Friend WithEvents AddHyperlinkToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents PDFField_Listbox_Value As ListBox
+    Friend WithEvents SavePageImageToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CopyFileLocationToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents SaveAsOneImageToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents SaveAsCopyToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ToolStripMenuItemExportImageMagick As ToolStripMenuItem
+    Friend WithEvents ToolStripComboBoxImageProcessor As ToolStripComboBox
 End Class

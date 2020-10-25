@@ -50,7 +50,7 @@ Partial Class dialogImageOptimization
         Me.TableLayoutPanel1.ColumnCount = 3
         Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70.0!))
         Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 30.0!))
-        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 82.0!))
+        Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 83.0!))
         Me.TableLayoutPanel1.Controls.Add(Me.OK_Button, 2, 0)
         Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 1, 0)
         Me.TableLayoutPanel1.Location = New System.Drawing.Point(10, 365)
@@ -64,7 +64,7 @@ Partial Class dialogImageOptimization
         'OK_Button
         '
         Me.OK_Button.Anchor = System.Windows.Forms.AnchorStyles.None
-        Me.OK_Button.Location = New System.Drawing.Point(251, 3)
+        Me.OK_Button.Location = New System.Drawing.Point(250, 3)
         Me.OK_Button.Name = "OK_Button"
         Me.OK_Button.Size = New System.Drawing.Size(67, 30)
         Me.OK_Button.TabIndex = 0
@@ -77,7 +77,7 @@ Partial Class dialogImageOptimization
         Me.Cancel_Button.DialogResult = System.Windows.Forms.DialogResult.Cancel
         Me.Cancel_Button.Location = New System.Drawing.Point(173, 3)
         Me.Cancel_Button.Name = "Cancel_Button"
-        Me.Cancel_Button.Size = New System.Drawing.Size(67, 30)
+        Me.Cancel_Button.Size = New System.Drawing.Size(66, 30)
         Me.Cancel_Button.TabIndex = 1
         Me.Cancel_Button.Text = "CANCEL"
         '
@@ -170,6 +170,7 @@ Partial Class dialogImageOptimization
         Me.cmb_PageResizeSizePercent.Name = "cmb_PageResizeSizePercent"
         Me.cmb_PageResizeSizePercent.Size = New System.Drawing.Size(192, 21)
         Me.cmb_PageResizeSizePercent.TabIndex = 9
+        Me.cmb_PageResizeSizePercent.Visible = False
         '
         'Label5
         '
@@ -179,6 +180,7 @@ Partial Class dialogImageOptimization
         Me.Label5.Size = New System.Drawing.Size(65, 13)
         Me.Label5.TabIndex = 10
         Me.Label5.Text = "Page Scale:"
+        Me.Label5.Visible = False
         '
         'chkAllowTransparent
         '

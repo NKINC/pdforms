@@ -31,6 +31,8 @@ Partial Class frmScanPDFs
         Me.chkOverwrite = New System.Windows.Forms.CheckBox()
         Me.lblStatus = New System.Windows.Forms.Label()
         Me.Button4 = New System.Windows.Forms.Button()
+        Me.chkParseFormFiles = New System.Windows.Forms.CheckBox()
+        Me.chkRecentlyOpenedFilesList = New System.Windows.Forms.CheckBox()
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -64,7 +66,7 @@ Partial Class frmScanPDFs
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Button2.Location = New System.Drawing.Point(12, 73)
         Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(133, 23)
+        Me.Button2.Size = New System.Drawing.Size(61, 23)
         Me.Button2.TabIndex = 2
         Me.Button2.Text = "Scan"
         Me.Button2.UseVisualStyleBackColor = True
@@ -122,7 +124,7 @@ Partial Class frmScanPDFs
         Me.chkSubfolders.AutoSize = True
         Me.chkSubfolders.Checked = True
         Me.chkSubfolders.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkSubfolders.Location = New System.Drawing.Point(151, 79)
+        Me.chkSubfolders.Location = New System.Drawing.Point(201, 82)
         Me.chkSubfolders.Name = "chkSubfolders"
         Me.chkSubfolders.Size = New System.Drawing.Size(76, 17)
         Me.chkSubfolders.TabIndex = 7
@@ -134,7 +136,7 @@ Partial Class frmScanPDFs
         Me.chkOverwrite.AutoSize = True
         Me.chkOverwrite.Checked = True
         Me.chkOverwrite.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkOverwrite.Location = New System.Drawing.Point(238, 79)
+        Me.chkOverwrite.Location = New System.Drawing.Point(369, 82)
         Me.chkOverwrite.Name = "chkOverwrite"
         Me.chkOverwrite.Size = New System.Drawing.Size(118, 17)
         Me.chkOverwrite.TabIndex = 8
@@ -153,18 +155,40 @@ Partial Class frmScanPDFs
         '
         Me.Button4.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Button4.Location = New System.Drawing.Point(362, 73)
+        Me.Button4.Location = New System.Drawing.Point(79, 73)
         Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(125, 23)
+        Me.Button4.Size = New System.Drawing.Size(66, 23)
         Me.Button4.TabIndex = 10
         Me.Button4.Text = "Stop"
         Me.Button4.UseVisualStyleBackColor = True
+        '
+        'chkParseFormFiles
+        '
+        Me.chkParseFormFiles.AutoSize = True
+        Me.chkParseFormFiles.Location = New System.Drawing.Point(369, 62)
+        Me.chkParseFormFiles.Name = "chkParseFormFiles"
+        Me.chkParseFormFiles.Size = New System.Drawing.Size(103, 17)
+        Me.chkParseFormFiles.TabIndex = 11
+        Me.chkParseFormFiles.Text = "Parse Form Files"
+        Me.chkParseFormFiles.UseVisualStyleBackColor = True
+        '
+        'chkRecentlyOpenedFilesList
+        '
+        Me.chkRecentlyOpenedFilesList.AutoSize = True
+        Me.chkRecentlyOpenedFilesList.Location = New System.Drawing.Point(201, 62)
+        Me.chkRecentlyOpenedFilesList.Name = "chkRecentlyOpenedFilesList"
+        Me.chkRecentlyOpenedFilesList.Size = New System.Drawing.Size(152, 17)
+        Me.chkRecentlyOpenedFilesList.TabIndex = 12
+        Me.chkRecentlyOpenedFilesList.Text = "Recently Opened Files List"
+        Me.chkRecentlyOpenedFilesList.UseVisualStyleBackColor = True
         '
         'frmScanPDFs
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(499, 513)
+        Me.Controls.Add(Me.chkRecentlyOpenedFilesList)
+        Me.Controls.Add(Me.chkParseFormFiles)
         Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.lblStatus)
         Me.Controls.Add(Me.chkOverwrite)
@@ -181,6 +205,7 @@ Partial Class frmScanPDFs
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
+
     End Sub
     Friend WithEvents TextBox1 As System.Windows.Forms.TextBox
     Friend WithEvents Button1 As System.Windows.Forms.Button
@@ -194,4 +219,6 @@ Partial Class frmScanPDFs
     Friend WithEvents chkOverwrite As System.Windows.Forms.CheckBox
     Friend WithEvents lblStatus As System.Windows.Forms.Label
     Friend WithEvents Button4 As System.Windows.Forms.Button
+    Friend WithEvents chkParseFormFiles As CheckBox
+    Friend WithEvents chkRecentlyOpenedFilesList As CheckBox
 End Class

@@ -825,8 +825,8 @@ Partial Class dialogPrint
         '
         'groupboxPrinterInformation
         '
-        Me.groupboxPrinterInformation.Controls.Add(Me.txtPrinterInformation)
         Me.groupboxPrinterInformation.Controls.Add(Me.btnPrinterInformationClose)
+        Me.groupboxPrinterInformation.Controls.Add(Me.txtPrinterInformation)
         Me.groupboxPrinterInformation.Location = New System.Drawing.Point(0, 113)
         Me.groupboxPrinterInformation.Name = "groupboxPrinterInformation"
         Me.groupboxPrinterInformation.Size = New System.Drawing.Size(611, 455)

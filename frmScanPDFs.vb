@@ -5,7 +5,7 @@ Imports System.ComponentModel
 Partial Public Class frmScanPDFs
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -24,13 +24,28 @@ Partial Public Class frmScanPDFs
         Try
             ProgressBar1.Value = 0
             blnStop = False
-            If Directory.Exists(Me.TextBox1.Text) Then
-                ReadAllSubdirectories(Me.TextBox1.Text)
-                'For Each f As String In Directory.GetFiles(Me.TextBox1.Text)
-                'If f.ToLower.EndsWith(".pdf") Then
-                'File.WriteAllText(f & ".txt", ReadPdfFile(f))
-                'End If
-                'Next
+            If chkRecentlyOpenedFilesList.Checked Then
+                Try
+                    'Dim rf As New dialogRecentFiles(frmMain1, frmMain1.ApplicationDataFolder(False, "") & "open-history.txt")
+                    'Select Case rf.ShowDialog(Me)
+                    '    Case DialogResult.OK
+                    '    Case Else
+                    '        Return
+                    'End Select
+                    ReadAllFilePaths(System.IO.File.ReadAllLines(frmMain1.ApplicationDataFolder(False, "") & "open-history.txt").ToArray())
+                Catch ex As Exception
+                    frmMain1.TimeStampAdd(ex, frmMain1.debugMode)
+                End Try
+
+            Else
+                If Directory.Exists(Me.TextBox1.Text) Then
+                    ReadAllSubdirectories(Me.TextBox1.Text)
+                    'For Each f As String In Directory.GetFiles(Me.TextBox1.Text)
+                    'If f.ToLower.EndsWith(".pdf") Then
+                    'File.WriteAllText(f & ".txt", ReadPdfFile(f))
+                    'End If
+                    'Next
+                End If
             End If
             ProgressBar1.Value = 100
             lblStatus.Text = "Status: " & "Loading Database Complete."
@@ -57,12 +72,35 @@ Partial Public Class frmScanPDFs
         Try
             If blnStop = True Then Return
             If Directory.Exists(sDirectory) Then
+                If blnStop = True Then Return
                 ReadAllFiles(sDirectory)
                 If chkSubfolders.Checked Then
                     For Each d As String In Directory.GetDirectories(sDirectory)
                         If blnStop = True Then Return
                         ReadAllSubdirectories(d)
                     Next
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+    Public Sub ReadAllFilePaths(ByVal sFilePaths() As String)
+        Try
+            If blnStop = True Then Return
+            If sFilePaths Is Nothing Then Return
+            If sFilePaths.Length <= 0 Then Return
+            Dim lst As New List(Of String)
+            For Each sFilePath As String In sFilePaths
+                If blnStop = True Then Return
+                If File.Exists(sFilePath) Then
+                    If blnStop = True Then Return
+                    lst.Add(sFilePath)
+                End If
+            Next
+            If Not lst Is Nothing Then
+                If lst.Count > 0 Then
+                    ReadAllFiles(lst.ToArray())
                 End If
             End If
         Catch ex As Exception
@@ -83,7 +121,7 @@ Partial Public Class frmScanPDFs
                     Try
                         intF += 1
                         If blnStop = True Then Return
-                        If (f.ToLower.EndsWith(".pdf") Or f.ToLower.EndsWith(".xfdf") Or f.ToLower.EndsWith(".fdf") Or f.ToLower.EndsWith(".xdp")) And File.Exists(f) Then
+                        If (f.ToLower.EndsWith(".pdf") Or f.ToLower.EndsWith(".xfdf") Or f.ToLower.EndsWith(".fdf") Or f.ToLower.EndsWith(".xdp") Or f.ToLower.EndsWith(".xml")) And File.Exists(f) Then
                             lblStatus.Text = "Status: " & Path.GetFileName(f.ToString).ToString & " - " & CInt(fs.Length - intF).ToString & " files remaining..."
                             Application.DoEvents()
                             'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath)
@@ -92,25 +130,66 @@ Partial Public Class frmScanPDFs
                                     Dim fi As New FileInfo(f)
                                     If fi.Length < (maxFileSizeMB * 1024 * 1024) Then
                                         'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath & AccessDataSourceFilename)
-                                        SaveEntryToXMLDatabase(f, ReadPdfFile(f), StartupPath & xmlDataSourceFilename)
+                                        SaveEntryToXMLDatabase(f, CStr(IIf(chkParseFormFiles.Checked = True, ReadPdfFile(f) & "", "")), StartupPath & xmlDataSourceFilename)
                                     End If
-                                    IncrementStatus(1)
-                                Else
-                                    IncrementStatus(1)
                                 End If
+
                             Else
                                 Dim fi As New FileInfo(f)
                                 If fi.Length < (100 * 1024 * 1024) Then
                                     'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath & AccessDataSourceFilename)
-                                    SaveEntryToXMLDatabase(f, ReadPdfFile(f), StartupPath & xmlDataSourceFilename)
+                                    SaveEntryToXMLDatabase(f, CStr(IIf(chkParseFormFiles.Checked = True, ReadPdfFile(f) & "", "")), StartupPath & xmlDataSourceFilename)
                                 End If
-                                IncrementStatus(1)
                             End If
+                            IncrementStatus(1)
                             'File.WriteAllText(f & ".txt", ReadPdfFile(f))
                         End If
                     Catch exFile As Exception
                         Err.Clear()
                     End Try
+                    If blnStop = True Then Return
+                Next
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+    Public Sub ReadAllFiles(ByVal sFilepaths() As String)
+        Try
+            If blnStop = True Then Return
+            If True = True Then 'Directory.Exists(sDirectory) Then
+                Dim fs() As String = sFilepaths, intF As Integer = 0
+                For Each f As String In fs.ToArray
+                    Try
+                        intF += 1
+                        If blnStop = True Then Return
+                        If (f.ToLower.EndsWith(".pdf") Or f.ToLower.EndsWith(".xfdf") Or f.ToLower.EndsWith(".fdf") Or f.ToLower.EndsWith(".xdp") Or f.ToLower.EndsWith(".xml")) And File.Exists(f) Then
+                            lblStatus.Text = "Status: " & Path.GetFileName(f.ToString).ToString & " - " & CInt(fs.Length - intF).ToString & " files remaining..."
+                            Application.DoEvents()
+                            'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath)
+                            If chkOverwrite.Checked = False Then
+                                If Not XMLDatabaseRecordExists(StartupPath & xmlDataSourceFilename, f) Then
+                                    Dim fi As New FileInfo(f)
+                                    If fi.Length < (maxFileSizeMB * 1024 * 1024) Then
+                                        'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath & AccessDataSourceFilename)
+                                        SaveEntryToXMLDatabase(f, CStr(IIf(chkParseFormFiles.Checked = True, ReadPdfFile(f) & "", "")), StartupPath & xmlDataSourceFilename)
+                                    End If
+                                End If
+
+                            Else
+                                Dim fi As New FileInfo(f)
+                                If fi.Length < (100 * 1024 * 1024) Then
+                                    'SaveEntryToAccessDatabase(f, ReadPdfFile(f), StartupPath & AccessDataSourceFilename)
+                                    SaveEntryToXMLDatabase(f, CStr(IIf(chkParseFormFiles.Checked = True, ReadPdfFile(f) & "", "")), StartupPath & xmlDataSourceFilename)
+                                End If
+                            End If
+                            IncrementStatus(1)
+                            'File.WriteAllText(f & ".txt", ReadPdfFile(f))
+                        End If
+                    Catch exFile As Exception
+                        Err.Clear()
+                    End Try
+                    If blnStop = True Then Return
                 Next
             End If
         Catch ex As Exception
@@ -135,8 +214,9 @@ Partial Public Class frmScanPDFs
     Public Function ReadPdfFile(ByVal strfilename As String) As String
         Dim strText As New System.Text.StringBuilder
         Try
-            strText.Append("")
             If Not File.Exists(strfilename) Then Return ""
+            strText.Append("" & Path.GetFileName(CStr(strfilename & "")))
+            strText.Append(CStr("" & strfilename & ""))
             Dim fi As New FileInfo(strfilename)
             If fi.Length > (maxFileSizeMB * 1024 * 1024) Then
                 Return ""

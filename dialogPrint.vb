@@ -5,7 +5,7 @@ Imports iTextSharp.text.pdf
 Public Class dialogPrint
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -54,7 +54,7 @@ Public Class dialogPrint
                                 Me.SendToBack()
                                 Dim PrinterName1 As String = PrintDialog1.PrinterSettings.PrinterName.ToString()
                                 Dim numCopies As Integer = PrintDialog1.PrinterSettings.Copies
-                                For copy As Integer = 1 To numCopies
+                                For copy As Integer = 1 To 1 'numCopies
                                     Dim i As Integer = -1
                                     Dim numPages As Integer = r.NumberOfPages
                                     Dim start As Integer = 1
@@ -67,30 +67,41 @@ Public Class dialogPrint
                                     frm.printDoc.PrinterSettings.Copies = PrintDialog1.PrinterSettings.Copies
                                     AddHandler frm.printDoc.PrintPage, AddressOf frm.PD_PrintPage
                                     frm.printTotalPages = numPages
-                                    If frm.printDoc.PrinterSettings.Collate Then
-                                        For i = r.NumberOfPages To 1 Step -1
-                                            If frm.DoEvents_Wait(1000) Then
-                                                frm.printDocPageNum = i
-                                                frm.printDocImage = System.Drawing.Image.FromStream(New System.IO.MemoryStream(frm.A0_LoadImageGhostScript(r, i, CInt(r.GetPageSizeWithRotation(i).Width) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), CInt(r.GetPageSizeWithRotation(i).Height * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2))), False)))
-                                                frm.printDocImageList.Add(frm.printDocImage.Clone)
-                                            End If
-                                        Next
-                                        frm.printTotalPages = r.NumberOfPages
-                                        frm.printDocIndex = -1
-                                        frm.printDoc.Print()
-                                    Else
-                                        frm.printTotalPages = r.NumberOfPages
-                                        For i = 1 To r.NumberOfPages
-                                            If frm.DoEvents_Wait(1000) Then
-                                                frm.printDocPageNum = i
-                                                frm.printDocImage = System.Drawing.Image.FromStream(New System.IO.MemoryStream(frm.A0_LoadImageGhostScript(r, i, CInt(r.GetPageSizeWithRotation(i).Width) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), CInt(r.GetPageSizeWithRotation(i).Height) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), False)))
-                                                frm.printDocImageList.Add(frm.printDocImage.Clone)
-                                            End If
-                                        Next
-                                        frm.printTotalPages = r.NumberOfPages
-                                        frm.printDocIndex = -1
-                                        frm.printDoc.Print()
-                                    End If
+                                    frm.printTotalPages = r.NumberOfPages
+                                    For i = 1 To r.NumberOfPages
+                                        If frm.DoEvents_Wait(1000) Then
+                                            frm.printDocPageNum = i
+                                            frm.printDocImage = System.Drawing.Image.FromStream(New System.IO.MemoryStream(frm.A0_LoadImageGhostScript(r, i, CInt(r.GetPageSizeWithRotation(i).Width) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), CInt(r.GetPageSizeWithRotation(i).Height) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), False)))
+                                            frm.printDocImageList.Add(frm.printDocImage.Clone)
+                                        End If
+                                    Next
+                                    frm.printTotalPages = r.NumberOfPages
+                                    frm.printDocIndex = -1
+                                    frm.printDoc.Print()
+                                    'If frm.printDoc.PrinterSettings.Collate Then
+                                    '    For i = r.NumberOfPages To 1 Step -1
+                                    '        If frm.DoEvents_Wait(1000) Then
+                                    '            frm.printDocPageNum = i
+                                    '            frm.printDocImage = System.Drawing.Image.FromStream(New System.IO.MemoryStream(frm.A0_LoadImageGhostScript(r, i, CInt(r.GetPageSizeWithRotation(i).Width) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), CInt(r.GetPageSizeWithRotation(i).Height * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2))), False)))
+                                    '            frm.printDocImageList.Add(frm.printDocImage.Clone)
+                                    '        End If
+                                    '    Next
+                                    '    frm.printTotalPages = r.NumberOfPages
+                                    '    frm.printDocIndex = -1
+                                    '    frm.printDoc.Print()
+                                    'Else
+                                    '    frm.printTotalPages = r.NumberOfPages
+                                    '    For i = 1 To r.NumberOfPages
+                                    '        If frm.DoEvents_Wait(1000) Then
+                                    '            frm.printDocPageNum = i
+                                    '            frm.printDocImage = System.Drawing.Image.FromStream(New System.IO.MemoryStream(frm.A0_LoadImageGhostScript(r, i, CInt(r.GetPageSizeWithRotation(i).Width) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), CInt(r.GetPageSizeWithRotation(i).Height) * CSng(IIf(frm.getPercent(r.Clone, i) > 2, frm.getPercent(r.Clone, i), 2)), False)))
+                                    '            frm.printDocImageList.Add(frm.printDocImage.Clone)
+                                    '        End If
+                                    '    Next
+                                    '    frm.printTotalPages = r.NumberOfPages
+                                    '    frm.printDocIndex = -1
+                                    '    frm.printDoc.Print()
+                                    'End If
                                     RemoveHandler frm.printDoc.PrintPage, AddressOf frm.PD_PrintPage
                                 Next
                                 frm.printDoc = Nothing

@@ -28,7 +28,7 @@ Imports Newtonsoft.Json.JsonConverter
 Public Class frmMain
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -540,6 +540,163 @@ Public Class frmMain
         End Try
         Return Nothing
     End Function
+    Public Function A0_LoadImageMagick(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        Dim pdfRead As PdfReader = Nothing
+        Dim startCount As Integer = 0
+        Try
+            If LoadImageGs_InUse Then
+                If Not clsPreloadImagesThread Is Nothing Then
+                    clsPreloadImagesThread.StopTimer()
+                End If
+            End If
+            Dim cntr As Integer = 0
+            Do While LoadImageGs_InUse
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
+            Loop
+        Catch exPreload As Exception
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
+        End Try
+        If Not LoadImageGs_InUse Then
+            Using cPDF2Image As New PdfToImage.PDFConvert()
+                Try
+
+                    pdfRead = New PdfReader(pdfData, pdfOwnerPassword.toBytesPdfOwnerPassword)
+GoTo_StartOver:
+                    startCount += 1
+                    cPDF2Image.OutputToMultipleFile = False
+                    pdfRead.SelectPages(page.ToString)
+                    'page = 1
+                    Try
+                        If MakeFieldsVisible Then
+                            If Not pdfRead.AcroFields Is Nothing Then
+                                If Not pdfRead.AcroFields.Fields Is Nothing Then
+                                    If pdfRead.AcroFields.Fields.Keys.Count > 0 Then
+                                        pdfRead = A0_MakeFieldsVisible(pdfRead.Clone)
+                                    End If
+                                End If
+                            End If
+                        End If
+
+                    Catch exKeys As Exception
+                        TimeStampAdd(exKeys, debugMode)
+                    End Try
+                    Dim settings As New ImageMagick.MagickReadSettings()
+                    '// Settings the density to 300 dpi will create an image with a better quality
+                    settings.Density = New ImageMagick.Density(400)
+                    Dim height As Integer = 0, width As Integer = 0
+                    pdfRead.SelectPages(CStr(1))
+                    pdfData = getPDFBytes(pdfRead.Clone, False)
+                    If height <= 0 And width > 0 Then
+                        height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    ElseIf height > 0 And width <= 0 Then
+                        width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    ElseIf height <= 0 And width <= 0 Then
+                        width = CInt(getPDFWidth(pdfData, 1))
+                        height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    Else
+                    End If
+
+                    Using images As New ImageMagick.MagickImageCollection
+                        'images.Read(fpath, settings)
+                        images.Read(pdfData, settings)
+                        Dim imgpage As Integer = 1
+                        For Each image As ImageMagick.IMagickImage In images.ToArray
+                            'image.Write("Snakeware.Page" + page + ".png")
+                            image.Format = ImageMagick.MagickFormat.Jpeg
+                            'image.Width = width
+                            'image.Height = height
+                            'Dim fnTemp As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & page & ".jpg"
+                            'image.Write(fnTemp)
+                            'Process.Start(fnTemp)
+                            'imgpage = imgpage + 1
+                            'ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                            Dim m As New MemoryStream()
+                            image.Write(m)
+                            ghostImageBytes = m.ToArray
+                            Return ghostImageBytes
+                        Next
+                    End Using
+                    'cPDF2Image.FitPage = True
+                    'cPDF2Image.GraphicsAlphaBit = 4
+                    'cPDF2Image.TextAlphaBit = 4
+                    'cPDF2Image.DisableFontMap = False
+                    'cPDF2Image.DisablePlatformFonts = False
+                    'cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    'cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    'cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
+                    'cPDF2Image.RenderingThreads = 4
+                    'cPDF2Image.JPEGQuality = 100
+                    'cPDF2Image.UseMutex = False
+                    'Dim height As Integer = 0, width As Integer = 0
+                    'pdfRead.SelectPages(CStr(page.ToString()))
+                    'pdfData = getPDFBytes(pdfRead.Clone, False)
+                    'If height <= 0 And width > 0 Then
+                    '    height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    'ElseIf height > 0 And width <= 0 Then
+                    '    width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    'ElseIf height <= 0 And width <= 0 Then
+                    '    width = CInt(getPDFWidth(pdfData, 1))
+                    '    height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    'Else
+                    'End If
+                    'cPDF2Image.Width = width
+                    'cPDF2Image.Height = height
+                    'cPDF2Image.GhostScriptDLLDirectory = appPath
+                    'If Not pdfOwnerPassword.isNullOrEmpty() Then
+                    'End If
+                    'cPDF2Image.FirstPageToConvert = 1 '1 'page
+                    'cPDF2Image.LastPageToConvert = 1 '1 'page
+                    'Try
+                    '    Dim cntr As Integer = 0
+                    '    Do While LoadImageGs_InUse
+                    '        If DoEvents_Wait(100) Then
+                    '            cntr += 1
+                    '            If cntr > 30 Then
+                    '                LoadImageGs_InUse = False
+                    '                Exit Do
+                    '            End If
+                    '        End If
+                    '    Loop
+                    'Catch ex As Exception
+                    '    TimeStampAdd(ex, debugMode)
+                    'End Try
+                    'LoadImageGs_InUse = True
+                    'ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    'Return ghostImageBytes
+                Catch ex As Exception
+                    If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
+                        pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
+                        Err.Clear()
+                        GoTo GoTo_StartOver
+                    End If
+                    TimeStampAdd(ex, debugMode)
+                Finally
+                    Try
+                        If Not pdfRead Is Nothing Then
+                            pdfRead.Close()
+                            pdfRead.Dispose()
+                            pdfRead = Nothing
+                        End If
+                        'cPDF2Image.Dispose()
+                        LoadImageGs_InUse = False
+                    Catch ex2 As Exception
+                        TimeStampAdd(ex2, debugMode)
+                        TimeStampAdd(ex2, debugMode)
+                        LoadImageGs_InUse = False
+                    End Try
+                End Try
+            End Using
+        End If
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
+    End Function
+
     Public Function A0_LoadImageGhostScript(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
         Dim pdfRead As PdfReader = Nothing
         Dim startCount As Integer = 0
@@ -613,7 +770,7 @@ GoTo_StartOver:
                     cPDF2Image.Width = width
                     cPDF2Image.Height = height
                     cPDF2Image.GhostScriptDLLDirectory = appPath
-                    If Not pdfOwnerPassword.IsNullOrEmpty() Then
+                    If Not pdfOwnerPassword.isNullOrEmpty() Then
                     End If
                     cPDF2Image.FirstPageToConvert = 1 '1 'page
                     cPDF2Image.LastPageToConvert = 1 '1 'page
@@ -632,7 +789,8 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    Return ghostImageBytes
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
@@ -657,7 +815,8 @@ GoTo_StartOver:
                 End Try
             End Using
         End If
-        Return Nothing
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
     End Function
 
 
@@ -720,17 +879,119 @@ GoTo_StartOver:
             stream.WriteTo(outputStream)
         End Using
     End Sub
-    Public Function A0_LoadImage(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+    Public Function A0_LoadImageMag(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        Return A0_LoadImageMagick(pdfData, page, width, height, MakeFieldsVisible)
+    End Function
+    Public Function A0_LoadImageMag(ByVal reader As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        Return A0_LoadImageMagick(reader, page, width, height, MakeFieldsVisible)
+    End Function
+    Public Function A0_LoadImageMag(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        Return A0_LoadImageMagick(pdfData, MakeFieldsVisible)
+    End Function
+    Public Function A0_LoadImageGs(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
         If cUserRect.pauseDraw Then Return Nothing
         Return A0_LoadImageGhostScript(pdfData, page, width, height, MakeFieldsVisible)
     End Function
-    Public Function A0_LoadImage(ByVal reader As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+    Public Function A0_LoadImageGs(ByVal reader As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
         If cUserRect.pauseDraw Then Return Nothing
         Return A0_LoadImageGhostScript(reader, page, width, height, MakeFieldsVisible)
     End Function
-    Public Function A0_LoadImage(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
+    Public Function A0_LoadImageGs(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
         If cUserRect.pauseDraw Then Return Nothing
         Return A0_LoadImageGhostScript(pdfData, MakeFieldsVisible)
+    End Function
+    Public Function A0_LoadImage(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        If imageProcessor <= 0 Then
+            Return A0_LoadImageMagick(pdfData, page, width, height, MakeFieldsVisible)
+        Else
+            Return A0_LoadImageGhostScript(pdfData, page, width, height, MakeFieldsVisible)
+        End If
+    End Function
+    Public Function A0_LoadImage(ByVal reader As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        If imageProcessor <= 0 Then
+            Return A0_LoadImageMagick(reader, page, width, height, MakeFieldsVisible)
+        Else
+            Return A0_LoadImageGhostScript(reader, page, width, height, MakeFieldsVisible)
+        End If
+    End Function
+    Public Function A0_LoadImage(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        If imageProcessor <= 0 Then
+            Return A0_LoadImageMagick(pdfData, MakeFieldsVisible)
+        Else
+            Return A0_LoadImageGhostScript(pdfData, MakeFieldsVisible)
+        End If
+    End Function
+    Public Function A0_LoadImageSub(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        ghostImageBytes = Nothing
+        Dim worker As New System.Threading.Thread(New System.Threading.ThreadStart(Function() A0_LoadImageGhostScript(pdfData, page, width, height, MakeFieldsVisible)))
+        worker.Start()
+        Do Until (Not worker.ThreadState = 0)
+            If cUserRect.pauseDraw Then Return Nothing
+            Threading.Thread.Sleep(100)
+        Loop
+        If Not ghostImageBytes Is Nothing Then
+            Try
+                worker = Nothing
+                Return ghostImageBytes.ToArray
+            Catch ex As Exception
+                Err.Clear()
+            Finally
+                ghostImageBytes = Nothing
+            End Try
+        End If
+        Return Nothing
+    End Function
+    Public Function A0_LoadImageSub(ByVal reader As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        If cUserRect.pauseDraw Then Return Nothing
+        ghostImageBytes = Nothing
+        Dim worker As New System.Threading.Thread(New System.Threading.ThreadStart(Function() A0_LoadImageGhostScript(reader, page, width, height, MakeFieldsVisible)))
+        worker.Start()
+        Do Until (Not worker.ThreadState = 0)
+            If cUserRect.pauseDraw Then Return Nothing
+            Threading.Thread.Sleep(100)
+        Loop
+        If Not ghostImageBytes Is Nothing Then
+            Try
+                worker = Nothing
+                Return ghostImageBytes.ToArray
+            Catch ex As Exception
+                Err.Clear()
+            Finally
+                ghostImageBytes = Nothing
+            End Try
+        End If
+        Return Nothing
+    End Function
+    Public Function A0_LoadImageSub(ByVal pdfData() As Byte, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        'If cUserRect.pauseDraw Then Return
+        'Dim worker As New System.Threading.Thread(New System.Threading.ThreadStart(Function() A0_LoadImageGhostScript(pdfData, MakeFieldsVisible)))
+        'worker.Start()
+        If cUserRect.pauseDraw Then Return Nothing
+        ghostImageBytes = Nothing
+        Dim worker As New System.Threading.Thread(New System.Threading.ThreadStart(Function() A0_LoadImageGhostScript(pdfData, page, Width, Height, MakeFieldsVisible)))
+        worker.Start()
+        Do Until (Not worker.ThreadState = 0)
+            If cUserRect.pauseDraw Then Return Nothing
+            Threading.Thread.Sleep(100)
+        Loop
+        If Not ghostImageBytes Is Nothing Then
+            Try
+                worker = Nothing
+                Return ghostImageBytes.ToArray
+            Catch ex As Exception
+                Err.Clear()
+            Finally
+                ghostImageBytes = Nothing
+            End Try
+        End If
+        Return Nothing
     End Function
     Public Function RotateImage(ByVal imageBytes() As Byte, ByVal rotation As Integer) As Byte()
         Try
@@ -760,6 +1021,174 @@ GoTo_StartOver:
         Catch ex As Exception
             Return imageBytes
         End Try
+    End Function
+    Public ghostImageBytes() As Byte = Nothing
+
+    Public Function A0_LoadImageMagick(ByVal pdfData() As Byte, ByVal pageNum As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        Dim pdfRead As PdfReader = Nothing
+        Dim startCount As Integer = 0
+        Try
+            If LoadImageGs_InUse Then
+                If Not clsPreloadImagesThread Is Nothing Then
+                    clsPreloadImagesThread.StopTimer()
+                End If
+            End If
+            Dim cntr As Integer = 0
+            Do While LoadImageGs_InUse
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
+            Loop
+        Catch exPreload As Exception
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
+        End Try
+        If Not LoadImageGs_InUse Then
+            Using cPDF2Image As New PdfToImage.PDFConvert()
+                Try
+
+                    pdfRead = New PdfReader(pdfData, pdfOwnerPassword.toBytesPdfOwnerPassword)
+GoTo_StartOver:
+                    startCount += 1
+                    cPDF2Image.OutputToMultipleFile = False
+                    pdfRead.SelectPages(pageNum.ToString)
+                    'pageNum = 1
+                    Try
+                        If MakeFieldsVisible Then
+                            If Not pdfRead.AcroFields Is Nothing Then
+                                If Not pdfRead.AcroFields.Fields Is Nothing Then
+                                    If pdfRead.AcroFields.Fields.Keys.Count > 0 Then
+                                        pdfRead = A0_MakeFieldsVisible(pdfRead.Clone)
+                                    End If
+                                End If
+                            End If
+                        End If
+
+                    Catch exKeys As Exception
+                        TimeStampAdd(exKeys, debugMode)
+                    End Try
+                    Dim settings As New ImageMagick.MagickReadSettings()
+                    '// Settings the density to 300 dpi will create an image with a better quality
+                    settings.Density = New ImageMagick.Density(400)
+                    'Dim height As Integer = 0, width As Integer = 0
+                    pdfRead.SelectPages(CStr(1))
+                    pdfData = getPDFBytes(pdfRead.Clone, False)
+                    If height <= 0 And width > 0 Then
+                        height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    ElseIf height > 0 And width <= 0 Then
+                        width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    ElseIf height <= 0 And width <= 0 Then
+                        width = CInt(getPDFWidth(pdfData, 1))
+                        height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    Else
+                    End If
+
+                    Using images As New ImageMagick.MagickImageCollection
+                        'images.Read(fpath, settings)
+                        images.Read(pdfData, settings)
+                        Dim imgpage As Integer = 1
+                        For Each image As ImageMagick.IMagickImage In images.ToArray
+                            ''image.Write("Snakeware.Page" + page + ".png")
+                            image.Format = ImageMagick.MagickFormat.Jpeg
+                            ''image.Width = width
+                            ''image.Height = height
+                            ''Dim fnTemp As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & page & ".jpg"
+                            ''image.Write(fnTemp)
+                            ''Process.Start(fnTemp)
+                            ''imgpage = imgpage + 1
+                            ''ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                            'Dim m As New MemoryStream()
+                            'image.Write(m)
+                            'ghostImageBytes = m.ToArray
+
+                            'Return ghostImageBytes
+                            Dim m As New MemoryStream()
+                            image.Write(m)
+                            ghostImageBytes = m.ToArray
+                            Dim m2 As New MemoryStream()
+                            clsPDFOptimization.ResizeBitmapMagick(System.Drawing.Bitmap.FromStream(m), System.Drawing.Imaging.ImageFormat.Jpeg, width, height, True).Save(m2, System.Drawing.Imaging.ImageFormat.Jpeg)
+                            If m2.CanSeek Then
+                                m2.Position = 0
+                            End If
+                            Return m2.ToArray
+                        Next
+                    End Using
+                    'cPDF2Image.FitPage = True
+                    'cPDF2Image.GraphicsAlphaBit = 4
+                    'cPDF2Image.TextAlphaBit = 4
+                    'cPDF2Image.DisableFontMap = False
+                    'cPDF2Image.DisablePlatformFonts = False
+                    'cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    'cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    'cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
+                    'cPDF2Image.RenderingThreads = 4
+                    'cPDF2Image.JPEGQuality = 100
+                    'cPDF2Image.UseMutex = False
+                    'Dim height As Integer = 0, width As Integer = 0
+                    'pdfRead.SelectPages(CStr(page.ToString()))
+                    'pdfData = getPDFBytes(pdfRead.Clone, False)
+                    'If height <= 0 And width > 0 Then
+                    '    height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    'ElseIf height > 0 And width <= 0 Then
+                    '    width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    'ElseIf height <= 0 And width <= 0 Then
+                    '    width = CInt(getPDFWidth(pdfData, 1))
+                    '    height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    'Else
+                    'End If
+                    'cPDF2Image.Width = width
+                    'cPDF2Image.Height = height
+                    'cPDF2Image.GhostScriptDLLDirectory = appPath
+                    'If Not pdfOwnerPassword.isNullOrEmpty() Then
+                    'End If
+                    'cPDF2Image.FirstPageToConvert = 1 '1 'page
+                    'cPDF2Image.LastPageToConvert = 1 '1 'page
+                    'Try
+                    '    Dim cntr As Integer = 0
+                    '    Do While LoadImageGs_InUse
+                    '        If DoEvents_Wait(100) Then
+                    '            cntr += 1
+                    '            If cntr > 30 Then
+                    '                LoadImageGs_InUse = False
+                    '                Exit Do
+                    '            End If
+                    '        End If
+                    '    Loop
+                    'Catch ex As Exception
+                    '    TimeStampAdd(ex, debugMode)
+                    'End Try
+                    'LoadImageGs_InUse = True
+                    'ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    'Return ghostImageBytes
+                Catch ex As Exception
+                    If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
+                        pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
+                        Err.Clear()
+                        GoTo GoTo_StartOver
+                    End If
+                    TimeStampAdd(ex, debugMode)
+                Finally
+                    Try
+                        If Not pdfRead Is Nothing Then
+                            pdfRead.Close()
+                            pdfRead.Dispose()
+                            pdfRead = Nothing
+                        End If
+                        'cPDF2Image.Dispose()
+                        LoadImageGs_InUse = False
+                    Catch ex2 As Exception
+                        TimeStampAdd(ex2, debugMode)
+                        TimeStampAdd(ex2, debugMode)
+                        LoadImageGs_InUse = False
+                    End Try
+                End Try
+            End Using
+        End If
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
     End Function
     Public Function A0_LoadImageGhostScript(ByVal pdfData() As Byte, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
         Dim pdfRead As PdfReader = Nothing
@@ -833,7 +1262,8 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    Return ghostImageBytes
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfRead = New PdfReader(pdfData.ToArray, getBytes(pdfOwnerPassword & ""))
@@ -858,7 +1288,8 @@ GoTo_StartOver:
                 End Try
             End Using
         End If
-        Return Nothing
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
     End Function
     Public Function A0_LoadImageGhostScript(ByVal pdfRead As PdfReader, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
         Dim pdfReadTemp As PdfReader = Nothing
@@ -953,7 +1384,7 @@ GoTo_StartOver:
                         TimeStampAdd(ex, debugMode)
                     End Try
                     LoadImageGs_InUse = True
-                    Return cPDF2Image.ConvertToBytes(getPDFBytes(pdfReadTemp.Clone, False), "pdf", ".jpg", ApplicationDataFolder(False, ""))
+                    ghostImageBytes = cPDF2Image.ConvertToBytes(getPDFBytes(pdfReadTemp.Clone, False), "pdf", ".jpg", ApplicationDataFolder(False, ""))
                 Catch ex As Exception
                     If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
                         pdfReadTemp = New PdfReader(getPDFBytes(pdfReadTemp.Clone), pdfOwnerPassword.toBytesPdfOwnerPassword)
@@ -973,7 +1404,177 @@ GoTo_StartOver:
                 End Try
             End Using
         End If
-        Return Nothing
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
+
+    End Function
+    Public Function A0_LoadImageMagick(ByVal pdfRead As PdfReader, ByVal pageNum As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        Dim pdfReadTemp As PdfReader = Nothing
+        Dim PDFData() As Byte = getPDFBytes(pdfRead.Clone, False)
+        Dim startCount As Integer = 0
+        Try
+            If LoadImageGs_InUse Then
+                If Not clsPreloadImagesThread Is Nothing Then
+                    clsPreloadImagesThread.StopTimer()
+                End If
+            End If
+            Dim cntr As Integer = 0
+            Do While LoadImageGs_InUse
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
+            Loop
+        Catch exPreload As Exception
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
+        End Try
+        If Not LoadImageGs_InUse Then
+            Using cPDF2Image As New PdfToImage.PDFConvert()
+                Try
+
+                    'PDFData = getPDFBytes(pdfRead, False)
+                    pdfReadTemp = New PdfReader(PDFData)
+GoTo_StartOver:
+                    startCount += 1
+                    cPDF2Image.OutputToMultipleFile = False
+                    pdfReadTemp.SelectPages(pageNum.ToString)
+                    'pageNum = 1
+                    Try
+                        If MakeFieldsVisible Then
+                            If Not pdfReadTemp.AcroFields Is Nothing Then
+                                If Not pdfReadTemp.AcroFields.Fields Is Nothing Then
+                                    If pdfReadTemp.AcroFields.Fields.Keys.Count > 0 Then
+                                        pdfReadTemp = A0_MakeFieldsVisible(pdfReadTemp.Clone)
+                                    End If
+                                End If
+                            End If
+                        End If
+
+                    Catch exKeys As Exception
+                        TimeStampAdd(exKeys, debugMode)
+                    End Try
+                    Dim settings As New ImageMagick.MagickReadSettings()
+                    '// Settings the density to 300 dpi will create an image with a better quality
+                    settings.Density = New ImageMagick.Density(400)
+                    'Dim height As Integer = 0, width As Integer = 0
+                    pdfReadTemp.SelectPages(CStr(1))
+                    PDFData = getPDFBytes(pdfReadTemp.Clone, False)
+                    If height <= 0 And width > 0 Then
+                        height = CInt((width / CSng(getPDFWidth(PDFData, 1))) * CSng(getPDFHeight(PDFData, 1)))
+                    ElseIf height > 0 And width <= 0 Then
+                        width = CInt((height / CSng(getPDFHeight(PDFData, 1))) * CSng(getPDFWidth(PDFData, 1)))
+                    ElseIf height <= 0 And width <= 0 Then
+                        width = CInt(getPDFWidth(PDFData, 1))
+                        height = CInt(getPDFHeight(PDFData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    Else
+                    End If
+
+                    Using images As New ImageMagick.MagickImageCollection
+                        'images.Read(fpath, settings)
+                        images.Read(PDFData, settings)
+                        Dim imgpage As Integer = 1
+                        For Each image As ImageMagick.IMagickImage In images.ToArray
+                            ''image.Write("Snakeware.Page" + page + ".png")
+                            image.Format = ImageMagick.MagickFormat.Jpeg
+                            ''image.Width = width
+                            ''image.Height = height
+                            ''Dim fnTemp As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & page & ".jpg"
+                            ''image.Write(fnTemp)
+                            ''Process.Start(fnTemp)
+                            ''imgpage = imgpage + 1
+                            ''ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                            'Dim m As New MemoryStream()
+                            'image.Write(m)
+                            'ghostImageBytes = m.ToArray
+                            'Return ghostImageBytes
+                            Dim m As New MemoryStream()
+                            image.Write(m)
+                            ghostImageBytes = m.ToArray
+                            Dim m2 As New MemoryStream()
+                            clsPDFOptimization.ResizeBitmapMagick(System.Drawing.Bitmap.FromStream(m), System.Drawing.Imaging.ImageFormat.Jpeg, width, height, True).Save(m2, System.Drawing.Imaging.ImageFormat.Jpeg)
+                            If m2.CanSeek Then
+                                m2.Position = 0
+                            End If
+                            Return m2.ToArray
+                        Next
+                    End Using
+                    'cPDF2Image.FitPage = True
+                    'cPDF2Image.GraphicsAlphaBit = 4
+                    'cPDF2Image.TextAlphaBit = 4
+                    'cPDF2Image.DisableFontMap = False
+                    'cPDF2Image.DisablePlatformFonts = False
+                    'cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    'cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    'cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
+                    'cPDF2Image.RenderingThreads = 4
+                    'cPDF2Image.JPEGQuality = 100
+                    'cPDF2Image.UseMutex = False
+                    'Dim height As Integer = 0, width As Integer = 0
+                    'pdfReadTemp.SelectPages(CStr(page.ToString()))
+                    'pdfData = getPDFBytes(pdfReadTemp.Clone, False)
+                    'If height <= 0 And width > 0 Then
+                    '    height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    'ElseIf height > 0 And width <= 0 Then
+                    '    width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    'ElseIf height <= 0 And width <= 0 Then
+                    '    width = CInt(getPDFWidth(pdfData, 1))
+                    '    height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    'Else
+                    'End If
+                    'cPDF2Image.Width = width
+                    'cPDF2Image.Height = height
+                    'cPDF2Image.GhostScriptDLLDirectory = appPath
+                    'If Not pdfOwnerPassword.isNullOrEmpty() Then
+                    'End If
+                    'cPDF2Image.FirstPageToConvert = 1 '1 'page
+                    'cPDF2Image.LastPageToConvert = 1 '1 'page
+                    'Try
+                    '    Dim cntr As Integer = 0
+                    '    Do While LoadImageGs_InUse
+                    '        If DoEvents_Wait(100) Then
+                    '            cntr += 1
+                    '            If cntr > 30 Then
+                    '                LoadImageGs_InUse = False
+                    '                Exit Do
+                    '            End If
+                    '        End If
+                    '    Loop
+                    'Catch ex As Exception
+                    '    TimeStampAdd(ex, debugMode)
+                    'End Try
+                    'LoadImageGs_InUse = True
+                    'ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    'Return ghostImageBytes
+                Catch ex As Exception
+                    If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
+                        pdfReadTemp = New PdfReader(PDFData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
+                        Err.Clear()
+                        GoTo GoTo_StartOver
+                    End If
+                    TimeStampAdd(ex, debugMode)
+                Finally
+                    Try
+                        If Not pdfReadTemp Is Nothing Then
+                            pdfReadTemp.Close()
+                            pdfReadTemp.Dispose()
+                            pdfReadTemp = Nothing
+                        End If
+                        'cPDF2Image.Dispose()
+                        LoadImageGs_InUse = False
+                    Catch ex2 As Exception
+                        TimeStampAdd(ex2, debugMode)
+                        TimeStampAdd(ex2, debugMode)
+                        LoadImageGs_InUse = False
+                    End Try
+                End Try
+            End Using
+        End If
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
+
     End Function
     Public Function A0_LoadImageGhostScript(ByVal pdfData() As Byte, strPdfOwnerPassword As String, ByVal page As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
         Dim pdfRead As PdfReader = Nothing
@@ -1091,6 +1692,171 @@ GoTo_StartOver:
         End If
         Return Nothing
     End Function
+    Public Function A0_LoadImageMagick(ByVal pdfData() As Byte, strPdfOwnerPassword As String, ByVal pageNum As Integer, ByVal width As Integer, ByVal height As Integer, Optional MakeFieldsVisible As Boolean = True) As Byte()
+        Dim pdfRead As PdfReader = Nothing
+        Dim startCount As Integer = 0
+        Try
+            If LoadImageGs_InUse Then
+                If Not clsPreloadImagesThread Is Nothing Then
+                    clsPreloadImagesThread.StopTimer()
+                End If
+            End If
+            Dim cntr As Integer = 0
+            Do While LoadImageGs_InUse
+                If DoEvents_Wait(100) Then
+                    cntr += 1
+                    If cntr > 30 Then
+                        LoadImageGs_InUse = False
+                        Exit Do
+                    End If
+                End If
+            Loop
+        Catch exPreload As Exception
+            TimeStampAdd(exPreload, debugMode) ' NK 2016-06-30 'NK DM
+        End Try
+        If Not LoadImageGs_InUse Then
+            Using cPDF2Image As New PdfToImage.PDFConvert()
+                Try
+
+                    pdfRead = New PdfReader(pdfData, strPdfOwnerPassword.toBytesPdfOwnerPassword)
+GoTo_StartOver:
+                    startCount += 1
+                    cPDF2Image.OutputToMultipleFile = False
+                    pdfRead.SelectPages(pageNum.ToString)
+                    'pageNum = 1
+                    Try
+                        If MakeFieldsVisible Then
+                            If Not pdfRead.AcroFields Is Nothing Then
+                                If Not pdfRead.AcroFields.Fields Is Nothing Then
+                                    If pdfRead.AcroFields.Fields.Keys.Count > 0 Then
+                                        pdfRead = A0_MakeFieldsVisible(pdfRead.Clone)
+                                    End If
+                                End If
+                            End If
+                        End If
+
+                    Catch exKeys As Exception
+                        TimeStampAdd(exKeys, debugMode)
+                    End Try
+                    Dim settings As New ImageMagick.MagickReadSettings()
+                    '// Settings the density to 300 dpi will create an image with a better quality
+                    settings.Density = New ImageMagick.Density(400)
+                    'Dim height As Integer = 0, width As Integer = 0
+                    pdfRead.SelectPages(CStr(1))
+                    pdfData = getPDFBytes(pdfRead.Clone, False)
+                    If height <= 0 And width > 0 Then
+                        height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    ElseIf height > 0 And width <= 0 Then
+                        width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    ElseIf height <= 0 And width <= 0 Then
+                        width = CInt(getPDFWidth(pdfData, 1))
+                        height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    Else
+                    End If
+
+                    Using images As New ImageMagick.MagickImageCollection
+                        'images.Read(fpath, settings)
+                        images.Read(pdfData, settings)
+                        Dim imgpage As Integer = 1
+                        For Each image As ImageMagick.IMagickImage In images.ToArray
+                            'image.Write("Snakeware.Page" + page + ".png")
+                            image.Format = ImageMagick.MagickFormat.Jpeg
+                            ''image.Width = width
+                            ''image.Height = height
+                            ''Dim fnTemp As String = appPathTemp & Path.GetFileNameWithoutExtension(fpath) & page & ".jpg"
+                            ''image.Write(fnTemp)
+                            ''Process.Start(fnTemp)
+                            ''imgpage = imgpage + 1
+                            ''ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                            'Dim m As New MemoryStream()
+                            'image.Write(m)
+                            'ghostImageBytes = m.ToArray
+                            'Return ghostImageBytes
+                            Dim m As New MemoryStream()
+                            image.Write(m)
+                            ghostImageBytes = m.ToArray
+                            Dim m2 As New MemoryStream()
+                            clsPDFOptimization.ResizeBitmapMagick(System.Drawing.Bitmap.FromStream(m), System.Drawing.Imaging.ImageFormat.Jpeg, width, height, True).Save(m2, System.Drawing.Imaging.ImageFormat.Jpeg)
+                            If m2.CanSeek Then
+                                m2.Position = 0
+                            End If
+                            Return m2.ToArray
+                        Next
+                    End Using
+                    'cPDF2Image.FitPage = True
+                    'cPDF2Image.GraphicsAlphaBit = 4
+                    'cPDF2Image.TextAlphaBit = 4
+                    'cPDF2Image.DisableFontMap = False
+                    'cPDF2Image.DisablePlatformFonts = False
+                    'cPDF2Image.OutputFormat = "jpeg" '"png16m" '"jpeg" '"png16m" '"bmp16m" ' '"png16m" '"pngalpha" '"png256" '"jpeg"
+                    'cPDF2Image.ResolutionX = 300 '150 '72 'CSng(GetPDFWidth(pdfData)) + 0 '720
+                    'cPDF2Image.ResolutionY = 300 '150 '72 'CSng(GetPDFHeight(pdfData)) + 0 '720
+                    'cPDF2Image.RenderingThreads = 4
+                    'cPDF2Image.JPEGQuality = 100
+                    'cPDF2Image.UseMutex = False
+                    'Dim height As Integer = 0, width As Integer = 0
+                    'pdfRead.SelectPages(CStr(page.ToString()))
+                    'pdfData = getPDFBytes(pdfRead.Clone, False)
+                    'If height <= 0 And width > 0 Then
+                    '    height = CInt((width / CSng(getPDFWidth(pdfData, 1))) * CSng(getPDFHeight(pdfData, 1)))
+                    'ElseIf height > 0 And width <= 0 Then
+                    '    width = CInt((height / CSng(getPDFHeight(pdfData, 1))) * CSng(getPDFWidth(pdfData, 1)))
+                    'ElseIf height <= 0 And width <= 0 Then
+                    '    width = CInt(getPDFWidth(pdfData, 1))
+                    '    height = CInt(getPDFHeight(pdfData, 1)) '(width / CSng(GetPDFWidth(pdfData, page))) * CSng(GetPDFHeight(pdfData, page)))
+                    'Else
+                    'End If
+                    'cPDF2Image.Width = width
+                    'cPDF2Image.Height = height
+                    'cPDF2Image.GhostScriptDLLDirectory = appPath
+                    'If Not pdfOwnerPassword.isNullOrEmpty() Then
+                    'End If
+                    'cPDF2Image.FirstPageToConvert = 1 '1 'page
+                    'cPDF2Image.LastPageToConvert = 1 '1 'page
+                    'Try
+                    '    Dim cntr As Integer = 0
+                    '    Do While LoadImageGs_InUse
+                    '        If DoEvents_Wait(100) Then
+                    '            cntr += 1
+                    '            If cntr > 30 Then
+                    '                LoadImageGs_InUse = False
+                    '                Exit Do
+                    '            End If
+                    '        End If
+                    '    Loop
+                    'Catch ex As Exception
+                    '    TimeStampAdd(ex, debugMode)
+                    'End Try
+                    'LoadImageGs_InUse = True
+                    'ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, "pdf", ".jpg", ApplicationDataFolder(False, "temp"))
+                    'Return ghostImageBytes
+                Catch ex As Exception
+                    If startCount <= 4 And ex.Message.ToString.ToLower = "The original document was reused. Read it again from file.".ToLower Then
+                        pdfRead = New PdfReader(pdfData.ToArray, pdfOwnerPassword.toBytesPdfOwnerPassword)
+                        Err.Clear()
+                        GoTo GoTo_StartOver
+                    End If
+                    TimeStampAdd(ex, debugMode)
+                Finally
+                    Try
+                        If Not pdfRead Is Nothing Then
+                            pdfRead.Close()
+                            pdfRead.Dispose()
+                            pdfRead = Nothing
+                        End If
+                        'cPDF2Image.Dispose()
+                        LoadImageGs_InUse = False
+                    Catch ex2 As Exception
+                        TimeStampAdd(ex2, debugMode)
+                        TimeStampAdd(ex2, debugMode)
+                        LoadImageGs_InUse = False
+                    End Try
+                End Try
+            End Using
+        End If
+        ghostImageBytes = Nothing
+        Return ghostImageBytes
+    End Function
     Public Function LoadFileGhostScript(ByVal pdfData() As Byte, ByVal inputFormatExtension As String) As Byte()
         Try
             Dim x As String = ApplicationDataFolder(False, "temp") & Guid.NewGuid().ToString.Replace("-", "").Substring(0, 8) & "\" 'Server.MapPath("/SubmitPDF/editPDF/")
@@ -1111,7 +1877,8 @@ GoTo_StartOver:
             cPDF2Image.ResolutionX = 720
             cPDF2Image.ResolutionY = 720
             cPDF2Image.GhostScriptDLLDirectory = appPath
-            pdfData = cPDF2Image.ConvertToBytes(pdfData, inputFormatExtension, ".png", x)
+            ghostImageBytes = cPDF2Image.ConvertToBytes(pdfData, inputFormatExtension, ".png", x)
+            pdfData = ghostImageBytes
             Try
             Catch ex As Exception
             End Try
@@ -1854,13 +2621,13 @@ GoTo_StartOver:
                             Try
                                 If forceNew Or imgCache Is Nothing Then
                                     ''TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:A:" & imgCache.Length.ToString())
-                                    imgCache = A0_LoadImage(Session, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
+                                    imgCache = A0_LoadImageSub(Session, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
                                     'TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:B:" & imgCache.Length.ToString())
                                     Session("image_cache_history_" & pgNo, cmbPercent.SelectedIndex, cmbPercent.SelectedItem.ToString, cmbPercent.Text) = imgCache
                                     'TimeStampAdd("A0_LoadPDF-imgCache.length:B:2:C:" & imgCache.Length.ToString())
                                 Else
                                     If imgCache.Length <= 0 Then
-                                        imgCache = A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
+                                        imgCache = A0_LoadImageSub(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True))))
                                     End If
                                 End If
                             Catch ex As Exception
@@ -1877,7 +2644,7 @@ GoTo_StartOver:
                         Else
                             'TimeStampAdd("A0_LoadPDF-imgCache.length:B:4:" & imgCache.Length.ToString())
                             Try
-                                m = New MemoryStream(A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
+                                m = New MemoryStream(A0_LoadImageSub(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
                             Catch ex As Exception
                                 TimeStampAdd(ex, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                             End Try
@@ -1885,7 +2652,7 @@ GoTo_StartOver:
                         End If
                     Catch exImageCache As Exception
                         'TimeStampAdd("A0_LoadPDF-session.length:B:4:" & Session.Length.ToString())
-                        m = New MemoryStream(A0_LoadImage(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
+                        m = New MemoryStream(A0_LoadImageSub(pdfReaderDoc, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * CSng(getPercent(pgNo, True))), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * CSng(getPercent(pgNo, True)))))
                         TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                         'TimeStampAdd("A0_LoadPDF-session.length:B:5:" & Session.Length.ToString())
                     Finally
@@ -1925,18 +2692,18 @@ GoTo_StartOver:
                                 blnSaveCache = False
                             End If
                             If forceNew Or imgCache Is Nothing Then
-                                imgCache = A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
+                                imgCache = A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
                             Else
                                 If imgCache.Length <= 0 Then
-                                    imgCache = A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
+                                    imgCache = A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
                                 End If
                             End If
                             m = New MemoryStream(imgCache)
                         Else
-                            m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
+                            m = New MemoryStream(A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
                         End If
                     Catch exImageCache As Exception
-                        m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
+                        m = New MemoryStream(A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
                         TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                     Finally
                     End Try
@@ -1968,18 +2735,18 @@ GoTo_StartOver:
                                 blnSaveCache = False
                             End If
                             If forceNew Or imgCache Is Nothing Then
-                                imgCache = A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
+                                imgCache = A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
                             Else
                                 If imgCache.Length <= 0 Then
-                                    imgCache = A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
+                                    imgCache = A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True)))
                                 End If
                             End If
                             m = New MemoryStream(imgCache)
                         Else
-                            m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
+                            m = New MemoryStream(A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
                         End If
                     Catch exImageCache As Exception
-                        m = New MemoryStream(A0_LoadImage(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
+                        m = New MemoryStream(A0_LoadImageSub(pdfBytes, pgNo, CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Width * getPercent(pgNo, True)), CInt(pdfReaderDoc.GetPageSizeWithRotation(pgNo).Height * getPercent(pgNo, True))))
                         TimeStampAdd(exImageCache, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                     Finally
                     End Try
@@ -2272,8 +3039,8 @@ TRYELSE:
             g.DrawImage(bmp, dstRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attr)
             g.Dispose()
             If Not cUserRect.pauseDraw Then A0_PictureBox2.Image = DirectCast(img.Clone, System.Drawing.Image)
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -2281,8 +3048,8 @@ TRYELSE:
             A0_PictureBox2.Parent = A0_PictureBox1
             If isDragingImage() Or cUserRect.pauseDraw = False Then
                 If Not cUserRect.pauseDraw Then A0_PictureBox2.Image = DirectCast(img.Clone, System.Drawing.Image)
-                A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-                A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+                A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+                A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
                 A0_PictureBox2.Width = A0_PictureBox1.Width
                 A0_PictureBox2.Height = A0_PictureBox1.Height
                 A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -2336,8 +3103,8 @@ TRYELSE:
                 End If
             End If
             If Not cUserRect.pauseDraw Then A0_PictureBox2.Image = DirectCast(img.Clone, System.Drawing.Image)
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -2736,7 +3503,7 @@ TRYELSE:
                             If Not A0_PictureBox1.Top = 0 Then A0_PictureBox1.Top = 0
                             If Not A0_PictureBox1.Left = 0 Then A0_PictureBox1.Left = 0
                         End If
-                        If Not A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal Then A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
+                        If Not A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage Then A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
                     Else
                         Return
                     End If
@@ -26116,13 +26883,7 @@ Goto_END_APP:
     End Sub
     Private Sub Form1_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         Try
-            appPath = Application.StartupPath.ToString.TrimEnd("\"c) & "\"
-            appPathTemp = ApplicationDataFolder(False, "temp")
-            If Not Directory.Exists(ApplicationDataFolder(False, "temp") & "") Then
-                Directory.CreateDirectory(ApplicationDataFolder(False, "temp") & "")
-            End If
-            FontFactory.RegisterDirectories()
-            'DefaultFont = New iTextSharp.text.Font(FontFactory.GetFont(PDFField_FontFamily.Items(PDFField_FontFamily.SelectedIndex).ToString(), defaultFontSize, iTextSharp.text.Font.NORMAL, New BaseColor(PDFField_TextColorPicker.BackColor)))
+            ToolStripComboBoxImageProcessor.SelectedIndex = imageProcessor
         Catch ex As Exception
             Err.Clear()
         End Try
@@ -26341,132 +27102,160 @@ Goto_END_APP:
         Dim imageExtensions As New List(Of String)
         imageExtensions.AddRange(New String() {".jpg", ".gif", ".png", ".jpeg", ".tif", ".tiff"})
         Try
-            Dim Args() As String = Environment.CommandLine.Split(""" """)
-            Dim intX As Integer = 0
-            _outputIndex = 0
-            mem.Clear()
-            fpath = ""
-            For Each arg As String In Args
-                intX += 1
-                If Not String.IsNullOrEmpty(arg.ToString().Trim() & "") Then
-                    If FileExists(arg.ToString().Trim() & "") Then
-                        If extensions.Contains("." & GetFileExtension(arg & "").ToString.TrimStart("."c).ToLower()) Then
-                            fpath = arg.ToString().Trim()
-                            If String.IsNullOrEmpty(fpath & "") Then
-                                fpath = appPath & "acro.pdf"
-                                OpenFile(fpath, False)
-                            Else
-                                TimeStampAdd("openfile:" & fpath)
-                                OpenFile(fpath, False)
-                            End If
-                            ComboBox1_SelectedIndexChanged(Me, New EventArgs())
-                            A0_PictureBox1.Enabled = True
-                            A0_PictureBox2.Enabled = True
-                            Return
-                        ElseIf imageExtensions.Contains("." & GetFileExtension(arg & "").ToString.TrimStart("."c).ToLower()) Then
-                            fpath = arg.ToString().Trim()
-                            If String.IsNullOrEmpty(fpath & "") Then
-                                Return
-                            Else
-                                ImportImage(fpath)
-                            End If
-                            ComboBox1_SelectedIndexChanged(Me, New EventArgs())
-                            A0_PictureBox1.Enabled = True
-                            A0_PictureBox2.Enabled = True
-                            Return
-                        End If
-                    ElseIf System.IO.Directory.Exists(arg.ToString().Trim() & "") Then
-                        ' OPEN FILE EXPLORER
-                        clsFF = New dialogListFiles(Me)
-                        Dim folderpath1 As String = arg.ToString().Trim() & ""
-                        Try
-                            If folderpath1 = "" Then
-                                clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
-                                clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
-                            Else
-                                clsFF.txtFTPRoot.Text = folderpath1
-                                clsFF.txtFileName.Text = ""
-                                clsFF.LoadDialog(folderpath1.ToString.TrimEnd("\"c) & "\", "", False)
-                            End If
-                            clsFF.DialogResult = Windows.Forms.DialogResult.Ignore
-                            Select Case clsFF.ShowDialog(Me)
-                                Case Windows.Forms.DialogResult.Yes, Windows.Forms.DialogResult.OK
-                                    If dlgValues.Count >= 5 Then
-                                        Select Case Path.GetExtension(dlgValues(0)).ToString.ToLower.TrimStart(".")
-                                            Case "pdf", "xfdf", "fdf", "xdp", "xml"
-                                                clsFF.Close()
-                                                clsFF.Dispose()
-                                                OpenFile(dlgValues(4).ToString.TrimEnd("\"c) & "\" & dlgValues(0).ToString, True, True)
-                                            Case "jpeg", "jpg", "gif", "png", "bmp", "tif", "tiff"
-                                                clsFF.Close()
-                                                clsFF.Dispose()
-                                                ImportImage(dlgValues(4).ToString.TrimEnd("\"c) & "\" & dlgValues(0).ToString, True)
-                                            Case Else
-                                                clsFF.Close()
-                                                clsFF.Dispose()
-                                        End Select
-                                    Else
-                                        clsFF.Close()
-                                        clsFF.Dispose()
-                                    End If
-                                Case Else
-                            End Select
-                        Catch ex As Exception
-                            TimeStampAdd(ex, debugMode)
-                        Finally
-                            If Not clsFF Is Nothing Then
-                                clsFF = Nothing
-                            End If
-                        End Try
-                    ElseIf IsValidUrl(arg.ToString().Trim() & "") Then
-                        Using wc As New System.Net.WebClient
-                            Dim b As Byte() = wc.DownloadData(arg.ToString().Trim() & "")
-                            For Each k As String In wc.ResponseHeaders.Keys
-                                Try
-                                    If wc.ResponseHeaders(k).ToLower() = "text/html" And k.ToString.ToLower = "content-type".ToLower() Then
-                                        Try
-                                            Dim dMultipleChoice As New dialogMultiChoice(Me)
-                                            dMultipleChoice.lblMessage.Text = "Import HTML page as..."
-                                            Dim clsBut As New List(Of dialogMultiChoice.clsButton)
-                                            Dim btn As dialogMultiChoice.clsButton
-                                            btn = New dialogMultiChoice.clsButton("as HTML", True, DialogResult.OK)
-                                            clsBut.Add(btn)
-                                            btn = New dialogMultiChoice.clsButton("as Image", True, DialogResult.Yes)
-                                            clsBut.Add(btn)
-                                            btn = New dialogMultiChoice.clsButton("", False, DialogResult.No)
-                                            clsBut.Add(btn)
-                                            btn = New dialogMultiChoice.clsButton("Cancel", True, DialogResult.Cancel)
-                                            clsBut.Add(btn)
-                                            Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
-                                                Case DialogResult.OK
-                                                    Convert_ImportURl2HTMLFile(CStr(arg.ToString().Trim() & "") & "")
-                                                Case DialogResult.Yes
-                                                    Convert_ImportURl2ImageFile(CStr(arg.ToString().Trim() & "") & "")
-                                                Case Else
-                                                    Exit Select
-                                            End Select
-                                            Return
-                                        Catch exURL As Exception
-                                            Throw exURL
-                                        End Try
-                                    ElseIf k.ToString.ToLower = "content-type".ToLower() And (wc.ResponseHeaders(k).ToLower() = "text/html".ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimePDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeFDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeXDP.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeXFDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeHTML.ToLower()) Then
-                                        Try
-                                            OpenFileFromUrl(CStr(arg.ToString().Trim() & ""), True, True)
-                                            Return
-                                        Catch exURL As Exception
-                                            Throw exURL
-                                        End Try
-                                    End If
-                                Catch exArgs As Exception
-                                    Err.Clear()
-                                End Try
-                            Next
-                        End Using
-                    End If
+            Dim worker As System.Threading.Thread = Nothing
+            Try
+                appPath = Application.StartupPath.ToString.TrimEnd("\"c) & "\"
+                appPathTemp = ApplicationDataFolder(False, "temp")
+                If Not Directory.Exists(ApplicationDataFolder(False, "temp") & "") Then
+                    Directory.CreateDirectory(ApplicationDataFolder(False, "temp") & "")
                 End If
-            Next
-            If Args.Length > 0 Then
+                worker = New System.Threading.Thread(New System.Threading.ThreadStart(Function() FontFactory.RegisterDirectories()))
+                worker.Start()
+                Do Until (Not worker.ThreadState = 0)
+                    Threading.Thread.Sleep(50)
+                Loop
+                'DefaultFont = New iTextSharp.text.Font(FontFactory.GetFont(PDFField_FontFamily.Items(PDFField_FontFamily.SelectedIndex).ToString(), defaultFontSize, iTextSharp.text.Font.NORMAL, New BaseColor(PDFField_TextColorPicker.BackColor)))
+            Catch ex As Exception
+                Err.Clear()
+            Finally
+                If Not worker.ThreadState = 16 Then
+                    worker.Abort()
+                End If
+                worker = Nothing
+            End Try
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        Try
+            Dim Args() As String = Environment.CommandLine.Split(""" """)
+            If Not Args Is Nothing Then
+                If Args.Length > 0 Then
+                    Dim intX As Integer = 0
+                    _outputIndex = 0
+                    mem.Clear()
+                    fpath = ""
+                    For Each arg As String In Args
+                        intX += 1
+                        If Not String.IsNullOrEmpty(arg.ToString().Trim() & "") Then
+                            If FileExists(arg.ToString().Trim() & "") Then
+                                If extensions.Contains("." & GetFileExtension(arg & "").ToString.TrimStart("."c).ToLower()) Then
+                                    fpath = arg.ToString().Trim()
+                                    If String.IsNullOrEmpty(fpath & "") Then
+                                        fpath = appPath & "acro.pdf"
+                                        OpenFile(fpath, False)
+                                    Else
+                                        TimeStampAdd("openfile:" & fpath)
+                                        OpenFile(fpath, False)
+                                    End If
+                                    ComboBox1_SelectedIndexChanged(Me, New EventArgs())
+                                    A0_PictureBox1.Enabled = True
+                                    A0_PictureBox2.Enabled = True
+                                    Return
+                                ElseIf imageExtensions.Contains("." & GetFileExtension(arg & "").ToString.TrimStart("."c).ToLower()) Then
+                                    fpath = arg.ToString().Trim()
+                                    If String.IsNullOrEmpty(fpath & "") Then
+                                        Return
+                                    Else
+                                        ImportImage(fpath)
+                                    End If
+                                    ComboBox1_SelectedIndexChanged(Me, New EventArgs())
+                                    A0_PictureBox1.Enabled = True
+                                    A0_PictureBox2.Enabled = True
+                                    Return
+                                End If
+                            ElseIf System.IO.Directory.Exists(arg.ToString().Trim() & "") Then
+                                ' OPEN FILE EXPLORER
+                                clsFF = New dialogListFiles(Me)
+                                Dim folderpath1 As String = arg.ToString().Trim() & ""
+                                Try
+                                    If folderpath1 = "" Then
+                                        clsFF.txtFTPRoot.Text = ApplicationDataFolder(False, "")
+                                        clsFF.txtFileName.Text = ""
+                                        clsFF.LoadDialog(ApplicationDataFolder(False, ""), "", False)
+                                    Else
+                                        clsFF.txtFTPRoot.Text = folderpath1
+                                        clsFF.txtFileName.Text = ""
+                                        clsFF.LoadDialog(folderpath1.ToString.TrimEnd("\"c) & "\", "", False)
+                                    End If
+                                    clsFF.DialogResult = Windows.Forms.DialogResult.Ignore
+                                    Select Case clsFF.ShowDialog(Me)
+                                        Case Windows.Forms.DialogResult.Yes, Windows.Forms.DialogResult.OK
+                                            If dlgValues.Count >= 5 Then
+                                                Select Case Path.GetExtension(dlgValues(0)).ToString.ToLower.TrimStart(".")
+                                                    Case "pdf", "xfdf", "fdf", "xdp", "xml"
+                                                        clsFF.Close()
+                                                        clsFF.Dispose()
+                                                        OpenFile(dlgValues(4).ToString.TrimEnd("\"c) & "\" & dlgValues(0).ToString, True, True)
+                                                    Case "jpeg", "jpg", "gif", "png", "bmp", "tif", "tiff"
+                                                        clsFF.Close()
+                                                        clsFF.Dispose()
+                                                        ImportImage(dlgValues(4).ToString.TrimEnd("\"c) & "\" & dlgValues(0).ToString, True)
+                                                    Case Else
+                                                        clsFF.Close()
+                                                        clsFF.Dispose()
+                                                End Select
+                                            Else
+                                                clsFF.Close()
+                                                clsFF.Dispose()
+                                            End If
+                                        Case Else
+                                    End Select
+                                Catch ex As Exception
+                                    TimeStampAdd(ex, debugMode)
+                                Finally
+                                    If Not clsFF Is Nothing Then
+                                        clsFF = Nothing
+                                    End If
+                                End Try
+                            ElseIf IsValidUrl(arg.ToString().Trim() & "") Then
+                                Using wc As New System.Net.WebClient
+                                    Dim b As Byte() = wc.DownloadData(arg.ToString().Trim() & "")
+                                    For Each k As String In wc.ResponseHeaders.Keys
+                                        Try
+                                            If wc.ResponseHeaders(k).ToLower() = "text/html" And k.ToString.ToLower = "content-type".ToLower() Then
+                                                Try
+                                                    Dim dMultipleChoice As New dialogMultiChoice(Me)
+                                                    dMultipleChoice.lblMessage.Text = "Import HTML page as..."
+                                                    Dim clsBut As New List(Of dialogMultiChoice.clsButton)
+                                                    Dim btn As dialogMultiChoice.clsButton
+                                                    btn = New dialogMultiChoice.clsButton("as HTML", True, DialogResult.OK)
+                                                    clsBut.Add(btn)
+                                                    btn = New dialogMultiChoice.clsButton("as Image", True, DialogResult.Yes)
+                                                    clsBut.Add(btn)
+                                                    btn = New dialogMultiChoice.clsButton("", False, DialogResult.No)
+                                                    clsBut.Add(btn)
+                                                    btn = New dialogMultiChoice.clsButton("Cancel", True, DialogResult.Cancel)
+                                                    clsBut.Add(btn)
+                                                    Select Case dMultipleChoice.ShowDialog(Me, "Import HTML page as:", clsBut.ToArray())
+                                                        Case DialogResult.OK
+                                                            Convert_ImportURl2HTMLFile(CStr(arg.ToString().Trim() & "") & "")
+                                                        Case DialogResult.Yes
+                                                            Convert_ImportURl2ImageFile(CStr(arg.ToString().Trim() & "") & "")
+                                                        Case Else
+                                                            Exit Select
+                                                    End Select
+                                                    Return
+                                                Catch exURL As Exception
+                                                    Throw exURL
+                                                End Try
+                                            ElseIf k.ToString.ToLower = "content-type".ToLower() And (wc.ResponseHeaders(k).ToLower() = "text/html".ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimePDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeFDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeXDP.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeXFDF.ToLower() Or wc.ResponseHeaders(k).ToLower() = cFDFApp.MimeHTML.ToLower()) Then
+                                                Try
+                                                    OpenFileFromUrl(CStr(arg.ToString().Trim() & ""), True, True)
+                                                    Return
+                                                Catch exURL As Exception
+                                                    Throw exURL
+                                                End Try
+                                            End If
+                                        Catch exArgs As Exception
+                                            Err.Clear()
+                                        End Try
+                                    Next
+                                End Using
+                            End If
+                        End If
+                    Next
+
+                End If
             End If
             If Clipboard.ContainsImage() Then
                 ImportImageFromClipboardToolStripMenuItem_Click(Me, New EventArgs())
@@ -26664,7 +27453,434 @@ Goto_END_APP:
     Private Sub btnSaveAs_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSaveAs.Click
         SaveAs()
     End Sub
-    Public Function SaveAs() As Boolean
+    Public Function SaveAsOneImage() As Boolean
+        preventClickDialog = True
+        Dim SaveAsFileDialog1 As New frmSaveAs()
+        SaveAsFileDialog1.o.Filter = "JPG|*.jpg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIFF|*.tiff"
+        SaveAsFileDialog1.o.FilterIndex = 0
+        If IsValidUrl(fpath) Then
+            SaveAsFileDialog1.o.FileName = System.IO.Path.GetFileName(fpath & "")
+            SaveAsFileDialog1.FilePath = ""
+            SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = ""
+        Else
+            If String.IsNullOrEmpty(fpath & "") Then
+                SaveAsFileDialog1.o.InitialDirectory = ApplicationDataFolder(False, "") & ""
+            Else
+                SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
+            End If
+            If String.IsNullOrEmpty(fpath & "") Then
+                SaveAsFileDialog1.o.FileName = ""
+                SaveAsFileDialog1.FilePath = ""
+                SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = ""
+            Else
+                SaveAsFileDialog1.o.FileName = System.IO.Path.GetFileNameWithoutExtension(fpath & "") & ".jpg"
+                SaveAsFileDialog1.FilePath = System.IO.Path.GetDirectoryName(fpath).TrimEnd("\"c) & "\"c & System.IO.Path.GetFileNameWithoutExtension(fpath & "") & ".jpg"
+                SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = System.IO.Path.GetDirectoryName(fpath).TrimEnd("\"c) & "\"c & System.IO.Path.GetFileNameWithoutExtension(fpath & "") & ".jpg"
+            End If
+        End If
+        SaveAsFileDialog1.o.AutoUpgradeEnabled = True
+        SaveAsFileDialog1.o.DefaultExt = ".jpg"
+        SaveAsFileDialog1.o.FilterIndex = 1
+        SaveAsFileDialog1.o.Title = "Save As"
+        SaveAsFileDialog1.o.ValidateNames = True
+        SaveAsFileDialog1.o.OverwritePrompt = True
+        Try
+            SaveAsFileDialog1.PDFVersion = "1." & pdfReaderDoc.PdfVersion.ToString() & ""
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        Try
+            If SaveAsFileDialog1.FilePathExtension.ToString.TrimStart("."c).ToLower = "pdf" Then
+                SaveAsFileDialog1.ShowFrmSaveAs_PDFVersion(True)
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        Try
+            If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
+                SaveAsFileDialog1.chkRemoveUnusedObjects.Checked = False
+            End If
+SaveAsCopyRetry:
+            SaveAsFileDialog1.frm_ShowForm(True, Me)
+            Try
+                modelPopupFrmSaveAs_DoEvents(SaveAsFileDialog1)
+            Catch ex As Exception
+                TimeStampAdd(ex, debugMode)
+            End Try
+            Select Case SaveAsFileDialog1.dialogResult_1
+                Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+                    Dim chkRemoveUnusedObjects As Boolean = SaveAsFileDialog1.chkRemoveUnusedObjects.Checked
+                    If chkRemoveUnusedObjects Then
+                        Try
+                            CleanUpFields()
+                        Catch ex1 As Exception
+                            Err.Clear()
+                        End Try
+                        Try
+                            RemoveUnusedObjectsToolStripMenuItem_Click(Me, New EventArgs())
+                        Catch ex1 As Exception
+                            Err.Clear()
+                        End Try
+                    End If
+                    If Not String.IsNullOrEmpty(SaveAsFileDialog1.frmSaveAs_TextFilePath.Text) Then
+                        Dim fn As String = SaveAsFileDialog1.frmSaveAs_TextFilePath.Text & ""
+                        Dim b() As Byte = Nothing
+                        Select Case GetFileExtension(fn).ToString.Replace(".", "").ToLower
+                            Case "pdf"
+                                fpath = fn
+                                Dim PdfVersion As String = SaveAsFileDialog1.PDFVersion.ToString & ""
+                                b = Session("output")
+                                File.WriteAllBytes(fpath, b)
+                                Session("saved") = b
+                                Session() = b
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Me.Text = "PDForms.net:  " & Path.GetFileName(fpath) & ""
+                                addOpenHistoryListItem(fpath & "")
+                                loadToolStripMenu_OpenHistoryList()
+                            Case "fdf"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.FDF, True)
+                                File.WriteAllBytes(fn, b)
+                            Case "xfdf"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.xFDF, True)
+                                File.WriteAllBytes(fn, b)
+                            Case "xdp"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XDP, True)
+                                File.WriteAllBytes(fn, b)
+                            Case "xml"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XML, True)
+                                File.WriteAllBytes(fn, b)
+                            Case "xls"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.XML, True)
+                                File.WriteAllBytes(fn, b.ToArray())
+                            Case "json"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                b = cFDFDoc.FDFSavetoBuf(FDFApp.FDFDoc_Class.FDFType.Json, True)
+                                File.WriteAllBytes(fn, b)
+                            Case "txt"
+                                _cFDFDoc = cFDFDoc(True)
+                                Dim strBuilder As New System.Text.StringBuilder
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                For Each fld As FDFApp.FDFDoc_Class.FDFField In cFDFDoc.XDPGetAllFields()
+                                    Dim strAppend As String = fld.FieldName.ToString & ": "
+                                    For i As Integer = 0 To fld.FieldValue.Count - 1
+                                        strAppend &= fld.FieldValue(i) & ","
+                                    Next
+                                    strAppend.TrimEnd(","c)
+                                    strBuilder.AppendLine(strAppend.ToString)
+                                Next
+                                File.WriteAllText(fn, strBuilder.ToString)
+                            Case "html", "htm"
+                                _cFDFDoc = cFDFDoc(True)
+                                If Not String.IsNullOrEmpty(fpath & "") Then cFDFDoc.FDFSetFile(fpath)
+                                Dim inlineImages As Boolean = True, includeFields As Boolean = True
+                                Select Case MsgBox("Inline images using base64 URL encoding?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Inline Images:")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        inlineImages = True
+                                    Case Else
+                                        inlineImages = False
+                                End Select
+                                Try
+                                    includeFields = False
+                                    If _cFDFDoc.XDPFieldCount() > 0 Then
+                                        Select Case MsgBox("Include html form fields?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "HTML form fields:")
+                                            Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                                includeFields = True
+                                            Case Else
+                                                includeFields = False
+                                        End Select
+                                    End If
+                                Catch exFields As Exception
+                                    Err.Clear()
+                                End Try
+                                b = System.Text.Encoding.UTF8.GetBytes(createHTMLFile("", includeFields, inlineImages, "", Me, "", False, fn, False, -1))
+                                File.WriteAllBytes(fn, b)
+                                Select Case MsgBox("Open HTML File?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Open:")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        Process.Start(fn)
+                                    Case Else
+                                End Select
+                            Case "png"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                Dim oneBitmap As Bitmap = Nothing, tempBitmap As Bitmap = Nothing
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                    If oneBitmap Is Nothing Then
+                                        oneBitmap = i.Clone
+                                    Else
+                                        tempBitmap = New Bitmap(oneBitmap.Width + i.Width, oneBitmap.Height + i.Height)
+                                        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(tempBitmap)
+                                            g.DrawImage(oneBitmap.Clone, New System.Drawing.Rectangle(0, 0, oneBitmap.Width, oneBitmap.Height))
+                                            g.DrawImage(i.Clone, New System.Drawing.Rectangle(0, oneBitmap.Height, i.Width, i.Height + oneBitmap.Height))
+                                            g.Dispose()
+                                        End Using
+                                    End If
+                                    'i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                Next
+                                tempBitmap.Save(fn, System.Drawing.Imaging.ImageFormat.Png)
+                                Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        If File.Exists(fnPg) Then
+                                            Process.Start(fnPg)
+                                        End If
+                                    Case Else
+                                        Exit Select
+                                End Select
+                            Case "jpg"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                Dim oneBitmap As Bitmap = Nothing, tempBitmap As Bitmap = Nothing
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                    If oneBitmap Is Nothing Then
+                                        oneBitmap = i.Clone
+                                    Else
+                                        tempBitmap = New Bitmap(oneBitmap.Width, oneBitmap.Height + i.Height)
+                                        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(tempBitmap)
+                                            g.DrawImage(oneBitmap.Clone, New System.Drawing.Rectangle(0, 0, oneBitmap.Width, oneBitmap.Height))
+                                            g.DrawImage(i.Clone, 0, oneBitmap.Height, i.Width, i.Height)
+                                            g.Dispose()
+                                        End Using
+                                        oneBitmap = tempBitmap.Clone
+                                    End If
+                                    'i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                Next
+                                tempBitmap.Save(fn, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        If File.Exists(fnPg) Then
+                                            Process.Start(fnPg)
+                                        End If
+                                    Case Else
+                                        Exit Select
+                                End Select
+                            Case "bmp"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                Dim oneBitmap As Bitmap = Nothing, tempBitmap As Bitmap = Nothing
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                    If oneBitmap Is Nothing Then
+                                        oneBitmap = i.Clone
+                                    Else
+                                        tempBitmap = New Bitmap(oneBitmap.Width + i.Width, oneBitmap.Height + i.Height)
+                                        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(tempBitmap)
+                                            g.DrawImage(oneBitmap.Clone, New System.Drawing.Rectangle(0, 0, oneBitmap.Width, oneBitmap.Height))
+                                            g.DrawImage(i.Clone, New System.Drawing.Rectangle(0, oneBitmap.Height, i.Width, i.Height + oneBitmap.Height))
+                                            g.Dispose()
+                                        End Using
+                                    End If
+                                    'i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                Next
+                                tempBitmap.Save(fn, System.Drawing.Imaging.ImageFormat.Bmp)
+                                Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        If File.Exists(fnPg) Then
+                                            Process.Start(fnPg)
+                                        End If
+                                    Case Else
+                                        Exit Select
+                                End Select
+                            Case "gif"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                Dim oneBitmap As Bitmap = Nothing, tempBitmap As Bitmap = Nothing
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                    If oneBitmap Is Nothing Then
+                                        oneBitmap = i.Clone
+                                    Else
+                                        tempBitmap = New Bitmap(oneBitmap.Width + i.Width, oneBitmap.Height + i.Height)
+                                        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(tempBitmap)
+                                            g.DrawImage(oneBitmap.Clone, New System.Drawing.Rectangle(0, 0, oneBitmap.Width, oneBitmap.Height))
+                                            g.DrawImage(i.Clone, New System.Drawing.Rectangle(0, oneBitmap.Height, i.Width, i.Height + oneBitmap.Height))
+                                            g.Dispose()
+                                        End Using
+                                    End If
+                                    'i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                Next
+                                tempBitmap.Save(fn, System.Drawing.Imaging.ImageFormat.Gif)
+                                Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        If File.Exists(fnPg) Then
+                                            Process.Start(fnPg)
+                                        End If
+                                    Case Else
+                                        Exit Select
+                                End Select
+                            Case "tiff", "tif"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                Dim oneBitmap As Bitmap = Nothing, tempBitmap As Bitmap = Nothing
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                    If oneBitmap Is Nothing Then
+                                        oneBitmap = i.Clone
+                                    Else
+                                        tempBitmap = New Bitmap(oneBitmap.Width + i.Width, oneBitmap.Height + i.Height)
+                                        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(tempBitmap)
+                                            g.DrawImage(oneBitmap.Clone, New System.Drawing.Rectangle(0, 0, oneBitmap.Width, oneBitmap.Height))
+                                            g.DrawImage(i.Clone, New System.Drawing.Rectangle(0, oneBitmap.Height, i.Width, i.Height + oneBitmap.Height))
+                                            g.Dispose()
+                                        End Using
+                                    End If
+                                    'i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                Next
+                                tempBitmap.Save(fn, System.Drawing.Imaging.ImageFormat.Tiff)
+                                Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                    Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                        If File.Exists(fnPg) Then
+                                            Process.Start(fnPg)
+                                        End If
+                                    Case Else
+                                        Exit Select
+                                End Select
+                            Case Else
+                                b = Session("output")
+                                File.WriteAllBytes(fn, b)
+                        End Select
+                    End If
+                    StatusToolStrip = "Status: File saved successfully."
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        Catch ex As Exception
+            StatusToolStrip = "Error: File not saved."
+            TimeStampAdd(ex, debugMode)
+        Finally
+            timerPreventDefaultExpires.Enabled = True
+            If Not SaveAsFileDialog1 Is Nothing Then
+                SaveAsFileDialog1.frm_Close()
+                SaveAsFileDialog1.Close()
+                SaveAsFileDialog1.Dispose()
+                SaveAsFileDialog1 = Nothing
+            End If
+            If Not Me.Visible Then
+                Me.Show()
+                Me.BringToFront()
+            End If
+            Try
+                If ToolStripStatusLabel5.Text.ToString().ToLower = "Status: File saved successfully.".ToString().ToLower Then
+                    fldNameHighlighted = ""
+                    fldNameHighlightedCopy = fldNameHighlighted & ""
+                    fldKidIndex = fldKidIndex
+                    cUserRect._highLightFieldName = ""
+                    cUserRect.rect = Nothing
+                    cUserRect.rectBackup = Nothing
+                    cUserRect.rectOld = Nothing
+                    cUserRect.mIsClick = False
+                    mMove = False
+                    fldRectangles = getFieldRectangles(True)
+                    A0_LoadPDF(True, False, True)
+                End If
+            Catch exRefresh As Exception
+                TimeStampAdd(exRefresh, debugMode)
+            End Try
+        End Try
+    End Function
+    Public Function SaveAs(Optional saveAsCopy As Boolean = False) As Boolean
         preventClickDialog = True
         Dim SaveAsFileDialog1 As New frmSaveAs()
         SaveAsFileDialog1.o.Filter = "PDF|*.pdf|FDF|*.fdf|XFDF|*.xfdf|XDP|*.xdp|XML|*.xml|XLS|*.xls|Json|*.json|HTML|*.html|HTM|*.htm|Text|*.txt|JPG|*.jpg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIFF|*.tiff"
@@ -26711,6 +27927,7 @@ Goto_END_APP:
             If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
                 SaveAsFileDialog1.chkRemoveUnusedObjects.Checked = False
             End If
+SaveAsCopyRetry:
             SaveAsFileDialog1.frm_ShowForm(True, Me)
             Try
                 modelPopupFrmSaveAs_DoEvents(SaveAsFileDialog1)
@@ -26735,6 +27952,11 @@ Goto_END_APP:
                     If Not String.IsNullOrEmpty(SaveAsFileDialog1.frmSaveAs_TextFilePath.Text) Then
                         Dim fn As String = SaveAsFileDialog1.frmSaveAs_TextFilePath.Text & ""
                         Dim b() As Byte = Nothing
+                        If saveAsCopy = True Then
+                            If fn.ToString.ToLower = fpath.ToString.ToLower Then
+                                GoTo SaveAsCopyRetry
+                            End If
+                        End If
                         Select Case GetFileExtension(fn).ToString.Replace(".", "").ToLower
                             Case "pdf"
                                 fpath = fn
@@ -27242,6 +28464,643 @@ Goto_END_APP:
                                 Dim pgImported As Integer = 1
                                 Dim cdialog As New clsPromptDialog()
                                 Dim pgImportedStr As String = cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim frmImageRot As New frmImageRotation
+                                    frmImageRot.showImageResizeOptions = True
+                                    frmImageRot.LoadPictureBox(b)
+                                    Select Case frmImageRot.ShowDialog(Me)
+                                        Case DialogResult.Yes, DialogResult.OK
+                                            Dim w As Integer = CInt(frmImageRot.ImageRotation_txtResizeWidth.Text)
+                                            Dim h As Integer = CInt(frmImageRot.ImageRotation_txtResizeHeight.Text)
+                                            Dim cOpt As New clsPDFOptimization()
+                                            clsPDFOptimization.cancelOptimize_Shared = False
+                                            b = A0_LoadImage(m.ToArray(), pg, w, h, False)
+                                            Dim bm As Bitmap = Bitmap.FromStream(New MemoryStream(b))
+                                            Select Case frmImageRot.ImageRotation_ImageFlip.SelectedIndex
+                                                Case 0
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipNone)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipNone)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipNone)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                    End Select
+                                                Case 1
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                    End Select
+                                                Case 2
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipX)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipX)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipX)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                    End Select
+                                                Case 3
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipXY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipXY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipXY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                    End Select
+                                            End Select
+                                            Dim i As System.Drawing.Image = bm.Clone
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Tiff)
+                                        Case Else
+                                            Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Tiff)
+                                    End Select
+                                Next
+                                If r.NumberOfPages = 1 Then
+                                    Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                        Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                            If File.Exists(fnPg) Then
+                                                Process.Start(fnPg)
+                                            End If
+                                        Case Else
+                                            Exit Select
+                                    End Select
+                                End If
+                            Case Else
+                                b = Session("output")
+                                File.WriteAllBytes(fn, b)
+                        End Select
+                    End If
+                    StatusToolStrip = "Status: File saved successfully."
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        Catch ex As Exception
+            StatusToolStrip = "Error: File not saved."
+            TimeStampAdd(ex, debugMode)
+        Finally
+            timerPreventDefaultExpires.Enabled = True
+            If Not SaveAsFileDialog1 Is Nothing Then
+                SaveAsFileDialog1.frm_Close()
+                SaveAsFileDialog1.Close()
+                SaveAsFileDialog1.Dispose()
+                SaveAsFileDialog1 = Nothing
+            End If
+            If Not Me.Visible Then
+                Me.Show()
+                Me.BringToFront()
+            End If
+            Try
+                If ToolStripStatusLabel5.Text.ToString().ToLower = "Status: File saved successfully.".ToString().ToLower Then
+                    fldNameHighlighted = ""
+                    fldNameHighlightedCopy = fldNameHighlighted & ""
+                    fldKidIndex = fldKidIndex
+                    cUserRect._highLightFieldName = ""
+                    cUserRect.rect = Nothing
+                    cUserRect.rectBackup = Nothing
+                    cUserRect.rectOld = Nothing
+                    cUserRect.mIsClick = False
+                    mMove = False
+                    fldRectangles = getFieldRectangles(True)
+                    A0_LoadPDF(True, False, True)
+                End If
+            Catch exRefresh As Exception
+                TimeStampAdd(exRefresh, debugMode)
+            End Try
+        End Try
+    End Function
+    Public Function SavePageImageAs() As Boolean
+        preventClickDialog = True
+        Dim SaveAsFileDialog1 As New frmSaveAs()
+        'SaveAsFileDialog1.o.Filter = "PDF|*.pdf|FDF|*.fdf|XFDF|*.xfdf|XDP|*.xdp|XML|*.xml|XLS|*.xls|Json|*.json|HTML|*.html|HTM|*.htm|Text|*.txt|JPG|*.jpg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIFF|*.tiff"
+        SaveAsFileDialog1.o.Filter = "JPG|*.jpg|PNG|*.png|GIF|*.gif|BMP|*.bmp|TIFF|*.tiff"
+        SaveAsFileDialog1.o.FilterIndex = 0
+        If IsValidUrl(fpath) Then
+            SaveAsFileDialog1.o.FileName = System.IO.Path.GetFileName(fpath & "")
+            SaveAsFileDialog1.FilePath = ""
+            SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = ""
+        Else
+            If String.IsNullOrEmpty(fpath & "") Then
+                SaveAsFileDialog1.o.InitialDirectory = ApplicationDataFolder(False, "") & ""
+            Else
+                SaveAsFileDialog1.o.InitialDirectory = System.IO.Path.GetDirectoryName(fpath)
+            End If
+            If String.IsNullOrEmpty(fpath & "") Then
+                SaveAsFileDialog1.o.FileName = ""
+                SaveAsFileDialog1.FilePath = ""
+                SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = ""
+            Else
+                SaveAsFileDialog1.o.FileName = System.IO.Path.GetFileName(fpath & "")
+                SaveAsFileDialog1.FilePath = fpath
+                SaveAsFileDialog1.frmSaveAs_TextFilePath.Text = fpath
+            End If
+        End If
+        SaveAsFileDialog1.o.AutoUpgradeEnabled = True
+        SaveAsFileDialog1.o.DefaultExt = ".jpg"
+        SaveAsFileDialog1.o.FilterIndex = 1
+        SaveAsFileDialog1.o.Title = "Save As"
+        SaveAsFileDialog1.o.ValidateNames = True
+        SaveAsFileDialog1.o.OverwritePrompt = True
+        Try
+            SaveAsFileDialog1.PDFVersion = "1." & pdfReaderDoc.PdfVersion.ToString() & ""
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        Try
+            If SaveAsFileDialog1.FilePathExtension.ToString.TrimStart("."c).ToLower = "pdf" Then
+                SaveAsFileDialog1.ShowFrmSaveAs_PDFVersion(True)
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        Try
+            If Not String.IsNullOrEmpty(pdfOwnerPassword & "") Then
+                SaveAsFileDialog1.chkRemoveUnusedObjects.Checked = False
+            End If
+            SaveAsFileDialog1.frm_ShowForm(True, Me)
+            Try
+                modelPopupFrmSaveAs_DoEvents(SaveAsFileDialog1)
+            Catch ex As Exception
+                TimeStampAdd(ex, debugMode)
+            End Try
+            Select Case SaveAsFileDialog1.dialogResult_1
+                Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+                    Dim chkRemoveUnusedObjects As Boolean = SaveAsFileDialog1.chkRemoveUnusedObjects.Checked
+                    If chkRemoveUnusedObjects Then
+                        Try
+                            CleanUpFields()
+                        Catch ex1 As Exception
+                            Err.Clear()
+                        End Try
+                        Try
+                            RemoveUnusedObjectsToolStripMenuItem_Click(Me, New EventArgs())
+                        Catch ex1 As Exception
+                            Err.Clear()
+                        End Try
+                    End If
+                    If Not String.IsNullOrEmpty(SaveAsFileDialog1.frmSaveAs_TextFilePath.Text) Then
+                        Dim fn As String = SaveAsFileDialog1.frmSaveAs_TextFilePath.Text & ""
+                        Dim b() As Byte = Nothing
+                        Select Case GetFileExtension(fn).ToString.Replace(".", "").ToLower
+                            Case "png"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = page.ToString 'cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim frmImageRot As New frmImageRotation
+                                    frmImageRot.showImageResizeOptions = True
+                                    frmImageRot.LoadPictureBox(b)
+                                    Select Case frmImageRot.ShowDialog(Me)
+                                        Case DialogResult.Yes, DialogResult.OK
+                                            Dim w As Integer = CInt(frmImageRot.ImageRotation_txtResizeWidth.Text)
+                                            Dim h As Integer = CInt(frmImageRot.ImageRotation_txtResizeHeight.Text)
+                                            Dim cOpt As New clsPDFOptimization()
+                                            clsPDFOptimization.cancelOptimize_Shared = False
+                                            b = A0_LoadImage(m.ToArray(), pg, w, h, False)
+                                            Dim bm As Bitmap = Bitmap.FromStream(New MemoryStream(b))
+                                            Select Case frmImageRot.ImageRotation_ImageFlip.SelectedIndex
+                                                Case 0
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipNone)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipNone)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipNone)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                    End Select
+                                                Case 1
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                    End Select
+                                                Case 2
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipX)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipX)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipX)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                    End Select
+                                                Case 3
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipXY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipXY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipXY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                    End Select
+                                            End Select
+                                            Dim i As System.Drawing.Image = bm.Clone
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                        Case Else
+                                            Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Png)
+                                    End Select
+                                Next
+                                If r.NumberOfPages = 1 Then
+                                    Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                        Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                            If File.Exists(fnPg) Then
+                                                Process.Start(fnPg)
+                                            End If
+                                        Case Else
+                                            Exit Select
+                                    End Select
+                                End If
+                            Case "jpg"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = page.ToString 'cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim frmImageRot As New frmImageRotation
+                                    frmImageRot.showImageResizeOptions = True
+                                    frmImageRot.LoadPictureBox(b)
+                                    Select Case frmImageRot.ShowDialog(Me)
+                                        Case DialogResult.Yes, DialogResult.OK
+                                            Dim w As Integer = CInt(frmImageRot.ImageRotation_txtResizeWidth.Text)
+                                            Dim h As Integer = CInt(frmImageRot.ImageRotation_txtResizeHeight.Text)
+                                            Dim cOpt As New clsPDFOptimization()
+                                            clsPDFOptimization.cancelOptimize_Shared = False
+                                            b = A0_LoadImage(m.ToArray(), pg, w, h, False)
+                                            Dim bm As Bitmap = Bitmap.FromStream(New MemoryStream(b))
+                                            Select Case frmImageRot.ImageRotation_ImageFlip.SelectedIndex
+                                                Case 0
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipNone)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipNone)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipNone)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                    End Select
+                                                Case 1
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                    End Select
+                                                Case 2
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipX)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipX)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipX)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                    End Select
+                                                Case 3
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipXY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipXY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipXY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                    End Select
+                                            End Select
+                                            Dim i As System.Drawing.Image = bm.Clone
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                        Case Else
+                                            Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                    End Select
+                                Next
+                                If r.NumberOfPages = 1 Then
+                                    Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                        Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                            If File.Exists(fnPg) Then
+                                                Process.Start(fnPg)
+                                            End If
+                                        Case Else
+                                            Exit Select
+                                    End Select
+                                End If
+                            Case "bmp"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = page.ToString 'cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim frmImageRot As New frmImageRotation
+                                    frmImageRot.showImageResizeOptions = True
+                                    frmImageRot.LoadPictureBox(b)
+                                    Select Case frmImageRot.ShowDialog(Me)
+                                        Case DialogResult.Yes, DialogResult.OK
+                                            Dim w As Integer = CInt(frmImageRot.ImageRotation_txtResizeWidth.Text)
+                                            Dim h As Integer = CInt(frmImageRot.ImageRotation_txtResizeHeight.Text)
+                                            Dim cOpt As New clsPDFOptimization()
+                                            clsPDFOptimization.cancelOptimize_Shared = False
+                                            b = A0_LoadImage(m.ToArray(), pg, w, h, False)
+                                            Dim bm As Bitmap = Bitmap.FromStream(New MemoryStream(b))
+                                            Select Case frmImageRot.ImageRotation_ImageFlip.SelectedIndex
+                                                Case 0
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipNone)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipNone)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipNone)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                    End Select
+                                                Case 1
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                    End Select
+                                                Case 2
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipX)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipX)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipX)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                    End Select
+                                                Case 3
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipXY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipXY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipXY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                    End Select
+                                            End Select
+                                            Dim i As System.Drawing.Image = bm.Clone
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Bmp)
+                                        Case Else
+                                            Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Bmp)
+                                    End Select
+                                Next
+                                If r.NumberOfPages = 1 Then
+                                    Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                        Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                            If File.Exists(fnPg) Then
+                                                Process.Start(fnPg)
+                                            End If
+                                        Case Else
+                                            Exit Select
+                                    End Select
+                                End If
+                            Case "gif"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = page.ToString 'cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
+                                Dim m As MemoryStream
+                                If Not String.IsNullOrEmpty(pgImportedStr & "") Then
+                                    If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
+                                        r.SelectPages(pgImportedStr)
+                                        m = New MemoryStream(getPDFBytes(r))
+                                    Else
+                                        m = New MemoryStream(Session)
+                                    End If
+                                Else
+                                    m = New MemoryStream(Session)
+                                End If
+                                Dim fnPg As String = ""
+                                For pg As Integer = 1 To r.NumberOfPages
+                                    StatusToolStrip("Status: ", True) = "Exporting page #" & pg.ToString & " of " & pdfReaderDoc.NumberOfPages.ToString & " pages"
+                                    fnPg = Path.GetDirectoryName(fn).ToString.TrimEnd("\"c) & "\" & Path.GetFileNameWithoutExtension(fn) & CStr(IIf(pdfReaderDoc.NumberOfPages > 1, "-" & pg, "")) & "." & GetFileExtension(fn).ToString.Replace(".", "").ToLower.TrimStart("."c)
+                                    b = A0_LoadImage(m.ToArray(), pg, getPDFWidth(m.ToArray(), pg) * getPercent(r.Clone(), pg), getPDFHeight(m.ToArray(), pg) * getPercent(r.Clone(), pg), False)
+                                    Dim frmImageRot As New frmImageRotation
+                                    frmImageRot.showImageResizeOptions = True
+                                    frmImageRot.LoadPictureBox(b)
+                                    Select Case frmImageRot.ShowDialog(Me)
+                                        Case DialogResult.Yes, DialogResult.OK
+                                            Dim w As Integer = CInt(frmImageRot.ImageRotation_txtResizeWidth.Text)
+                                            Dim h As Integer = CInt(frmImageRot.ImageRotation_txtResizeHeight.Text)
+                                            Dim cOpt As New clsPDFOptimization()
+                                            clsPDFOptimization.cancelOptimize_Shared = False
+                                            b = A0_LoadImage(m.ToArray(), pg, w, h, False)
+                                            Dim bm As Bitmap = Bitmap.FromStream(New MemoryStream(b))
+                                            Select Case frmImageRot.ImageRotation_ImageFlip.SelectedIndex
+                                                Case 0
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipNone)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipNone)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipNone)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipNone)
+                                                    End Select
+                                                Case 1
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipY)
+                                                    End Select
+                                                Case 2
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipX)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipX)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipX)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipX)
+                                                    End Select
+                                                Case 3
+                                                    Select Case frmImageRot.ImageRotation_ImageRotation.SelectedIndex
+                                                        Case 0
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                        Case 1
+                                                            bm.RotateFlip(RotateFlipType.Rotate90FlipXY)
+                                                        Case 2
+                                                            bm.RotateFlip(RotateFlipType.Rotate180FlipXY)
+                                                        Case 3
+                                                            bm.RotateFlip(RotateFlipType.Rotate270FlipXY)
+                                                        Case 4
+                                                            bm.RotateFlip(RotateFlipType.RotateNoneFlipXY)
+                                                    End Select
+                                            End Select
+                                            Dim i As System.Drawing.Image = bm.Clone
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Gif)
+                                        Case Else
+                                            Dim i As System.Drawing.Image = System.Drawing.Image.FromStream(New MemoryStream(b))
+                                            i.Save(fnPg, System.Drawing.Imaging.ImageFormat.Gif)
+                                    End Select
+                                Next
+                                If r.NumberOfPages = 1 Then
+                                    Select Case MsgBox("Open file: " & Path.GetFileName(fnPg) & "", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.SystemModal, "Open File?")
+                                        Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                            If File.Exists(fnPg) Then
+                                                Process.Start(fnPg)
+                                            End If
+                                        Case Else
+                                            Exit Select
+                                    End Select
+                                End If
+                            Case "tiff", "tif"
+                                LoadPDFReaderDoc(pdfOwnerPassword, True)
+                                Dim r As PdfReader = pdfReaderDoc.Clone()
+                                Dim pgImported As Integer = 1
+                                Dim cdialog As New clsPromptDialog()
+                                Dim pgImportedStr As String = page.ToString 'cdialog.ShowDialog("Select Page Range:", "Page range: " & "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString) & ""), Me, "1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString)) & "")
                                 Dim m As MemoryStream
                                 If Not String.IsNullOrEmpty(pgImportedStr & "") Then
                                     If Not CStr("1" & CStr(IIf(r.NumberOfPages <= 1, "", "-" & r.NumberOfPages.ToString))).ToString() = pgImportedStr Then
@@ -28877,8 +30736,10 @@ GOTO_KNOWN_FILENAME:
         TabControl1.TabPages.Remove(TabPage11)
         TabControl1.TabPages.Remove(TabPage12)
         TabControl1.TabPages.Remove(TabPage13)
+        PDFField_Listbox_Value.Visible = False
         Select Case ComboBox1.SelectedItem.ToString.ToLower
             Case "Button".ToLower
+
                 ShowHideOtherPanels(PDFEdit_Options_SubmitButtons)
                 btnField_AddButton.Visible = True
                 PDFEdit_Actions.Visible = True
@@ -28930,6 +30791,7 @@ GOTO_KNOWN_FILENAME:
                     TabControl1.TabPages.Add(TabPage7)
                 End If
             Case "ListBox".ToLower
+                PDFField_Listbox_Value.Visible = True
                 If TabControl1.TabPages.Count > 3 Then
                     TabControl1.TabPages.Insert(3, TabPage3)
                     TabControl1.TabPages.Insert(4, TabPage9)
@@ -29324,7 +31186,7 @@ RedoFieldName:
                     cUserRect.rectBackup = cUserRect.rect
                     drawBox = True
                     If cUserRect.nodeSelected <> clsUserRect.PosSizableRect.None Then
-                        If pnlFields.Visible Then pnlFields.Visible = False
+                        'If pnlFields.Visible Then pnlFields.Visible = False
                     End If
                     Select Case cUserRect.nodeSelectedTmp
                         Case clsUserRect.PosSizableRect.LeftUp
@@ -29517,6 +31379,20 @@ RedoFieldName:
         End Try
 GOTO_END:
         pauseBtnTextChanged = False
+        Try
+            If PictureBox1_Panel.VerticalScroll.Value > PictureBox1_Panel.VerticalScroll.Maximum Then
+                scrollValue = PictureBox1_Panel.VerticalScroll.Maximum
+                'PictureBox1_Panel.VerticalScroll.Value = scrollValue
+            ElseIf PictureBox1_Panel.VerticalScroll.Value < 0 Then
+                scrollValue = 0
+                'PictureBox1_Panel.VerticalScroll.Value = scrollValue
+            End If
+        Catch ex As Exception
+            TimeStampAdd(ex, debugMode)
+        End Try
+        'If scrollValue > 0 Then
+        '    'PictureBox1_Panel.VerticalScroll.Value = scrollValue
+        'End If
     End Sub
     Private Sub lblFieldType_DragEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DragEventArgs) Handles lblFieldType.DragEnter
         pnlFields_DragEnter(Me, e)
@@ -30437,11 +32313,11 @@ GOTO_RETURN_NOTHING:
     Private Sub PictureBox1_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles A0_PictureBox2.MouseDown
         cUserRect.mIsClick = True
         Try
+            scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
             _clickPoints.Clear()
             cUserRect._highLightFieldName = ""
             If Not comboBox4Selected = True Then
                 'fldNameHighlighted = ""
-                scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
             Else
                 comboBox4Selected = False
                 '_clickPoints.Clear()
@@ -30450,7 +32326,6 @@ GOTO_RETURN_NOTHING:
                 '_clickPoints.Add(New PointF(btnRight.Text, btnBottom.Text))
                 '_dragging = True
                 cUserRect.mIsClick = True
-                scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
                 Return
             End If
             'pnlFields.Visible = False
@@ -30494,7 +32369,7 @@ GOTO_RETURN_NOTHING:
                 _clickPoints.Add(New PointF(cUserRect.rect.Right, cUserRect.rect.Top))
                 _dragging = True
                 cUserRect.mIsClick = True
-                scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
+                'scrollValue = PictureBox1_Panel.VerticalScroll.Value + 0
                 _dragging = False
                 preventDragging = False
                 cUserRect.moveResize = True
@@ -30841,7 +32716,7 @@ GOTO_RETURN_NOTHING:
         End If
 GoTo_RETURN:
         If fldNameHighlighted.isNullOrEmpty() And cUserRect.rect = Nothing Then
-            If pnlFields.Visible Then pnlFields.Visible = False
+            'If pnlFields.Visible Then pnlFields.Visible = False
         End If
         cUserRect.mIsClick = True
         comboBox4Selected = False
@@ -30914,8 +32789,8 @@ GoTo_RETURN:
             cUserRect.SetImagePic(img.Clone)
             cUserRect.DrawPictureBoxImageBoxImage(g, cUserRect.rect)
             If Not cUserRect.pauseDraw Then A0_PictureBox2.Image = DirectCast(img.Clone, System.Drawing.Image)
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -30936,8 +32811,8 @@ GoTo_RETURN:
             cUserRect.SetImagePic(img)
             cUserRect.DrawPictureBoxImageBoxImageScreen(g, r)
             If Not cUserRect.pauseDraw Then A0_PictureBox2.Image = DirectCast(img.Clone, System.Drawing.Image)
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -30976,7 +32851,9 @@ GoTo_RETURN:
         End Try
     End Sub
     Public Sub PictureBox1_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles A0_PictureBox2.MouseUp
+        'Dim scrollPositionY As Integer = A0_PictureBox2
         Try
+
             lockCursor = False
             If comboBox4Selected Then
                 fldNameHighlightedCopy = fldNameHighlighted
@@ -31011,6 +32888,9 @@ GoTo_RETURN:
                 A0_PDFFormField_LoadProperties(Session, fldNameHighlighted, CInt(page), fldKidIndex)
                 PnlFields_Position(True, True)
                 comboBox4Selected = False
+                'refreshPDFImage()
+                'DrawImageFieldPositions()
+                updatefield()
                 Return
             Else
                 If comboBox4Selected Then
@@ -31366,10 +33246,6 @@ GOTORETURN:
                 If Not PictureBox1_Panel.Focused Then
                     'PictureBox1_Panel.Focus()
                 End If
-                If scrollValue > 0 Then
-                    PictureBox1_Panel.VerticalScroll.Value = scrollValue
-                Else
-                End If
             Catch ex As Exception
                 TimeStampAdd(ex, debugMode)
             End Try
@@ -31409,7 +33285,8 @@ GOTORETURN:
                     cUserRect.pauseDraw = False
                     cUserRect.rectBackup = Nothing
                     cUserRect.rectOld = Nothing
-                    refreshPDFImage()
+                    'refreshPDFImage()
+
                     If pnlFields.Visible Then pnlFields.Visible = False
                 Else
                     If pnlFields.Visible Then pnlFields.Visible = False
@@ -31479,10 +33356,12 @@ GOTORETURN:
                 End If
                 cUserRect.pauseDraw = pd
                 comboBox4Selected = False
+
             Catch ex As Exception
                 Err.Clear()
             End Try
             PdfForm_FieldNames_UpdateButton()
+
         End Try
     End Sub
     Private Sub btnHighLite_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHighLite.Click
@@ -31513,6 +33392,8 @@ GOTORETURN:
     Private Sub ComboBox_ItemDisplay_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ComboBox_ItemDisplay.SelectedIndexChanged
         If ComboBox_ItemDisplay.SelectionMode = SelectionMode.MultiSimple Then
             btnComboBox_ItemDefault.Text = ""
+            PDFField_Listbox_Value.SelectionMode = SelectionMode.MultiSimple
+            Dim indices As New List(Of Integer)
             For Each i As String In ComboBox_ItemDisplay.SelectedItems
                 For idx As Integer = 0 To ComboBox_ItemDisplay.Items.Count - 1
                     If ComboBox_ItemDisplay.Items(idx).ToString = i.ToString Then
@@ -31521,16 +33402,56 @@ GOTORETURN:
                         Else
                             btnComboBox_ItemDefault.Text &= idx.ToString & ","
                         End If
+                        indices.Add(idx)
                     End If
                 Next
             Next
+            Try
+                If PDFField_Listbox_Value.Enabled = True Then
+                    PDFField_Listbox_Value.Enabled = False
+                    PDFField_Listbox_Value.Items.Clear()
+                    For Each itm As String In ComboBox_ItemDisplay.Items
+                        PDFField_Listbox_Value.Items.Add(itm)
+                    Next
+                    Dim itmIdx As Integer = -1
+                    For Each itm As String In ComboBox_ItemDisplay.Items
+                        itmIdx += 1
+                        PDFField_Listbox_Value.Enabled = False
+                        PDFField_Listbox_Value.SetSelected(itmIdx, indices.Contains(itmIdx))
+                        PDFField_Listbox_Value.Enabled = False
+                    Next
+                    'PDFField_Listbox_Value.Enabled = False
+                End If
+                'PDFField_Listbox_Value.SelectedIndex = ComboBox_ItemDisplay.SelectedIndex
+            Catch ex As Exception
+                Err.Clear()
+            Finally
+                PDFField_Listbox_Value.Enabled = True
+                PDFField_Listbox_Value.Visible = True
+                PDFField_Listbox_Value.BringToFront()
+            End Try
             btnComboBox_ItemDefault.Text = btnComboBox_ItemDefault.Text.ToString.TrimStart(CStr(","c)).TrimEnd(CStr(","c))
         ElseIf ComboBox_ItemDisplay.SelectedIndex >= 0 Then
+            PDFField_Listbox_Value.SelectionMode = SelectionMode.One
             ComboBox_ItemValue.SelectedIndex = ComboBox_ItemDisplay.SelectedIndex + 0
             ComboBox_ItemDisplayText.Text = ComboBox_ItemDisplay.SelectedItem.ToString() & ""
             ComboBox_ItemValueText.Text = ComboBox_ItemValue.SelectedItem.ToString() & ""
             PDFField_DefaultText.Text = ComboBox_ItemDisplay.Text & ""
             btnComboBox_ItemDefault.Text = ComboBox_ItemDisplay.SelectedIndex
+
+            Try
+                PDFField_Listbox_Value.Items.Clear()
+                For Each itm As String In ComboBox_ItemDisplay.Items
+                    PDFField_Listbox_Value.Items.Add(itm)
+                Next
+                PDFField_Listbox_Value.Enabled = False
+                PDFField_Listbox_Value.SelectedIndex = ComboBox_ItemDisplay.SelectedIndex
+                PDFField_Listbox_Value.Enabled = True
+                PDFField_Listbox_Value.Visible = True
+                PDFField_Listbox_Value.BringToFront()
+            Catch ex As Exception
+                Err.Clear()
+            End Try
         End If
         If ComboBox_ItemDisplay.SelectedItems.Count = 1 Then
             btnComboBox_ItemUpdate.Enabled = True
@@ -33031,6 +34952,261 @@ returnSub:
         End Try
         Return Nothing
     End Function
+    '    Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
+    '        preventClickDialog = True
+    '        Try
+    '            OpenFileDialog2.Filter = "Image Formats|*.jpg;*.jpeg;*.bmp;*.gif;*.png;*.tif;*.tiff|JPG|*.jpg|JPEG|*.jpeg|BMP|*.bmp|GIF|*.gif|PNG|*.png|Tif|*.tif|TIFF|*.tiff|All Files|*.*"
+    '            OpenFileDialog2.FilterIndex = 0
+    '            OpenFileDialog2.FileName = ""
+    '            If Not fn.isNullOrEmpty() Then
+    '                If FileExists(fn & "") Then GoTo OPENFILE_KNOWN_FILENAME
+    '            End If
+    '            OpenFileDialog2.InitialDirectory = defaulFilePath()
+    '            Select Case OpenFileDialog2.ShowDialog(Me)
+    '                Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+    '                    If Not OpenFileDialog2.FileName.isNullOrEmpty() Then
+    '                        fn = OpenFileDialog2.FileName & ""
+    'OPENFILE_KNOWN_FILENAME:
+    '                        Dim jpg As System.Drawing.Image = System.Drawing.Image.FromFile(fn)
+    '                        Dim jpgStream As New MemoryStream
+    '                        Dim frmImgRot As New frmImageRotation
+    '                        frmImgRot.imgRect = New RectangleF(0, 0, jpg.Width, jpg.Height)
+    '                        frmImgRot.LoadPictureBox(jpg)
+    '                        Dim rotType As System.Drawing.RotateFlipType = RotateFlipType.RotateNoneFlipNone
+    '                        If ShowDialogs Then
+    '                            'Me.Hide()
+    '                            Select Case frmImgRot.ShowDialog(Me)
+    '                                Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+    '                                    If frmImgRot.cancelled Then
+    '                                        Me.Show()
+    '                                        Me.BringToFront()
+    '                                        Return
+    '                                    End If
+    '                                    rotType = frmImgRot.rotType
+    '                                Case Else
+    '                                    Return
+    '                            End Select
+    '                            Me.Show()
+    '                            Me.BringToFront()
+    '                        End If
+    '                        jpg = frmImgRot.ImageRotation_PictureBox.Image.Clone
+    '                        Dim bitmap As New Bitmap(jpg)
+    '                        Dim mPDF As New MemoryStream()
+    '                        jpg.Save(jpgStream, System.Drawing.Imaging.ImageFormat.Png)
+    '                        If jpgStream.CanSeek Then
+    '                            jpgStream.Seek(0, SeekOrigin.Begin)
+    '                        End If
+    '                        jpg.Dispose()
+    '                        jpg = Nothing
+    '                        Dim bmp As New Bitmap(jpgStream)
+    '                        Dim page_width As String, page_height As String
+    '                        Try
+    '                            page_width = bmp.Width
+    '                            page_height = bmp.Height
+    '                            Dim rectImage As New iTextSharp.text.Rectangle(page_width, page_height)
+    '                            blnModelPopupClose = MsgBoxResult.Ignore
+    '                            pnlPageSize_MaintainAspectRatio.Checked = False
+    '                            Load_PageSizePanel(rectImage)
+    '                            pnlPageSizeApsectRation_Update()
+    '                            If ShowDialogs Then
+    '                                pnlPageSize.Show()
+    '                                pnlPageSize.BringToFront()
+    '                                If modelPopup_DoEvents(blnModelPopupClose) Then
+    '                                    pnlPageSize.Hide()
+    '                                End If
+    '                                If blnModelPopupClose <> MsgBoxResult.Ok Then Return
+    '                            End If
+    '                            page_width = pageSizes("CUSTOM").Width
+    '                            page_height = pageSizes("CUSTOM").Height
+    '                        Catch ex As Exception
+    '                            page_width = bmp.Width
+    '                            page_height = bmp.Height
+    '                            TimeStampAdd(ex, debugMode)
+    '                        End Try
+    '                        Dim r As New iTextSharp.text.Rectangle(CInt(page_width), CInt(page_height))
+    '                        Dim doc As New Document(r, CSng(pnlPageSize_MarginLeft.Text & "") + 0, CSng(pnlPageSize_MarginRight.Text & "") + 0, CSng(pnlPageSize_MarginTop.Text & "") + 0, CSng(pnlPageSize_MarginBottom.Text & "") + 0)
+    '                        Dim writer As PdfWriter = PdfWriter.GetInstance(doc, mPDF)
+    '                        Dim pages As Integer = bmp.GetFrameCount(Imaging.FrameDimension.Page)
+    '                        doc.Open()
+    '                        Dim cb As PdfContentByte = writer.DirectContent
+    '                        doc.Add(New Paragraph(" "))
+    '                        For i As Integer = 0 To pages - 1
+    '                            Dim Image As iTextSharp.text.Image = iTextSharp.text.Image.GetInstance(bmp, ImageFormat.Png)
+    '                            Image.SetAbsolutePosition(0, 0)
+    '                            Image.ScaleAbsoluteHeight(doc.PageSize.Height)
+    '                            Image.ScaleAbsoluteWidth(doc.PageSize.Width)
+    '                            writer.DirectContent.AddImage(Image)
+    '                            doc.NewPage()
+    '                            Image = Nothing
+    '                        Next i
+    '                        writer.CloseStream = False
+    '                        doc.Close()
+
+    '                        If Not Session Is Nothing And Not closeDoc Then
+    '                            If Session.Length > 0 Then
+    '                                cFDFDoc = New FDFApp.FDFDoc_Class
+    '                                Session("output") = PDFConcatenateForms2Buf(New Byte()() {Session, mPDF.ToArray}, New String() {pdfOwnerPassword, ""})
+    '                            Else
+    '                                Session("output") = mPDF.ToArray
+    '                            End If
+    '                        Else
+    '                            Session("output") = mPDF.ToArray
+    '                        End If
+    '                        writer.Close()
+    '                        writer.Dispose()
+    '                        writer = Nothing
+    '                        doc.Dispose()
+    '                        doc = Nothing
+    '                        jpg.Dispose()
+    '                        bitmap.Dispose()
+    '                        If loadDoc Then
+    '                            A0_LoadPDF(True)
+    '                            LoadPageList(Me.btnPage)
+    '                            If pnlFields.Visible Then pnlFields.Visible = False
+    '                            ComboBox1_SelectedIndexChanged(Me, New EventArgs())
+    '                            A0_PictureBox1.Enabled = True
+    '                            A0_PictureBox2.Enabled = True
+    '                            pageIndex = Me.btnPage.Items.Count - 1
+    '                            btnPage_SelectedIndexChanged(Me, New EventArgs())
+    '                        End If
+    '                    End If
+    '                Case Else
+    '                    Return
+    '            End Select
+    '        Catch ex As Exception
+    '            TimeStampAdd(ex, debugMode)
+    '        Finally
+    '            timerPreventDefaultExpires.Enabled = True
+    '        End Try
+    '    End Sub
+    '    Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
+    '        If img Is Nothing Then Return
+    '        preventClickDialog = True
+    '        Try
+
+    '            Dim jpg As System.Drawing.Image = img.Clone
+    '            Dim jpgStream As New MemoryStream
+    '            Dim frmImgRot As New frmImageRotation
+    '            frmImgRot.imgRect = New RectangleF(0, 0, jpg.Width, jpg.Height)
+    '            frmImgRot.LoadPictureBox(jpg)
+    '            Dim rotType As System.Drawing.RotateFlipType = RotateFlipType.RotateNoneFlipNone
+    '            If ShowDialogs Then
+    '                'Me.Hide()
+    '                Select Case frmImgRot.ShowDialog(Me)
+    '                    Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+    '                        If frmImgRot.cancelled Then
+    '                            Me.Show()
+    '                            Me.BringToFront()
+    '                            Return
+    '                        End If
+    '                        rotType = frmImgRot.rotType
+    '                    Case Else
+    '                        Return
+    '                End Select
+    '                Me.Show()
+    '                Me.BringToFront()
+    '            End If
+
+    '            jpg = frmImgRot.ImageRotation_PictureBox.Image.Clone
+    '            Dim bitmap As New Bitmap(jpg)
+    '            Dim mPDF As New MemoryStream()
+    '            jpg.Save(jpgStream, System.Drawing.Imaging.ImageFormat.Png)
+    '            If jpgStream.CanSeek Then
+    '                jpgStream.Seek(0, SeekOrigin.Begin)
+    '            End If
+    '            jpg.Dispose()
+    '            jpg = Nothing
+    '            Dim bmp As New Bitmap(jpgStream)
+    '            Dim page_width As String, page_height As String
+    '            Try
+    '                page_width = bmp.Width
+    '                page_height = bmp.Height
+    '                Dim rectImage As New iTextSharp.text.Rectangle(page_width, page_height)
+    '                blnModelPopupClose = MsgBoxResult.Ignore
+    '                pnlPageSize_MaintainAspectRatio.Checked = False
+    '                Load_PageSizePanel(rectImage)
+    '                pnlPageSizeApsectRation_Update()
+    '                If ShowDialogs Then
+    '                    pnlPageSize.Show()
+    '                    pnlPageSize.BringToFront()
+    '                    If modelPopup_DoEvents(blnModelPopupClose) Then
+    '                        pnlPageSize.Hide()
+    '                    End If
+    '                    If blnModelPopupClose <> MsgBoxResult.Ok Then Return
+    '                End If
+    '                page_width = pageSizes("CUSTOM").Width
+    '                page_height = pageSizes("CUSTOM").Height
+    '            Catch ex As Exception
+    '                page_width = bmp.Width
+    '                page_height = bmp.Height
+    '                TimeStampAdd(ex, debugMode)
+    '            End Try
+    '            Dim r As New iTextSharp.text.Rectangle(CInt(page_width), CInt(page_height))
+    '            Dim doc As New Document(r, CSng(pnlPageSize_MarginLeft.Text & "") + 0, CSng(pnlPageSize_MarginRight.Text & "") + 0, CSng(pnlPageSize_MarginTop.Text & "") + 0, CSng(pnlPageSize_MarginBottom.Text & "") + 0)
+    '            Dim writer As PdfWriter = PdfWriter.GetInstance(doc, mPDF)
+    '            Dim pages As Integer = bmp.GetFrameCount(Imaging.FrameDimension.Page)
+    '            doc.Open()
+    '            Dim cb As PdfContentByte = writer.DirectContent
+    '            doc.Add(New Paragraph(" "))
+    '            For i As Integer = 0 To pages - 1
+    '                Dim image As iTextSharp.text.Image = iTextSharp.text.Image.GetInstance(bmp, ImageFormat.Png)
+    '                image.SetAbsolutePosition(0, 0)
+    '                image.ScaleAbsoluteHeight(doc.PageSize.Height)
+    '                image.ScaleAbsoluteWidth(doc.PageSize.Width)
+    '                writer.DirectContent.AddImage(image)
+    '                doc.NewPage()
+    '            Next i
+    '            writer.CloseStream = False
+    '            doc.Close()
+    '            If Not Session Is Nothing And Not closeDoc Then
+    '                If Session.Length > 0 Then
+    '                    cFDFDoc = New FDFApp.FDFDoc_Class
+    '                    Session("output") = PDFConcatenateForms2Buf(New Byte()() {Session, mPDF.ToArray}, New String() {pdfOwnerPassword, ""})
+    '                Else
+    '                    Session("output") = mPDF.ToArray
+    '                End If
+    '            Else
+    '                Session("output") = mPDF.ToArray
+    '            End If
+    '            writer.Close()
+    '            writer = Nothing
+    '            If loadDoc Then
+    '                A0_LoadPDF(True)
+    '                LoadPageList(Me.btnPage)
+    '                If pnlFields.Visible Then pnlFields.Visible = False
+    '                ComboBox1_SelectedIndexChanged(Me, New EventArgs())
+    '                A0_PictureBox1.Enabled = True
+    '                A0_PictureBox2.Enabled = True
+    '                pageIndex = Me.btnPage.Items.Count - 1
+    '                btnPage_SelectedIndexChanged(Me, New EventArgs())
+    '            End If
+    '        Catch ex As Exception
+    '            TimeStampAdd(ex, debugMode)
+    '        Finally
+    '            timerPreventDefaultExpires.Enabled = True
+    '        End Try
+    '    End Sub
+    Public Function optimizeImage(img As System.Drawing.Image) As System.Drawing.Image
+        Dim jpg As System.Drawing.Image = img.Clone
+        Try
+            Dim cOptimize As New clsPDFOptimization()
+            clsPDFOptimization.cancelOptimize_Shared = False
+            Dim imgBytes() As Byte = cOptimize.optimizeBitmap(img.Clone(), img.Width, img.Height, img.RawFormat, InterpolationMode.HighQualityBicubic, SmoothingMode.AntiAlias, CompositingQuality.HighQuality)
+            If Not imgBytes Is Nothing Then
+                If imgBytes.Length > 0 Then
+                    Dim mImg As New MemoryStream(imgBytes)
+                    If mImg.CanSeek Then
+                        mImg.Position = 0
+                    End If
+                    jpg = System.Drawing.Image.FromStream(mImg).Clone
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+            jpg = img.Clone
+        End Try
+        Return jpg.Clone
+    End Function
     Public Sub ImportImage(Optional ByVal fn As String = "", Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
         preventClickDialog = True
         Try
@@ -33047,6 +35223,16 @@ returnSub:
                         fn = OpenFileDialog2.FileName & ""
 OPENFILE_KNOWN_FILENAME:
                         Dim jpg As System.Drawing.Image = System.Drawing.Image.FromFile(fn)
+                        Dim img As System.Drawing.Image = jpg.Clone
+                        Try
+                            jpg = optimizeImage(img.Clone)
+                            If jpg Is Nothing Then
+                                jpg = img.Clone
+                            End If
+                        Catch ex As Exception
+                            Err.Clear()
+                            jpg = img.Clone
+                        End Try
                         Dim jpgStream As New MemoryStream
                         Dim frmImgRot As New frmImageRotation
                         frmImgRot.imgRect = New RectangleF(0, 0, jpg.Width, jpg.Height)
@@ -33136,8 +35322,16 @@ OPENFILE_KNOWN_FILENAME:
                         writer = Nothing
                         doc.Dispose()
                         doc = Nothing
-                        jpg.Dispose()
-                        bitmap.Dispose()
+                        Try
+                            jpg.Dispose()
+                        Catch ex2 As Exception
+                            Err.Clear()
+                        End Try
+                        Try
+                            bitmap.Dispose()
+                        Catch ex2 As Exception
+                            Err.Clear()
+                        End Try
                         If loadDoc Then
                             A0_LoadPDF(True)
                             LoadPageList(Me.btnPage)
@@ -33161,9 +35355,19 @@ OPENFILE_KNOWN_FILENAME:
     Public Sub ImportImage(ByVal img As System.Drawing.Image, Optional ByVal ShowDialogs As Boolean = True, Optional ByVal loadDoc As Boolean = True, Optional closeDoc As Boolean = False)
         If img Is Nothing Then Return
         preventClickDialog = True
+        Dim jpg As System.Drawing.Image = img.Clone
         Try
+            jpg = optimizeImage(img.Clone)
+            If jpg Is Nothing Then
+                jpg = img.Clone
+            End If
+        Catch ex As Exception
+            Err.Clear()
+            jpg = img.Clone
+        End Try
+        Try
+            Dim clsOptimizeImage1 As New clsPDFOptimization
 
-            Dim jpg As System.Drawing.Image = img.Clone
             Dim jpgStream As New MemoryStream
             Dim frmImgRot As New frmImageRotation
             frmImgRot.imgRect = New RectangleF(0, 0, jpg.Width, jpg.Height)
@@ -33205,16 +35409,16 @@ OPENFILE_KNOWN_FILENAME:
                 pnlPageSize_MaintainAspectRatio.Checked = False
                 Load_PageSizePanel(rectImage)
                 pnlPageSizeApsectRation_Update()
-                If ShowDialogs Then
-                    pnlPageSize.Show()
-                    pnlPageSize.BringToFront()
-                    If modelPopup_DoEvents(blnModelPopupClose) Then
-                        pnlPageSize.Hide()
-                    End If
-                    If blnModelPopupClose <> MsgBoxResult.Ok Then Return
-                End If
-                page_width = pageSizes("CUSTOM").Width
-                page_height = pageSizes("CUSTOM").Height
+                'If ShowDialogs Then
+                '    pnlPageSize.Show()
+                '    pnlPageSize.BringToFront()
+                '    If modelPopup_DoEvents(blnModelPopupClose) Then
+                '        pnlPageSize.Hide()
+                '    End If
+                '    If blnModelPopupClose <> MsgBoxResult.Ok Then Return
+                'End If
+                'page_width = pageSizes("CUSTOM").Width
+                'page_height = pageSizes("CUSTOM").Height
             Catch ex As Exception
                 page_width = bmp.Width
                 page_height = bmp.Height
@@ -33265,6 +35469,22 @@ OPENFILE_KNOWN_FILENAME:
             timerPreventDefaultExpires.Enabled = True
         End Try
     End Sub
+    ''' <summary>
+    ''' https://stackoverflow.com/questions/6383280/net-remove-strip-javascript-and-css-code-blocks-from-html-page
+    ''' https://forums.asp.net/t/1983665.aspx?Remove+style+attribute+of+elements+by+regular+expression
+    ''' </summary>
+    ''' <param name="strHTML">HTML code String</param>
+    ''' <param name="matchString">RegEx match string</param>
+    ''' <returns>stripped code</returns>
+    Public Function stripHtml(strHtml As String, Optional matchString As String = "(\<script(.+?)\</script\>)|(\<style(.+?)\</style\>)|(style=[""'](.+?)[""'])") As String
+        Try
+            Dim regex1 As New System.Text.RegularExpressions.Regex(matchString, System.Text.RegularExpressions.RegexOptions.Singleline + System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+            Return regex1.Replace(strHtml, "").ToString()
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        Return CStr(strHtml & "")
+    End Function
     Public Sub ImportImageFromImage(ByVal img As System.Drawing.Image, Optional closeDoc As Boolean = False)
         If img Is Nothing Then
             Return
@@ -33273,7 +35493,17 @@ OPENFILE_KNOWN_FILENAME:
         End If
         preventClickDialog = True
         Try
-            Dim jpg As System.Drawing.Image = DirectCast(img.Clone(), System.Drawing.Image) 'System.Drawing.Image.FromFile(fn)
+            Dim jpg As System.Drawing.Image = img.Clone
+            Try
+                jpg = optimizeImage(img.Clone)
+                If jpg Is Nothing Then
+                    jpg = DirectCast(img.Clone(), System.Drawing.Image)
+                End If
+            Catch ex As Exception
+                Err.Clear()
+                jpg = DirectCast(img.Clone(), System.Drawing.Image)
+            End Try
+            'Dim jpg As System.Drawing.Image = DirectCast(img.Clone(), System.Drawing.Image) 'System.Drawing.Image.FromFile(fn)
             Dim jpgStream As New MemoryStream
             'Me.Hide()
             Dim frmImgRot As New frmImageRotation
@@ -33362,6 +35592,7 @@ OPENFILE_KNOWN_FILENAME:
             A0_PictureBox2.Enabled = True
             pageIndex = Me.btnPage.Items.Count - 1
             btnPage_SelectedIndexChanged(Me, New EventArgs())
+
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
         Finally
@@ -33697,6 +35928,16 @@ OPENFILE_KNOWN_FILENAME:
                 End If
                 ContextMenuStrip1.Hide()
                 Return
+            ElseIf sStr.Contains("openwithProgram_") Then
+                i = CInt(sStr.ToString().Replace("openwithProgram_", ""))
+                fp = OpenHistoryList(True)(i)
+                If Not String.IsNullOrEmpty(fp & "") Then
+                    ContextMenuStrip1.Hide()
+                    'Process.Start(fp)
+                    clsOpenAs.OpenAs(fp)
+                End If
+                ContextMenuStrip1.Hide()
+                Return
             ElseIf sStr.Contains("openwithSelect_historyItem_") Then
                 i = CInt(sStr.ToString().Replace("openwithSelect_historyItem_", ""))
                 fp = OpenHistoryList(True)(i)
@@ -33789,6 +36030,7 @@ OPENFILE_KNOWN_FILENAME:
                         tm.ToolTipText = fp
                         AddHandler tm.MouseHover, AddressOf MenuItemEventHanderMouseHover
                         AddHandler tm.Click, AddressOf MenuItemEventHandler
+                        AddHandler tm.MouseLeave, AddressOf MenuItemEventHanderMouseLeave
                         Dim tmX As New ToolStripMenuItem("Remove")
                         tmX.TextAlign = ContentAlignment.MiddleLeft
                         tmX.ForeColor = Color.DarkRed
@@ -33807,6 +36049,7 @@ OPENFILE_KNOWN_FILENAME:
                         OpenToolStripMenuItem.DropDownItems.Add(tm)
                         OpenToolStripMenuItem.DropDown.ShowItemToolTips = False
                         AddHandler OpenToolStripMenuItem.DropDownClosed, AddressOf MenuItemEventHanderMouseLeave
+
                     ElseIf FileExists(fp & "") Then
                         Dim tm As New ToolStripMenuItem(fp & "")
                         tm.Name = "historyItem_" & idx.ToString
@@ -33814,6 +36057,7 @@ OPENFILE_KNOWN_FILENAME:
                         tm.ToolTipText = fp
                         AddHandler tm.MouseHover, AddressOf MenuItemEventHanderMouseHover
                         AddHandler tm.Click, AddressOf MenuItemEventHandler
+                        AddHandler tm.MouseLeave, AddressOf MenuItemEventHanderMouseLeave
                         Dim tmX As ToolStripMenuItem
                         'tmX = New ToolStripMenuItem("Open With Default")
                         Select Case System.IO.Path.GetExtension(fp).ToString().TrimStart("."c)
@@ -33843,6 +36087,22 @@ OPENFILE_KNOWN_FILENAME:
                                     tmX.Margin = New System.Windows.Forms.Padding(0)
                                     tmX.Name = "openwithExplorer_" & idx.ToString
                                     tmX.Text = "Open with Windows Explorer"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
+
+
+                                    tmX = New ToolStripMenuItem("Open With Program")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithProgram_" & idx.ToString
+                                    tmX.Text = "Open with Program"
                                     tmX.ToolTipText = ""
                                     tm.DropDown.ShowItemToolTips = False
                                     AddHandler tmX.Click, AddressOf MenuItemEventHandler
@@ -33892,6 +36152,21 @@ OPENFILE_KNOWN_FILENAME:
                                     tm.DropDown.ShowItemToolTips = False
                                     AddHandler tmX.Click, AddressOf MenuItemEventHandler
                                     tm.DropDownItems.Add(tmX)
+
+                                    tmX = New ToolStripMenuItem("Open With Program")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithProgram_" & idx.ToString
+                                    tmX.Text = "Open with Program"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
                                 End If
                             Case Else
                                 tmX = New ToolStripMenuItem("Open With Default")
@@ -33933,6 +36208,22 @@ OPENFILE_KNOWN_FILENAME:
                                     tmX.Margin = New System.Windows.Forms.Padding(0)
                                     tmX.Name = "openwithExplorer_" & idx.ToString
                                     tmX.Text = "Open with Windows Explorer"
+                                    tmX.ToolTipText = ""
+                                    tm.DropDown.ShowItemToolTips = False
+                                    AddHandler tmX.Click, AddressOf MenuItemEventHandler
+                                    tm.DropDownItems.Add(tmX)
+
+
+                                    tmX = New ToolStripMenuItem("Open With Program")
+                                    tmX.TextAlign = ContentAlignment.MiddleLeft
+                                    tmX.ForeColor = Color.DarkRed
+                                    tmX.DisplayStyle = ToolStripItemDisplayStyle.Text
+                                    tmX.Alignment = ToolStripItemAlignment.Left
+                                    tmX.Width = 10
+                                    tmX.Padding = New System.Windows.Forms.Padding(0)
+                                    tmX.Margin = New System.Windows.Forms.Padding(0)
+                                    tmX.Name = "openwithProgram_" & idx.ToString
+                                    tmX.Text = "Open with Program"
                                     tmX.ToolTipText = ""
                                     tm.DropDown.ShowItemToolTips = False
                                     AddHandler tmX.Click, AddressOf MenuItemEventHandler
@@ -34441,7 +36732,7 @@ OPENFILE_KNOWN_FILENAME:
                     PictureBox1_Panel.Width = Me.Width - 15
                     A0_PictureBox1.Top = 0
                     A0_PictureBox1.Left = 0
-                    A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
+                    A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
                     If Session Is Nothing Then Return
                     If Session.Length <= 0 Then Return
                     Try
@@ -37391,8 +39682,8 @@ GOTO_ENDSELECT:
                 PnlFields_Position(False, True)
             End If
             Try
-                A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-                A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+                A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+                A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
                 A0_PictureBox2.Width = A0_PictureBox1.Width
                 A0_PictureBox2.Height = A0_PictureBox1.Height
                 A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -37406,15 +39697,34 @@ GOTO_ENDSELECT:
             TimeStampAdd(exPosition, debugMode)
         End Try
         Try
-            If AutoScrollPages = False Then Return
+            If AutoScrollPages = False Then
+                scrollValue = scrollValue - e.Delta
+                If scrollValue < 0 Then
+                    scrollValue = 0
+                ElseIf PictureBox1_Panel.VerticalScroll.Value > PictureBox1_Panel.VerticalScroll.Maximum Then
+                    scrollValue = PictureBox1_Panel.VerticalScroll.Maximum
+                End If
+                If PictureBox1_Panel.VerticalScroll.Value < 0 Then 'And e.Delta > 0 
+                    'PictureBox1_Panel.VerticalScroll.Value = 0
+                    scrollValue = 0
+                ElseIf PictureBox1_Panel.VerticalScroll.Value > PictureBox1_Panel.VerticalScroll.Maximum Then 'And e.Delta < 0 
+                    'PictureBox1_Panel.VerticalScroll.Value = PictureBox1_Panel.VerticalScroll.Maximum
+                    scrollValue = PictureBox1_Panel.VerticalScroll.Maximum
+                Else
+                    ''PictureBox1_Panel.VerticalScroll.Value = scrollValue
+                End If
+                Return
+            Else
+
+            End If
             If PictureBox1_Panel.VerticalScroll.Value + PictureBox1_Panel.Height >= (A0_PictureBox1.Height) And e.Delta < 0 Then
                 If pageIndex <= btnPage.Items.Count - 2 Then
-                    PictureBox1_Panel.VerticalScroll.Value = 0
+                    'PictureBox1_Panel.VerticalScroll.Value = 0
                     pageIndex = page
                 End If
             ElseIf PictureBox1_Panel.VerticalScroll.Value <= 0 And e.Delta > 0 Then
                 If pageIndex > 0 Then
-                    PictureBox1_Panel.VerticalScroll.Value = 0
+                    'PictureBox1_Panel.VerticalScroll.Value = 0
                     pageIndex = pageIndex - 1
                 End If
             End If
@@ -37492,13 +39802,14 @@ GOTO_SHOWPNL:
                 End If
             Else
             End If
+
         End Try
     End Sub
     Private Sub PictureBox1_Panel_Scroll(ByVal sender As Object, ByVal e As System.Windows.Forms.ScrollEventArgs) Handles PictureBox1_Panel.Scroll
         PnlFields_Position(False, True)
         Try
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -37507,6 +39818,8 @@ GOTO_SHOWPNL:
             PictureBox1_Panel.Focus()
         Catch ex As Exception
             TimeStampAdd(ex, debugMode)
+        Finally
+            'scrollValue = PictureBox1_Panel.VerticalScroll.Value
         End Try
     End Sub
     Public Function getBytes(ByVal str As String) As Byte()
@@ -45550,7 +47863,7 @@ nextField:
             cButtons.Add(New dialogMultiChoice.clsButton("200 DPI", True, DialogResult.Abort))
             cButtons.Add(New dialogMultiChoice.clsButton("300 DPI", True, DialogResult.Cancel))
             cDialogMultiChoice = New dialogMultiChoice
-            Select Case cDialogMultiChoice.ShowDialog(Me, "SELECT DPI RESOLUTON:", "RESOLUTION:", cButtons.ToArray())
+            Select Case cDialogMultiChoice.ShowDialog(Me, "SELECT DPI RESOLUTON:", "DPI RESOLUTION:", cButtons.ToArray())
                 Case DialogResult.OK
                     dpi = clsScan.DPI.LOW
                 Case DialogResult.Yes
@@ -46904,7 +49217,11 @@ goto_LinksStart:
                         Dim strDestUri As String = cLinks.LinkClickedDestinationUriString(CInt(pageIndex), e.Location) & ""
                         Dim lnk As clsLinks.Link = Nothing 'cLinks.ImageClickedLink(CInt(pageIndex), e.Location)
                         If Not String.IsNullOrEmpty(strDestUri & "") Then
-                            Process.Start(strDestUri & "")
+                            Select Case MessageBox.Show(Me, "Open Link in new window:" & Environment.NewLine & strDestUri.ToString, "Link:", vbYesNo)
+                                Case DialogResult.Yes, DialogResult.OK
+                                    Process.Start(strDestUri & "")
+                                Case Else
+                            End Select
                             cUserRect.rect = Nothing
                             cUserRect.rectBackup = Nothing
                             cUserRect.rectOld = Nothing
@@ -47652,6 +49969,16 @@ GOTO_KNOWN_FILENAME:
                                         Next
                                     Next
                                     Dim pdfBytes() As Byte
+                                    Try
+                                        Select Case MsgBox("Strip inline styles, external styles, and JavaScript?", MsgBoxStyle.YesNo + MsgBoxStyle.ApplicationModal, "Strip HTML:")
+                                            Case MsgBoxResult.Yes, MsgBoxResult.Ok
+                                                strHTML = CStr(stripHtml(strHTML))
+                                            Case Else
+
+                                        End Select
+                                    Catch ex As Exception
+                                        Err.Clear()
+                                    End Try
                                     Try
                                         pdfBytes = clsHTML2PDFiText.HTML2PDFCss(strHTML, MinWidth, MinHeight, True, True, fpath.ToString.Replace("\", "/").Substring(0, fpath.ToString.Replace("\", "/").LastIndexOf("/") + 1), True)
                                     Catch ex1 As Exception
@@ -48703,7 +51030,8 @@ GoTo_PROCESS_WAIT_OVER:
     Private Sub pnlFields_VisibleChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles pnlFields.VisibleChanged
         Try
             If Not pnlFields.Visible Then
-                Me.ActiveControl = Me.A0_PictureBox2
+                'Me.ActiveControl = Me.A0_PictureBox2
+                Me.ActiveControl = Me.PictureBox1_Panel
             End If
         Catch ex As Exception
             Err.Clear()
@@ -48765,8 +51093,9 @@ GoTo_PROCESS_WAIT_OVER:
             TimeStampAdd(ex, debugMode)
         Finally
             LoadPDFReaderDoc(pdfOwnerPassword, True)
-            A0_LoadPDF(True, True, True)
-            refreshPDFImage()
+            'A0_LoadPDF(True, True, True)
+            'refreshPDFImage()
+            cmbPercent_SelectedIndexChanged(Me, New EventArgs())
         End Try
     End Sub
     Private Sub RemoveSignatureFlagsToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RemoveSignatureFlagsToolStripMenuItem.Click
@@ -48989,11 +51318,37 @@ GOTO_KNOWN_FILENAME:
             Throw ex
         End Try
     End Sub
+    Public Function getDirectory(filePath As String) As String
+        Try
+            If Not filePath Is Nothing Then
+                If Not filePath.IsNullOrEmpty Then
+                    Return System.IO.Path.GetDirectoryName(filePath).ToString().TrimEnd("\"c) & "\"c
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        Return filePath.ToString().TrimEnd("\") & "\"c
+    End Function
+    Public Property defaultOpenDirectory() As String
+        Get
+            Try
+                Return GetSetting(Application.ProductName.ToString(), "settings", "defaultOpenDirectory", CStr(IIf(fpath.isNullOrEmpty, ApplicationDataFolder(False, ""), getDirectory(fpath))))
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            Return appPath
+        End Get
+        Set(value As String)
+            SaveSetting(Application.ProductName.ToString(), "settings", "defaultOpenDirectory", value)
+        End Set
+    End Property
     Private Sub FromImagesInFolderToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FromImagesInFolderToolStripMenuItem.Click
         Try
             StatusToolStrip = "Status: Importing images."
             Dim d As New FolderSelect.FolderSelectDialog()
-            If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = ApplicationDataFolder(False, "") Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+            'If fpath.IsNullOrEmpty() Then d.InitialDirectory = defaultOpenDirectory() Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+            d.InitialDirectory = defaultOpenDirectory()
             d.Title = "Select Directory:"
             Dim errStr As String = ""
             Select Case d.ShowDialog(Me.Handle)
@@ -49002,6 +51357,7 @@ GOTO_KNOWN_FILENAME:
                     Dim dir As String = d.FileName & ""
                     If Not String.IsNullOrEmpty(dir & "") Then
                         If Directory.Exists(dir & "") Then
+                            defaultOpenDirectory = dir
                             Dim files() As String = Directory.GetFiles(dir & "")
                             If files.Length > 0 Then
                                 Dim ext As New List(Of String)
@@ -49012,29 +51368,31 @@ GOTO_KNOWN_FILENAME:
                                 Dim promptUser As Boolean = True
                                 For Each f As String In files.ToArray
                                     Try
-                                        fcntr -= 1
                                         If ext.Contains(CStr(Path.GetExtension(f) & "").ToString.TrimStart("."c) & "") Then
                                             If promptUser Then
                                                 Dim clsPrompt As New dialogMultiChoice(Me)
                                                 Dim clsButtons As New List(Of dialogMultiChoice.clsButton)
+                                                clsButtons.Add(New dialogMultiChoice.clsButton("ALL", True, 4))
                                                 clsButtons.Add(New dialogMultiChoice.clsButton("YES", True, 1))
                                                 clsButtons.Add(New dialogMultiChoice.clsButton("NO", True, 2))
                                                 clsButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, 3))
-                                                clsButtons.Add(New dialogMultiChoice.clsButton("Don't Ask", True, 4))
                                                 Select Case clsPrompt.ShowDialog(Me, "Import this file?" & Environment.NewLine & "File: " & Path.GetFileName(f.ToString) & Environment.NewLine & "Files remaining: " & fcntr.ToString() & "", "Import File:", clsButtons.ToArray)
                                                     Case 1
-                                                        ImportImage(f, promptUser, False, True)
+                                                        ImportImage(f, promptUser, False)
                                                     Case 2
                                                     Case 3
                                                         Return
                                                     Case 4
                                                         promptUser = False
-                                                        ImportImage(f, promptUser, False, True)
+                                                        ImportImage(f, promptUser, False)
                                                 End Select
                                             Else
-                                                ImportImage(f, promptUser, False, True)
+                                                'Application.DoEvents()
+                                                ImportImage(f, promptUser, False)
                                             End If
                                         End If
+                                        fcntr -= 1
+
                                     Catch ex As Exception
                                         TimeStampAdd(ex, debugMode)
                                     Finally
@@ -49051,7 +51409,7 @@ GOTO_KNOWN_FILENAME:
                                     pageIndex = Me.btnPage.Items.Count - 1
                                     btnPage_SelectedIndexChanged(Me, New EventArgs())
                                 Catch exLoadDoc As Exception
-                                    TimeStampAdd(exLoadDoc, debugMode)
+                                    TimeStampAdd(exLoadDoc, debugMode) ' NK 2016-06-30 ' Err.Clear()  ' NK3 ' 
                                 End Try
                                 StatusToolStrip = "Status: Importing images completed successfully"
                             End If
@@ -49067,6 +51425,85 @@ GOTO_KNOWN_FILENAME:
             Me.Show()
         End Try
     End Sub
+
+    'Private Sub FromImagesInFolderToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FromImagesInFolderToolStripMenuItem.Click
+    '    Try
+    '        StatusToolStrip = "Status: Importing images."
+    '        Dim d As New FolderSelect.FolderSelectDialog()
+    '        If String.IsNullOrEmpty(fpath & "") Then d.InitialDirectory = ApplicationDataFolder(False, "") Else d.InitialDirectory = Path.GetDirectoryName(fpath)
+    '        d.Title = "Select Directory:"
+    '        Dim errStr As String = ""
+    '        Select Case d.ShowDialog(Me.Handle)
+    '            Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
+    '                Me.Show()
+    '                Dim dir As String = d.FileName & ""
+    '                If Not String.IsNullOrEmpty(dir & "") Then
+    '                    If Directory.Exists(dir & "") Then
+    '                        Dim files() As String = Directory.GetFiles(dir & "")
+    '                        If files.Length > 0 Then
+    '                            Dim ext As New List(Of String)
+    '                            ext.AddRange(New String() {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif"})
+    '                            ext.AddRange(New String() {"jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif"})
+    '                            StatusToolStrip = "Status: Importing images..."
+    '                            Dim fcntr As Integer = files.Length
+    '                            Dim promptUser As Boolean = True
+    '                            For Each f As String In files.ToArray
+    '                                Try
+    '                                    fcntr -= 1
+    '                                    If ext.Contains(CStr(Path.GetExtension(f) & "").ToString.TrimStart("."c) & "") Then
+    '                                        If promptUser Then
+    '                                            Dim clsPrompt As New dialogMultiChoice(Me)
+    '                                            Dim clsButtons As New List(Of dialogMultiChoice.clsButton)
+    '                                            clsButtons.Add(New dialogMultiChoice.clsButton("YES", True, 1))
+    '                                            clsButtons.Add(New dialogMultiChoice.clsButton("NO", True, 2))
+    '                                            clsButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, 3))
+    '                                            clsButtons.Add(New dialogMultiChoice.clsButton("ALL", True, 4))
+    '                                            Select Case clsPrompt.ShowDialog(Me, "Import this file?" & Environment.NewLine & "File: " & Path.GetFileName(f.ToString) & Environment.NewLine & "Files remaining: " & fcntr.ToString() & "", "Import File:", clsButtons.ToArray)
+    '                                                Case 1
+    '                                                    ImportImage(f, promptUser, False, True)
+    '                                                Case 2
+    '                                                Case 3
+    '                                                    Return
+    '                                                Case 4
+    '                                                    promptUser = False
+    '                                                    ImportImage(f, promptUser, False, True)
+    '                                            End Select
+    '                                        Else
+    '                                            ImportImage(f, promptUser, False, True)
+    '                                        End If
+    '                                    End If
+    '                                Catch ex As Exception
+    '                                    TimeStampAdd(ex, debugMode)
+    '                                Finally
+    '                                    StatusToolStrip("Status: ", True) = String.Format("Importing images - {0} files remaining...", fcntr.ToString)
+    '                                End Try
+    '                            Next
+    '                            Try
+    '                                A0_LoadPDF(True)
+    '                                LoadPageList(Me.btnPage)
+    '                                If pnlFields.Visible Then pnlFields.Visible = False
+    '                                ComboBox1_SelectedIndexChanged(Me, New EventArgs())
+    '                                A0_PictureBox1.Enabled = True
+    '                                A0_PictureBox2.Enabled = True
+    '                                pageIndex = Me.btnPage.Items.Count - 1
+    '                                btnPage_SelectedIndexChanged(Me, New EventArgs())
+    '                            Catch exLoadDoc As Exception
+    '                                TimeStampAdd(exLoadDoc, debugMode)
+    '                            End Try
+    '                            StatusToolStrip = "Status: Importing images completed successfully"
+    '                        End If
+    '                    End If
+    '                End If
+    '            Case Else
+    '                Return
+    '        End Select
+    '    Catch ex As Exception
+    '        StatusToolStrip = "Error: Importing Images"
+    '        TimeStampAdd(ex, debugMode)
+    '    Finally
+    '        Me.Show()
+    '    End Try
+    'End Sub
     Private Sub FTPToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FTPToolStripMenuItem1.Click
         Try
             If dlg Is Nothing Then
@@ -49236,8 +51673,8 @@ GOTO_KNOWN_FILENAME:
     End Sub
     Private Sub A0_PictureBox1_SizeChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles A0_PictureBox1.SizeChanged
         Try
-            A0_PictureBox1.SizeMode = PictureBoxSizeMode.Normal
-            A0_PictureBox2.SizeMode = PictureBoxSizeMode.Normal
+            A0_PictureBox1.SizeMode = PictureBoxSizeMode.CenterImage
+            A0_PictureBox2.SizeMode = PictureBoxSizeMode.CenterImage
             A0_PictureBox2.Width = A0_PictureBox1.Width
             A0_PictureBox2.Height = A0_PictureBox1.Height
             A0_PictureBox2.Enabled = A0_PictureBox1.Enabled
@@ -49364,8 +51801,11 @@ GOTO_KNOWN_FILENAME:
     Public Sub SignDocument(ByVal srcBytes() As Byte)
         Session = Sign(fldNameHighlighted)
         LoadPDFReaderDoc(pdfOwnerPassword, True)
-        A0_LoadPDF()
-        refreshPDFImage()
+        cmbPercent_SelectedIndexChanged(Me, New EventArgs())
+        'A0_LoadPDF()
+        'refreshPDFImage()
+        'A0_FireRefresh(Me, New EventArgs())
+
     End Sub
     Private Sub FieldBrowserToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles FieldsBrowserToolStripMenuItem.Click
         Try
@@ -50164,6 +52604,7 @@ GOTO_KNOWN_FILENAME:
                 If menuItem.HasDropDownItems Then
                     If menuItem.DropDown.Visible And Not menuItem.DropDown.Bounds.Contains(Cursor.Position) Then
                         menuItem.HideDropDown()
+                        menuItem.DropDown.Visible = False
                     End If
                 End If
             End If
@@ -50987,6 +53428,8 @@ OPENFILE_KNOWN_FILENAME:
             Dim pd As New dialogPrint()
             LoadPDFReaderDoc(pdfOwnerPassword, True)
             Dim readerTemp As PdfReader = pdfReaderDoc.Clone
+            printDocImageList = New List(Of System.Drawing.Image)
+            printDocImageList.Clear()
             Select Case pd.ShowDialog(Me)
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     If Not pdfReaderDoc Is Nothing Then
@@ -50996,22 +53439,23 @@ OPENFILE_KNOWN_FILENAME:
                                 If printDocImageList.Count > 0 Then
                                     Dim exitCode As Integer = -1
                                     Dim numCopies As Integer = pd.PrintDialog1.PrinterSettings.Copies
-                                    For copy As Integer = 1 To numCopies
-                                        Try
-                                            StatusToolStrip = "Printing: copy #" & copy.ToString & " of " & numCopies.ToString
-                                            printDocIndex = 0
-                                            printDocHasMorePages = True
-                                            printDoc = New Printing.PrintDocument
-                                            printDoc.PrinterSettings = pd.PrintDialog1.PrinterSettings
-                                            AddHandler printDoc.PrintPage, AddressOf PD_PrintPage
-                                            printTotalPages = printDocImageList.Count
-                                            printDocIndex = -1
-                                            printDoc.Print()
-                                            RemoveHandler printDoc.PrintPage, AddressOf PD_PrintPage
-                                        Catch ex As Exception
-                                            Err.Clear()
-                                        End Try
-                                    Next
+                                    'For copy As Integer = 1 To numCopies
+                                    Try
+                                        'StatusToolStrip = "Printing: copy #" & copy.ToString & " of " & numCopies.ToString
+                                        StatusToolStrip = "Printing: " & numCopies.ToString & " copies."
+                                        printDocIndex = 0
+                                        printDocHasMorePages = True
+                                        printDoc = New Printing.PrintDocument
+                                        printDoc.PrinterSettings = pd.PrintDialog1.PrinterSettings
+                                        AddHandler printDoc.PrintPage, AddressOf PD_PrintPage
+                                        printTotalPages = printDocImageList.Count
+                                        printDocIndex = -1
+                                        printDoc.Print()
+                                        RemoveHandler printDoc.PrintPage, AddressOf PD_PrintPage
+                                    Catch ex As Exception
+                                        Err.Clear()
+                                    End Try
+                                    'Next
                                     printDoc = Nothing
                                     exitCode = 1
                                 End If
@@ -51331,7 +53775,7 @@ OPENFILE_KNOWN_FILENAME:
                                 DrawImageFieldPositions()
                             Case Keys.Enter
                                 If Not pnlFields.Visible Then PnlFields_Position(False, True)
-                                Me.ActiveControl = A0_PictureBox2
+                                Me.ActiveControl = Me.PictureBox1_Panel 'Me.ActiveControl = A0_PictureBox2
                         End Select
                     Else
                         Select Case e.KeyCode
@@ -51349,7 +53793,7 @@ OPENFILE_KNOWN_FILENAME:
                                 DrawImageFieldPositions()
                             Case Keys.Enter
                                 If Not pnlFields.Visible Then PnlFields_Position(False, True)
-                                Me.ActiveControl = A0_PictureBox2
+                                Me.ActiveControl = Me.PictureBox1_Panel 'Me.ActiveControl = A0_PictureBox2
                         End Select
                     End If
                 End If
@@ -51383,7 +53827,7 @@ OPENFILE_KNOWN_FILENAME:
                                 DrawImageFieldPositions()
                             Case Keys.Enter
                                 If Not pnlFields.Visible Then PnlFields_Position(False, True)
-                                Me.ActiveControl = A0_PictureBox2
+                                Me.ActiveControl = Me.PictureBox1_Panel 'Me.ActiveControl = Me.PictureBox1_Panel'Me.ActiveControl = A0_PictureBox2
                         End Select
                     Else
                         Select Case e.KeyCode
@@ -51401,7 +53845,7 @@ OPENFILE_KNOWN_FILENAME:
                                 DrawImageFieldPositions()
                             Case Keys.Enter
                                 If Not pnlFields.Visible Then PnlFields_Position(False, True)
-                                Me.ActiveControl = A0_PictureBox2
+                                Me.ActiveControl = Me.PictureBox1_Panel 'Me.ActiveControl = A0_PictureBox2
                         End Select
                     End If
                 End If
@@ -51410,6 +53854,144 @@ OPENFILE_KNOWN_FILENAME:
             Err.Clear()
         End Try
     End Sub
+
+    Private Sub CopyPageImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CopyPageImageToolStripMenuItem.Click
+        Try
+            If Not fpath.isNullOrEmpty() Then
+                Clipboard.Clear()
+                Dim imgBytes() As Byte = A0_LoadImageGhostScript(Session, CInt(btnPage.SelectedIndex + 1), CInt(getPDFWidth() * 2), CInt(getPDFHeight() * 2), False)
+                If Not imgBytes Is Nothing Then
+                    If imgBytes.Length > 0 Then
+                        Clipboard.SetImage(Bitmap.FromStream(New MemoryStream(imgBytes)).Clone())
+                        'Clipboard.SetFileDropList(sp)
+                        ToolStripStatusLabel5.Text = ("Status: Copied image to Clipboard")
+                        Return
+                    End If
+                End If
+            End If
+            ToolStripStatusLabel5.Text = ("Status: Error Copying image to Clipboard")
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub ClearClipboardToolStripMenuItem2_Click(sender As Object, e As EventArgs) Handles ClearClipboardToolStripMenuItem2.Click
+        Try
+            If MsgBox("Clear clipboard?", MsgBoxStyle.YesNo + MsgBoxStyle.Question + MsgBoxStyle.ApplicationModal, "Confirm") = MsgBoxResult.Yes Then
+                Clipboard.Clear()
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub AddHyperlinkToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles AddHyperlinkToolStripMenuItem1.Click
+        Try
+            If Not cUserRect.rect = Nothing Then
+                If cUserRect.rect.Width > 0 And cUserRect.rect.Height > 0 Then
+                    'Dim dest As String = "C:/itextExamples/linkAnnotation.pdf"
+                    Dim m As New MemoryStream
+                    Dim reader As PdfReader = pdfReaderDoc.Clone
+                    Dim s As iTextSharp.text.pdf.PdfStamper = getStamper(reader, m)
+                    'Dim writer As iTextSharp.text.pdf.PdfWriter = s.Writer
+                    'Dim linkLocation As New iTextSharp.text.Rectangle(523, 770, 559, 806)
+                    Dim linkLocation As iTextSharp.text.Rectangle = cUserRect.rect_iTextRectangle()
+                    Dim destination As New iTextSharp.text.pdf.PdfDestination(PdfDestination.FIT)
+                    Dim url As String = ""
+                    Try
+                        url = InputBox("Link Url?", "Link URL:", "")
+                    Catch exGetURL As Exception
+                        url = ""
+                        Err.Clear()
+                    End Try
+                    If Not url.isNullOrEmpty Then
+                        Dim pdfAction As iTextSharp.text.pdf.PdfAction = New iTextSharp.text.pdf.PdfAction(url)
+                        Dim link As iTextSharp.text.pdf.PdfAnnotation = iTextSharp.text.pdf.PdfAnnotation.CreateLink(s.Writer(), linkLocation, PdfAnnotation.HIGHLIGHT_NONE, pdfAction)
+                        link.Border = New PdfBorderArray(0, 0, 0)
+                        s.AddAnnotation(link, 1)
+                        s.Writer.CloseStream = False
+                        s.Close()
+                        Session = m.ToArray
+                        s.Dispose()
+                        reader.Dispose()
+                        m.Dispose()
+                    End If
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub PDFField_Listbox_Value_SelectedIndexChanged(sender As Object, e As EventArgs) Handles PDFField_Listbox_Value.SelectedIndexChanged
+        Try
+            If ComboBox_ItemDisplay.Items.Count > 0 And PDFField_Listbox_Value.Enabled = True Then
+                If ComboBox_ItemDisplay.Items(PDFField_Listbox_Value.SelectedIndex) = PDFField_Listbox_Value.Items(PDFField_Listbox_Value.SelectedIndex) Then
+                    ComboBox_ItemDisplay.Enabled = True
+                    'ComboBox_ItemDisplay.SelectedIndex = PDFField_Listbox_Value.SelectedIndex
+                    If PDFField_Listbox_Value.SelectionMode = SelectionMode.MultiSimple Then
+                        For idx As Integer = 0 To PDFField_Listbox_Value.Items.Count - 1
+                            PDFField_Listbox_Value.Enabled = False
+                            ComboBox_ItemDisplay.SetSelected(idx, PDFField_Listbox_Value.SelectedIndices.Contains(idx.ToString()))
+                            PDFField_Listbox_Value.Enabled = False
+                        Next
+                    Else
+                        ComboBox_ItemDisplay.SelectedIndex = PDFField_Listbox_Value.SelectedIndex
+                    End If
+                    'ComboBox_ItemDisplay.Enabled = True
+                End If
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        Finally
+            PDFField_Listbox_Value.Enabled = True
+            PDFField_Listbox_Value.Visible = True
+            PDFField_Listbox_Value.BringToFront()
+        End Try
+    End Sub
+
+    Private Sub SavePageImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SavePageImageToolStripMenuItem.Click
+        Try
+            If Not fpath.isNullOrEmpty() Then
+                Clipboard.Clear()
+                'Dim imgBytes() As Byte = A0_LoadImageGhostScript(Session, CInt(btnPage.SelectedIndex + 1), CInt(getPDFWidth() * 2), CInt(getPDFHeight() * 2), False)
+                'If Not imgBytes Is Nothing Then
+                '    If imgBytes.Length > 0 Then
+                '        Clipboard.SetImage(Bitmap.FromStream(New MemoryStream(imgBytes)).Clone())
+                '        'Clipboard.SetFileDropList(sp)
+                '        ToolStripStatusLabel5.Text = ("Status: Copied image to Clipboard")
+                '        Return
+                '    End If
+                'End If
+                SavePageImageAs()
+            End If
+            ToolStripStatusLabel5.Text = ("Status: Error saving image")
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+    'Private Sub PDFField_Combobox_Value_SelectedIndexChanged(sender As Object, e As EventArgs) Handles PDFField_Listbox_Value.SelectedIndexChanged
+    '    Try
+    '        If ComboBox_ItemDisplay.Items.Count > 0 And PDFField_Listbox_Value.Enabled = True Then
+    '            If ComboBox_ItemDisplay.Items(PDFField_Listbox_Value.SelectedIndex) = PDFField_Listbox_Value.Items(PDFField_Listbox_Value.SelectedIndex) Then
+    '                'ComboBox_ItemDisplay.SelectedIndex = PDFField_Listbox_Value.SelectedIndex
+    '                For idx As Integer = 0 To PDFField_Listbox_Value.Items.Count - 1
+    '                    PDFField_Listbox_Value.Enabled = False
+    '                    ComboBox_ItemDisplay.SetSelected(idx, PDFField_Listbox_Value.SelectedIndices.Contains(idx.ToString()))
+    '                    PDFField_Listbox_Value.Enabled = False
+    '                Next
+    '                'ComboBox_ItemDisplay.Enabled = True
+    '            End If
+    '        End If
+    '    Catch ex As Exception
+    '        Err.Clear()
+    '    Finally
+    '        PDFField_Listbox_Value.Enabled = True
+    '        PDFField_Listbox_Value.Visible = True
+    '        PDFField_Listbox_Value.BringToFront()
+    '    End Try
+    'End Sub
+
     Public Sub displayAdminControls()
         Dim isAdmin As Boolean = False
         Try
@@ -51447,6 +54029,15 @@ OPENFILE_KNOWN_FILENAME:
             Err.Clear()
         End Try
     End Sub
+
+    Private Sub SaveAsCopyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaveAsCopyToolStripMenuItem.Click
+        SaveAs(True)
+    End Sub
+
+    Private Sub SaveAsOneImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaveAsOneImageToolStripMenuItem.Click
+        SaveAsOneImage()
+    End Sub
+
     Private Sub AssociationExtensionsToolStripMenuItem_DoubleClick(sender As Object, e As EventArgs) Handles AssociationExtensionsToolStripMenuItem.DoubleClick
         Try
             If My.User.IsInRole(ApplicationServices.BuiltInRole.Administrator) Then
@@ -51461,6 +54052,18 @@ OPENFILE_KNOWN_FILENAME:
             Err.Clear()
         End Try
     End Sub
+    Public Property imageProcessor() As Integer
+        Get
+            Return CInt(GetSetting(Application.ProductName.ToString, "SETTINGS", "imaging", "0"))
+        End Get
+        Set(value As Integer)
+            SaveSetting(Application.ProductName.ToString, "SETTINGS", "imaging", value)
+        End Set
+    End Property
+    Private Sub ToolStripComboBoxImageProcessor_Click(sender As Object, e As EventArgs)
+
+    End Sub
+
     Private Sub AttachmentsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AttachmentsToolStripMenuItem.Click
     End Sub
     Private Sub AttachmentsAddToolstripMenuItem_Click(sender As Object, e As EventArgs) Handles AttachmentsAddToolstripMenuItem.Click
@@ -51717,5 +54320,38 @@ OPENFILE_KNOWN_FILENAME:
     End Sub
 
     Private Sub frmMain_Paint(sender As Object, e As PaintEventArgs) Handles Me.Paint
+    End Sub
+
+    Private Sub CopyFileLocationToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles CopyFileLocationToolStripMenuItem1.Click
+        If Not fpath.isNullOrEmpty Then
+            'Dim sp As New Specialized.StringCollection()
+            'sp.Add(fpath)
+            Clipboard.Clear()
+            Clipboard.SetText(fpath)
+            ToolStripStatusLabel5.Text = ("Status: Copied file location to Clipboard")
+        End If
+    End Sub
+
+    Private Sub ToolStripMenuItemExportImageMagick_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItemExportImageMagick.Click
+        'Dim imgbytes As New MemoryStream(A0_LoadImageMagick(Session.ToArray, False))
+        'System.IO.File.WriteAllBytes()
+        A0_LoadImageMagick(Session.ToArray, False)
+    End Sub
+
+    Private Sub ToolStripComboBoxImageProcessor_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ToolStripComboBoxImageProcessor.SelectedIndexChanged
+        Try
+            Select Case ToolStripComboBoxImageProcessor.SelectedIndex
+                Case 1
+                    imageProcessor = 1
+                Case Else
+                    imageProcessor = 0
+            End Select
+        Catch ex As Exception
+            imageProcessor = 0
+        End Try
+    End Sub
+
+    Private Sub A0_PictureBox2_PaddingChanged(sender As Object, e As EventArgs) Handles A0_PictureBox2.PaddingChanged
+
     End Sub
 End Class

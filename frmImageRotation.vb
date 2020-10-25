@@ -1,10 +1,12 @@
 Public Class frmImageRotation
     ''' <summary>
-    ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' PdForms.net- Created by Nicholas Kowalewicz (www.PdForms.net)
+    ''' Copyright 2017 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
-    ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
+    ''' Email Contact: support@nk-inc.ccom
+    ''' Website: www.pdforms.net
     ''' </summary>
+
     Public CloseForm As Boolean = False
     Public rotType As System.Drawing.RotateFlipType = RotateFlipType.RotateNoneFlipNone
     Public img As System.Drawing.Image
@@ -13,6 +15,19 @@ Public Class frmImageRotation
     Public imgRect As RectangleF
     Public imgFormat As System.Drawing.Imaging.ImageFormat = System.Drawing.Imaging.ImageFormat.Png
     Public imgMaskBytes() As Byte = Nothing
+
+
+    'Try
+    '    If Not frmMainParent() Is Nothing Then
+    '        If frmMainParent.GetType Is GetType(frmMain) Then
+    '            If Not String.IsNullOrEmpty(frmMainParent.fpath) Then
+    '                fn = System.IO.Path.GetDirectoryName(frmMainParent.fpath)
+    '            End If
+    '        End If
+    '    End If
+    'Catch ex As Exception
+    '    Err.Clear()
+    'End Try
     Public parentfrmMain As frmMain = Nothing
     Public Function frmMainParent(Optional thisForm As Form = Nothing) As frmMain
         Try
@@ -62,6 +77,7 @@ Public Class frmImageRotation
         End Try
         Return Nothing
     End Function
+
     Public ReadOnly Property imgBytes() As Byte()
         Get
             Dim m As New System.IO.MemoryStream
@@ -76,7 +92,11 @@ Public Class frmImageRotation
             End Try
             Return m.ToArray
         End Get
+        'Set(ByVal value As Byte())
+        '    ImageRotation_PictureBox.Image = Image.FromStream(New System.IO.MemoryStream(value))
+        'End Set
     End Property
+
     Private Sub frmImageRotation_FormClosing(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
         Try
             CloseForm = True
@@ -84,11 +104,153 @@ Public Class frmImageRotation
             Err.Clear()
         End Try
     End Sub
+
+    Dim cropX As Integer
+    Dim cropY As Integer
+    Dim cropWidth As Integer
+    Dim cropHeight As Integer
+
+    Dim oCropX As Integer
+    Dim oCropY As Integer
+    Dim cropBitmap As Bitmap
+
+    Public cropPen As Pen
+    Public cropPenSize As Integer = 4 '2
+    Public cropDashStyle As Drawing2D.DashStyle = Drawing2D.DashStyle.Solid
+    Public cropPenColor As Color = Color.Red
+    'Private Sub RotateBtn_Click(sender As System.Object, e As EventArgs) Handles RotateBtn.Click
+
+    '    ' RotateImage(PreviewPictureBox.Image, offset:=, angle:=90)
+    '    ImageRotation_PictureBox.Image.RotateFlip(RotateFlipType.Rotate270FlipNone)
+    '    'PreviewPictureBox.Image.RotateFlip(RotateFlipType.Rotate270FlipNone)
+    '    '(45, PreviewPictureBox.Image)
+    'End Sub
+    Private Sub ImageRotation_PictureBox_MouseDown(ByVal sender As System.Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles ImageRotation_PictureBox.MouseDown
+        Try
+
+            If e.Button = Windows.Forms.MouseButtons.Left Then
+
+                cropX = e.X
+                cropY = e.Y
+                'cropPen = New Pen(cropPenColor, CSng((ImageRotation_PictureBox.Image.Width / ImageRotation_PictureBox.Width) * cropPenSize))
+                cropPen = New Pen(cropPenColor, CSng((ImageRotation_PictureBox.Width / ImageRotation_PictureBox.Image.Width) * cropPenSize))
+                cropPen.DashStyle = Drawing2D.DashStyle.DashDotDot
+                Cursor = Cursors.Cross
+
+            End If
+            ImageRotation_PictureBox.Refresh()
+        Catch exc As Exception
+        End Try
+    End Sub
+    Dim tmppoint As Point
+    Private Sub ImageRotation_PictureBox_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles ImageRotation_PictureBox.MouseMove
+        Try
+
+            If ImageRotation_PictureBox.Image Is Nothing Then Exit Sub
+
+            If e.Button = Windows.Forms.MouseButtons.Left Then
+
+                ImageRotation_PictureBox.Refresh()
+                cropWidth = e.X - cropX
+                cropHeight = e.Y - cropY
+                ImageRotation_PictureBox.CreateGraphics.DrawRectangle(cropPen, cropX, cropY, cropWidth, cropHeight)
+
+            End If
+            ' GC.Collect()
+
+        Catch exc As Exception
+
+            If Err.Number = 5 Then Exit Sub
+        End Try
+
+    End Sub
+    Public Sub resizePictureBox()
+        Try
+            Dim scaleX As Single = 0, scaleY As Single = 0
+            Dim imgW As Integer = 0, imgH As Integer = 0
+            Dim pbW As Integer = 0, pbH As Integer = 0
+            imgW = imgOriginal.Width
+            imgH = imgOriginal.Height
+
+            pbW = Panel1.Left
+            pbH = Panel1.Height
+
+            ImageRotation_PictureBox.Left = 0
+            ImageRotation_PictureBox.Top = Panel1.Top
+
+            Dim newH As Integer = 0, newW As Integer = 0
+            If imgH > imgW Then
+                ImageRotation_PictureBox.Height = pbH
+                scaleY = pbH / imgH
+                scaleX = scaleY 'imgW / scaleY
+                newW = imgW * scaleX
+                newH = pbH 'imgH * scaleX
+            ElseIf imgW > imgH Then
+                ImageRotation_PictureBox.Width = pbW
+                scaleX = imgW / scaleY
+                scaleY = scaleX 'imgH / pbH
+                newW = pbW 'imgW * scaleX
+                newH = imgH * scaleY
+            End If
+            ImageRotation_PictureBox.Width = newW
+            ImageRotation_PictureBox.Height = newH
+
+            ImageRotation_PictureBox.SizeMode = PictureBoxSizeMode.Zoom
+            ImageRotation_PictureBox.Refresh()
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+    Private Sub ImageRotation_PictureBox_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles ImageRotation_PictureBox.MouseUp
+        Try
+            Cursor = Cursors.Default
+            Try
+
+                If cropWidth < 1 Then
+                    Exit Sub
+                End If
+
+                'ImageRotation_PictureBox.Refresh()
+                cropWidth = e.X - cropX
+                cropHeight = e.Y - cropY
+
+                'Dim rect As Rectangle = New Rectangle(cropX, cropY, cropWidth, cropHeight)
+                'Dim bit As Bitmap = New Bitmap(ImageRotation_PictureBox.Image, ImageRotation_PictureBox.Width, ImageRotation_PictureBox.Height)
+
+                'cropBitmap = New Bitmap(cropWidth, cropHeight)
+                'Dim g As Graphics = Graphics.FromImage(cropBitmap)
+                'g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
+                'g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
+                'g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
+                'g.DrawImage(bit, 0, 0, rect, GraphicsUnit.Pixel)
+                '' g.DrawImage(bit, 0, 0, rect,GraphicsUnit.Pixel)
+                ''PreviewPictureBox.Image = cropBitmap
+                'ImageRotation_PictureBox.Image = cropBitmap
+
+            Catch exc As Exception
+            End Try
+        Catch exc As Exception
+        End Try
+    End Sub
+    'shareimprove this answer
+    'Public Function imageCrop(bitmapCopy As Bitmap, rectangleCrop As RectangleF) As Bitmap
+    '    Try
+    '        Dim bm As Bitmap = bitmapCopy.Clone
+    '        Dim bmOut As New Bitmap(rectangleCrop.Width, rectangleCrop.Height, bitmapCopy.PixelFormat)
+    '        Using g As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(bmOut)
+    '            g.DrawImage(bm, New Point() {New Point(0, 0)}, rectangleCrop, System.Drawing.GraphicsUnit.Pixel)
+    '        End Using
+    '    Catch ex As Exception
+    '        Throw ex
+    '    End Try
+    'End Function
+    Dim xyPoint As New Point(0, 0)
     Private Sub frmImageRotation_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Try
             ImageRotation_ImageRotation.SelectedIndex = 0
             ImageRotation_ImageFlip.SelectedIndex = 0
             ImageRotation_Dimensions_Resized.Visible = False
+            xyPoint = New Point(ImageRotation_PictureBox.Location.X, ImageRotation_PictureBox.Location.Y)
             Me.Focus()
             Me.BringToFront()
         Catch ex As Exception
@@ -109,6 +271,7 @@ Public Class frmImageRotation
                     ImageRotation_chkResizeProportional.Checked = True
                 End If
                 ImageRotation_PictureBox.Image = DirectCast(img.Clone, System.Drawing.Image)
+                resizePictureBox()
             End If
         Catch ex As Exception
             Err.Clear()
@@ -127,8 +290,9 @@ Public Class frmImageRotation
                         ImageRotation_txtResizeWidth.Text = imgOriginal.Width.ToString
                         ImageRotation_txtResizeHeight.Text = imgOriginal.Height.ToString
                         ImageRotation_chkResizeProportional.Checked = True
+                        ImageRotation_PictureBox.Image = DirectCast(img.Clone, System.Drawing.Image)
+                        resizePictureBox()
                     End If
-                    ImageRotation_PictureBox.Image = DirectCast(img.Clone, System.Drawing.Image)
                 End If
             End If
         Catch ex As Exception
@@ -151,6 +315,7 @@ Public Class frmImageRotation
                         ImageRotation_chkResizeProportional.Checked = True
                     End If
                     ImageRotation_PictureBox.Image = DirectCast(img.Clone, System.Drawing.Image)
+                    resizePictureBox()
                 End If
             End If
         Catch ex As Exception
@@ -160,61 +325,61 @@ Public Class frmImageRotation
     Public Function getImageRotation() As System.Drawing.RotateFlipType
         Try
             Select Case ImageRotation_ImageRotation.SelectedIndex
-                Case 0
+                Case 0 'none
                     Select Case ImageRotation_ImageFlip.SelectedIndex
-                        Case 0
+                        Case 0 'none
                             rotType = RotateFlipType.RotateNoneFlipNone
-                        Case 1
+                        Case 1 'y
                             rotType = RotateFlipType.RotateNoneFlipY
-                        Case 2
+                        Case 2 'x
                             rotType = RotateFlipType.RotateNoneFlipX
-                        Case 3
+                        Case 3 'xy
                             rotType = RotateFlipType.RotateNoneFlipXY
                     End Select
-                Case 1
+                Case 1 '90
                     Select Case ImageRotation_ImageFlip.SelectedIndex
-                        Case 0
+                        Case 0 'none
                             rotType = RotateFlipType.Rotate90FlipNone
-                        Case 1
+                        Case 1 'y
                             rotType = RotateFlipType.Rotate90FlipY
-                        Case 2
+                        Case 2 'x
                             rotType = RotateFlipType.Rotate90FlipX
-                        Case 3
+                        Case 3 'xy
                             rotType = RotateFlipType.Rotate90FlipXY
                     End Select
-                Case 2
+                Case 2 '180
                     Select Case ImageRotation_ImageFlip.SelectedIndex
-                        Case 0
+                        Case 0 'none
                             rotType = RotateFlipType.Rotate180FlipNone
-                        Case 1
+                        Case 1 'y
                             rotType = RotateFlipType.Rotate180FlipY
-                        Case 2
+                        Case 2 'x
                             rotType = RotateFlipType.Rotate180FlipX
-                        Case 3
+                        Case 3 'xy
                             rotType = RotateFlipType.Rotate180FlipXY
                     End Select
-                Case 3
+                Case 3 '270
                     Select Case ImageRotation_ImageFlip.SelectedIndex
-                        Case 0
+                        Case 0 'none
                             rotType = RotateFlipType.Rotate270FlipNone
-                        Case 1
+                        Case 1 'y
                             rotType = RotateFlipType.Rotate270FlipY
-                        Case 2
+                        Case 2 'x
                             rotType = RotateFlipType.Rotate270FlipX
-                        Case 3
+                        Case 3 'xy
                             rotType = RotateFlipType.Rotate270FlipXY
                     End Select
-                Case 4
+                Case 4 '360
                     rotType = RotateFlipType.RotateNoneFlipX
                 Case Else
                     Select Case ImageRotation_ImageFlip.SelectedIndex
-                        Case 0
+                        Case 0 'none
                             rotType = RotateFlipType.RotateNoneFlipNone
-                        Case 1
+                        Case 1 'y
                             rotType = RotateFlipType.RotateNoneFlipY
-                        Case 2
+                        Case 2 'x
                             rotType = RotateFlipType.RotateNoneFlipX
-                        Case 3
+                        Case 3 'xy
                             rotType = RotateFlipType.RotateNoneFlipXY
                     End Select
             End Select
@@ -223,6 +388,8 @@ Public Class frmImageRotation
         End Try
         Return rotType
     End Function
+
+
     Private Sub ImageRotation_btnOK_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImageRotation_btnOK.Click
         Try
             rotType = getImageRotation()
@@ -271,12 +438,16 @@ Public Class frmImageRotation
                             If True = True Then
                                 ImageRotation_Dimensions_Original.Text = String.Format("Original Dimensions: {0} x {1}", ImageRotation_PictureBox.Image.Width, ImageRotation_PictureBox.Image.Height)
                                 If True = True Then
+                                    'imgTemp = DirectCast(ImageRotation_PictureBox.Image.Clone, System.Drawing.Image)
                                     Dim imgStream As New System.IO.MemoryStream
                                     If imgFormat.GetHashCode() = System.Drawing.Imaging.ImageFormat.MemoryBmp().GetHashCode() Then
                                         imgFormat = System.Drawing.Imaging.ImageFormat.Png
+                                        'Else
+                                        '    imgFormat = System.Drawing.Imaging.ImageFormat.Jpeg
                                     End If
+
                                     ImageRotation_PictureBox.Image.Save(imgStream, imgFormat)
-                                    imgTemp = System.Drawing.Image.FromStream(imgStream, True, False)
+                                    imgTemp = System.Drawing.Image.FromStream(imgStream, True, False) 'ImageRotation_PictureBox.Image.Clone
                                     If Not rotType = RotateFlipType.RotateNoneFlipNone Then
                                         imgTemp.RotateFlip(rotType)
                                     End If
@@ -285,11 +456,26 @@ Public Class frmImageRotation
                                     If Not imgRectF.Width = imgTemp.Width Or Not imgRectF.Height = imgTemp.Height Then
                                         imgTemp = clsPDFOptimization.ResizeImage(imgTemp, imgRectF.Width, imgRectF.Height).Clone
                                     End If
+                                    'Dim newImage As System.Drawing.Image = New Bitmap(CInt(imgRectF.Width), CInt(imgRectF.Height))
+                                    'Using graphicsHandle As Graphics = Graphics.FromImage(newImage)
+                                    '    graphicsHandle.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
+                                    '    graphicsHandle.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
+                                    '    graphicsHandle.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+                                    '    graphicsHandle.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
+                                    '    graphicsHandle.DrawImage(imgTemp, 0.0F, 0.0F, imgRectF.Width, imgRectF.Height)
+                                    'End Using
                                     Me.ImageRotation_PictureBox.Image = DirectCast(imgTemp.Clone, System.Drawing.Image)
                                     Me.ImageRotation_PictureBox.Update()
                                     ImageRotation_Dimensions_Resized.Visible = True
                                     ImageRotation_Dimensions_Resized.Text = String.Format("Resized Dimensions: {0} x {1}", imgRectF.Width, imgRectF.Height)
+                                    'If Not rotType = RotateFlipType.RotateNoneFlipNone Then
+                                    '    imgTemp = DirectCast(Me.ImageRotation_PictureBox.Image.Clone, System.Drawing.Image)
+                                    '    imgTemp.RotateFlip(rotType)
+                                    '    Me.ImageRotation_PictureBox.Image = DirectCast(imgTemp.Clone(), System.Drawing.Image)
+                                    '    Me.ImageRotation_PictureBox.Update()
+                                    'End If
                                     Return
+                                    'End If
                                 End If
                             End If
                         End If
@@ -302,7 +488,9 @@ Public Class frmImageRotation
             Catch ex As Exception
                 Err.Clear()
             Finally
+
             End Try
+
         Catch ex As Exception
             Err.Clear()
         End Try
@@ -351,11 +539,15 @@ Public Class frmImageRotation
     Public Sub New()
         InitializeComponent()
     End Sub
+
     Private Sub ImageRotation_PictureBox_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImageRotation_PictureBox.Click
+
     End Sub
+
     Private Sub ImageRotation_PictureBox_DoubleClick(ByVal sender As Object, ByVal e As System.EventArgs) Handles ImageRotation_PictureBox.DoubleClick
         SaveImage()
     End Sub
+
     Private Sub ImageRotation_btnResizeRevert_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImageRotation_btnResizeRevert.Click
         If Not imgOriginal Is Nothing Then
             ImageRotation_PictureBox.Image = imgOriginal.Clone
@@ -367,6 +559,7 @@ Public Class frmImageRotation
             ImageRotation_chkResizeProportional.Checked = True
         End If
     End Sub
+
     Public Sub SaveImage()
         Try
             Dim fn As String = Application.StartupPath.ToString.TrimEnd("\"c) & "\temp\", saveDialog As New System.Windows.Forms.SaveFileDialog
@@ -415,6 +608,7 @@ Public Class frmImageRotation
     Private Sub SaveImageToolStripMenuItem1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles SaveImageToolStripMenuItem1.Click
         SaveImage()
     End Sub
+
     Private Sub LoadImageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles LoadImageToolStripMenuItem.Click
         LoadImage()
     End Sub
@@ -433,6 +627,7 @@ Public Class frmImageRotation
                 Err.Clear()
             End Try
             saveDialog.Filter = "ALL Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.tif;*.tiff|JPG|*.jpg|JPEG|*.jpeg|PNG|*.png|BMP|*.bmp|GIF|*.gif|TIF|*.tif|TIFF|*.tiff"
+            'saveDialog.DefaultExt = "jpg"
             saveDialog.FilterIndex = 0
             saveDialog.InitialDirectory = fn
             saveDialog.CheckFileExists = True
@@ -481,18 +676,23 @@ Public Class frmImageRotation
             Return
         End Try
     End Sub
+
     Public Shared Function IsValidEan13(eanBarcode As String) As Boolean
         Return IsValidEan(eanBarcode, 13)
     End Function
+
     Public Shared Function IsValidEan12(eanBarcode As String) As Boolean
         Return IsValidEan(eanBarcode, 12)
     End Function
+
     Public Shared Function IsValidEan14(eanBarcode As String) As Boolean
         Return IsValidEan(eanBarcode, 14)
     End Function
+
     Public Shared Function IsValidEan8(eanBarcode As String) As Boolean
         Return IsValidEan(eanBarcode, 8)
     End Function
+
     Private Shared Function IsValidEan(eanBarcode As String, length As Integer) As Boolean
         If eanBarcode.Length <> length Then
             Return False
@@ -502,6 +702,7 @@ Public Class frmImageRotation
         Dim s2 = If(s = 3, 1, 3)
         Return allDigits.Last() = (10 - (allDigits.Take(length - 1).[Select](Function(c, ci) c * (If(ci Mod 2 = 0, s, s2))).Sum() Mod 10)) Mod 10
     End Function
+
     Private Sub CopyImageToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CopyImageToolStripMenuItem.Click
         Try
             If Not ImageRotation_PictureBox.Image Is Nothing Then
@@ -512,13 +713,17 @@ Public Class frmImageRotation
             Err.Clear()
         End Try
     End Sub
+
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         If imgFormat.GetHashCode() = System.Drawing.Imaging.ImageFormat.MemoryBmp().GetHashCode() Then
             imgFormat = System.Drawing.Imaging.ImageFormat.Png
+            'Else
+            '    imgFormat = System.Drawing.Imaging.ImageFormat.Jpeg
         End If
         Dim imgStream As New System.IO.MemoryStream
         Dim imgTemp As System.Drawing.Image = imgOriginal.Clone
         imgTemp.Save(imgStream, imgFormat)
+        'System.Drawing.Image.FromStream(imgStream, True, False) 'ImageRotation_PictureBox.Image.Clone
         Dim imgBytes() As Byte = imgStream.ToArray
         Dim frmDialogImageOptimization As dialogImageOptimization = New dialogImageOptimization(imgBytes, imgFormat, imgMaskBytes)
         frmDialogImageOptimization.frmMainParent = Nothing
@@ -534,6 +739,7 @@ Public Class frmImageRotation
                 Case Windows.Forms.DialogResult.OK, Windows.Forms.DialogResult.Yes
                     imgStream = New System.IO.MemoryStream(frmDialogImageOptimization.imgBytes)
                     ImageRotation_PictureBox.Image = System.Drawing.Image.FromStream(imgStream)
+                    'ImageRotation_PictureBox.Image = DirectCast(imgTemp.Clone, System.Drawing.Image)
                     ImageRotation_PictureBox.Update()
                     ImageRotation_Dimensions_Resized.Visible = True
                     Dim imgRectF As System.Drawing.Rectangle = New System.Drawing.Rectangle(0, 0, ImageRotation_PictureBox.Image.Width, ImageRotation_PictureBox.Image.Height)
@@ -542,7 +748,7 @@ Public Class frmImageRotation
                     Return
             End Select
         Catch ex As Exception
-            Err.Clear()
+            Err.Clear() 'TimeStampAdd(ex, debugMode) ' NK 2016-06-30() ' Throw Ex  ' NK2 '
         Finally
             If Not frmDialogImageOptimization Is Nothing Then
                 If frmDialogImageOptimization.Visible Then frmDialogImageOptimization.Visible = False
@@ -551,6 +757,7 @@ Public Class frmImageRotation
             End If
         End Try
     End Sub
+
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         Try
             rotType = getImageRotation()
@@ -563,6 +770,7 @@ Public Class frmImageRotation
             Err.Clear()
         End Try
     End Sub
+
     Private Sub ImageRotation_ImageRotation_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ImageRotation_ImageRotation.SelectedIndexChanged
         If ImageRotation_ImageRotation.SelectedIndex = 4 Then
             ImageRotation_ImageFlip.SelectedIndex = 2
@@ -584,5 +792,70 @@ Public Class frmImageRotation
             imgTemp.RotateFlip(rotType)
             ImageRotation_PictureBox.Image = DirectCast(imgTemp.Clone(), System.Drawing.Image)
         End If
+    End Sub
+
+    Private Sub PasteImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PasteImageToolStripMenuItem.Click
+        Try
+            If Not Clipboard.GetImage() Is Nothing Then
+                ImageRotation_PictureBox.Image = Clipboard.GetImage()
+                MessageBox.Show(Me, "Pasted image from clipboard.", "Clipboard", vbOKOnly, MsgBoxStyle.Information)
+            Else
+                MessageBox.Show(Me, "Clipboard has no image", "Clipboard", vbOKOnly, MsgBoxStyle.Information)
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub CropImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CropImageToolStripMenuItem.Click
+        Try
+            Cursor = Cursors.Default
+            Try
+
+                If cropWidth < 1 Then
+                    Exit Sub
+                End If
+                Dim scale As Single = 1.0F
+                Dim offsetXPoints As New Point(0, 0)
+                'MsgBox(offsetY2 & "," & scaleX2)
+                Dim scaleX2 As Single = 0.0F, scaleY As Single = 0.0F, scaleX As Single = 0.0F
+                Dim offsetY As Single = 0.0F, offsetX As Single = 0.0F
+                If ImageRotation_PictureBox.Image.Height > ImageRotation_PictureBox.Image.Width Then
+                    scaleY = ImageRotation_PictureBox.Height / ImageRotation_PictureBox.Image.Height
+                    offsetX = (ImageRotation_PictureBox.Width - (scaleY * ImageRotation_PictureBox.Image.Width)) / 2
+                    scale = CSng(ImageRotation_PictureBox.Image.Height / (ImageRotation_PictureBox.Height))
+                ElseIf ImageRotation_PictureBox.Image.Height < ImageRotation_PictureBox.Image.Width Then
+                    scaleX = ImageRotation_PictureBox.Width / ImageRotation_PictureBox.Image.Width
+                    offsetY = (ImageRotation_PictureBox.Height - (scaleX * ImageRotation_PictureBox.Image.Height)) / 2
+                    scale = CSng(ImageRotation_PictureBox.Image.Width / ImageRotation_PictureBox.Width)
+                End If
+                Dim rect As Rectangle = New Rectangle((cropX * scale) - offsetX, (cropY - offsetY) * scale, cropWidth * scale, cropHeight * scale)
+                Dim destRect As Rectangle = New Rectangle(0, 0, rect.Width, rect.Height)
+                Dim bit As Bitmap = ImageRotation_PictureBox.Image.Clone
+                Using cropBitmap As Bitmap = New Bitmap(rect.Width, rect.Height)
+                    Using g As Graphics = Graphics.FromImage(cropBitmap)
+                        g.InterpolationMode = Drawing2D.InterpolationMode.HighQualityBicubic
+                        g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighQuality
+                        g.CompositingQuality = Drawing2D.CompositingQuality.HighQuality
+                        g.DrawImage(bit, destRect, rect, GraphicsUnit.Pixel)
+                        ' g.DrawImage(bit, 0, 0, rect,GraphicsUnit.Pixel)
+                        'PreviewPictureBox.Image = cropBitmap
+                        g.Dispose()
+                    End Using
+                    'imgOriginal = cropBitmap.Clone
+                    ImageRotation_PictureBox.Image = cropBitmap.Clone 'imgOriginal
+                    ImageRotation_PictureBox.Refresh()
+                    resizePictureBox()
+                End Using
+            Catch exc As Exception
+                Err.Clear()
+            End Try
+        Catch exc As Exception
+            Err.Clear()
+        End Try
+    End Sub
+
+    Private Sub frmImageRotation_ResizeEnd(sender As Object, e As EventArgs) Handles Me.ResizeEnd
+        resizePictureBox()
     End Sub
 End Class
