@@ -1,6 +1,6 @@
 Public Class clsUserRect
     ''' <summary>
-    ''' PdForms.net- Created by NK-INC.COM (www.PdForms.net)
+    ''' PdForms.net- Created by Nicholas Kowalewicz (www.PdForms.net)
     ''' Copyright 2017 NK-INC.COM All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Email Contact: support@nk-inc.ccom
@@ -15,7 +15,7 @@ Public Class clsUserRect
     Public mIsClick As Boolean = False
     Public oldX As Single
     Public oldY As Single
-    Public sizeNodeRect As Integer = 7
+    Public sizeNodeRect As Integer = 10 '7
     Public mBmp As Bitmap = Nothing
     Public nodeSelected As PosSizableRect = PosSizableRect.None
     Public angle As Integer = 30
@@ -246,23 +246,29 @@ Public Class clsUserRect
                     If Not rectTemp = Nothing Then
                         If rectTemp.Width > 0 And rectTemp.Height > 0 Then
                             If Not String.IsNullOrEmpty(frm.fldNameHighlighted & "") And frm.CheckfieldNameExits(frm.fldNameHighlighted & "") Then
+
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
                                 'r = frm.GetFieldPositionsReverse(frm.Session, r)
+                                frm.clearImageCacheHistory()
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, frm.fldNameHighlighted, frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
+                                'frm.updatefield()
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
                                 frm.fldKidIndex = fldKidIndexTemp
                                 frm.fldNameHighlighted = fldName
                                 rect = rectTemp
                                 frm.A0_PDFFormField_LoadFieldWithRectF(rF, fldName, Nothing, True)
-                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
+                                'frm.refreshPDFImage()
 
+                                'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
                             ElseIf frm.CheckfieldNameExits(frm.PDFField_Name.Text & "") Then
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
                                 'r = frm.GetFieldPositionsReverse(frm.Session, r)
+                                frm.clearImageCacheHistory()
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, frm.PDFField_Name.Text & "", frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
+                                'frm.updatefield()
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
                                 rect = rectTemp
@@ -270,16 +276,24 @@ Public Class clsUserRect
                                 frm.fldNameHighlighted = fldName
                                 'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, -1, fldKidIndexTemp)
                                 'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
+                                'frm.clearImageCacheHistory()
                                 frm.A0_PDFFormField_LoadFieldWithRectF(rF, fldName, Nothing, True)
+                                'frm.refreshPDFImage()
                             Else
                                 frm.lblFieldType.Text = "PROPERTIES"
                                 Dim r As New iTextSharp.text.Rectangle(CSng(rectTemp.Left), frm.getPDFHeight() - CSng(rectTemp.Bottom), CSng(rectTemp.Right), frm.getPDFHeight() - CSng(rectTemp.Top))
                                 Dim rF As New System.Drawing.RectangleF(CSng(rectTemp.Left), CSng(rectTemp.Top), CSng(rectTemp.Width), CSng(rectTemp.Height))
                                 'r = frm.GetFieldPositionsReverse(frm.Session, r)
+                                frm.clearImageCacheHistory()
                                 frm.Session = frm.A0_PDFFormField_Modify(frm.Session, "", frm.PDFField_Name.Text & "", New iTextSharp.text.BaseColor(frm.PDFField_TextColorPicker.BackColor.R, frm.PDFField_TextColorPicker.BackColor.G, frm.PDFField_TextColorPicker.BackColor.B, frm.PDFField_TextColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BackgroundColorPicker.BackColor.R, frm.PDFField_BackgroundColorPicker.BackColor.G, frm.PDFField_BackgroundColorPicker.BackColor.B, frm.PDFField_BackgroundColorPicker.BackColor.A), New iTextSharp.text.BaseColor(frm.PDFField_BorderColorPicker.BackColor.R, frm.PDFField_BorderColorPicker.BackColor.G, frm.PDFField_BorderColorPicker.BackColor.B, frm.PDFField_BorderColorPicker.BackColor.A), r)
+                                'rect = rectTemp
+                                'frm.updatefield()
                                 frm.mMove = False
                                 frm.A0_LoadPDF()
                                 rect = rectTemp
+                                'frm.clearImageCacheHistory()
+                                frm.A0_PDFFormField_LoadFieldWithRectF(rF, frm.PDFField_Name.Text & "", Nothing, True)
+                                'frm.refreshPDFImage()
                                 'frm.A0_PDFFormField_LoadProperties(frm.Session, frm.fldNameHighlighted, -1, 0)
                                 'frm.A0_PDFFormField_LoadProperties(frm.Session, fldName, frm.btnPage.SelectedIndex + 1, fldKidIndexTemp)
                             End If
@@ -347,9 +361,9 @@ Public Class clsUserRect
     End Sub
     Private Sub mPictureBox_Paint(ByVal sender As Object, ByVal e As PaintEventArgs)
         If frm.getPercent() >= 1 Then
-            sizeNodeRect = 10 / frm.getPercent()
+            sizeNodeRect = 16 / frm.getPercent()
         Else
-            sizeNodeRect = 10 * frm.getPercent()
+            sizeNodeRect = 16 * frm.getPercent()
         End If
 
     End Sub
@@ -377,6 +391,7 @@ Public Class clsUserRect
     Public fldKidIndexPrevious As Integer = -1
     Public Sub mPictureBox_MouseUp(ByVal sender As Object, ByVal e As MouseEventArgs)
         Try
+
             mIsClick = False
             frm.mMove = False
             pauseDraw = False
@@ -393,8 +408,10 @@ Public Class clsUserRect
                             frm.A0_PDFFormField_LoadProperties(frm.Session, frm.fldNameHighlighted, Nothing, frm.fldKidIndex)
                             frm.PnlFields_Position(True, True)
                         End If
-                        frm.A0_LoadPDF()
+                        'frm.A0_LoadPDF()
                         moveResize = True
+                        'frm.refreshPDFImage()
+                        'frm.DrawImageFieldPositions()
                         Return
                     End If
                 End If
@@ -749,7 +766,6 @@ Public Class clsUserRect
     Public Function GetNodeSelectable(ByVal p As Point) As PosSizableRect
         For Each r As PosSizableRect In [Enum].GetValues(GetType(PosSizableRect))
             If GetRectScreen(r, sizeNodeRect).Contains(p) Then 'CInt(IIf(frm.getPercent() >= 1, sizeNodeRect / frm.getPercent(), sizeNodeRect * frm.getPercent()))
-
                 Return r
             End If
         Next

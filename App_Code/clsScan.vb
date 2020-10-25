@@ -7,7 +7,7 @@ Imports WIA
 Public Class clsScan
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -355,10 +355,12 @@ Public Class clsScan
             Dim hasMorePages As Boolean = True
             Dim scan As Item = Nothing
             Dim scanBacksideStartIndex As Integer = -1
+            'Acquisition iteration 
             Dim wiaCommonDialog As ICommonDialog = New CommonDialog()
             Try
                 While hasMorePages
                     Try
+                        'Looks like these need to be done for each iteration 
                         SetDeviceHandling(device, settings)
                         scan = TryCast(device.Items(1), Item)
                         SetDeviceProperties(device, settings)
@@ -367,34 +369,102 @@ Public Class clsScan
                     End Try
 
 
+                    'Logger.Log("DEBUG: document handling " + GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_SELECT))
+                    'Logger.Log("DEBUG: feeder status " + GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS))
 
 
                     Try
+                        'Scan image 
                         SetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_PAGES, 1)
+                        'SetDeviceIntProperty(device, WIA_PROPERTIES.WIA_RESERVED_FOR_NEW_PROPS + WIA_PROPERTIES.WIA_DPS_PAGES, 1)
                         Dim image__1 As ImageFile = DirectCast(wiaCommonDialog.ShowTransfer(scan, wiaFormatBMP, False), ImageFile)
 
                         If image__1 IsNot Nothing Then
+                            ' convert to byte array 
                             Dim imageBytes As [Byte]() = DirectCast(image__1.FileData.BinaryData(), Byte())
 
 
+                            ' add file to output list 
                             images.Add(Image.FromStream(New MemoryStream(imageBytes)))
+                            'Try
+                            '    If Not settings.frmMain1 Is Nothing Then
+                            '        If settings.frmMain1.GetType Is (frmMain.GetType) Then
+                            '            settings.frmMain1 .ImportImage(images(images.Count - 1), False, True)
+                            '        End If
+                            '    End If
+                            'Catch ex As Exception
+                            '    Err.Clear()
+                            'End Try
+                            'Cleanup 
                             image__1 = Nothing
                             imageBytes = Nothing
                         Else
+                            'Logger.Log("Scan cancelled")
                             Exit Try
                         End If
 
+                        ' assume there are no more pages 
                         hasMorePages = False
                         If settings.adf Then
                             Try
+                                'try to read feed ready property (some scanners report ready even if no more pages) 
                                 Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
                                 hasMorePages = (status And WIA_DPS_DOCUMENT_HANDLING_STATUS.FEED_READY) <> 0
 
+                                'Logger.Log("ADF has more pages: " + (If(hasMorePages, "Yes", "No")))
                             Catch
                             End Try
+                        Else
+                            Dim cDialogMultiChoice As New dialogMultiChoice
+                            Dim cButtons As New List(Of dialogMultiChoice.clsButton)
+                            cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
+                            cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
+                            If scanBacksideStartIndex < 0 Then
+                                cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
+                            Else
+                                cButtons.Add(New dialogMultiChoice.clsButton("ABORT", False, DialogResult.Abort))
+                            End If
+                            cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
+                            cDialogMultiChoice = New dialogMultiChoice
+                            Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: OUT OF PAPER", cButtons.ToArray())
+                                Case DialogResult.OK 'finished
+                                    hasMorePages = False
+                                    Err.Clear()
+                                    Exit Try
+                                Case DialogResult.Retry 'continue scan
+                                    hasMorePages = True
+                                    Err.Clear()
+                                    'GoTo ContinueSCAN
+                                    Exit Try
+                                Case DialogResult.Abort 'backsideStart
+                                    If scanBacksideStartIndex < 0 Then
+                                        Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
+                                            Case MsgBoxResult.Ok
+                                                hasMorePages = True
+                                                scanBacksideStartIndex = images.Count
+                                                Err.Clear()
+                                                'GoTo ContinueSCAN
+                                                Exit Try
+                                        End Select
+                                    End If
+                                    hasMorePages = False
+                                    scanBacksideStartIndex = -1
+
+                                Case DialogResult.Cancel
+                                    hasMorePages = False
+                                    Return Nothing
+                                Case Else 'cancel
+                                    hasMorePages = False
+                                    Err.Clear()
+                                    Exit Try
+                            End Select
                         End If
                     Catch ex As System.Runtime.InteropServices.COMException
                         If (Math.Abs(ex.ErrorCode) = 2145320957) Then
+                            'Logger.Log("OUT OF PAPER")
+                            'hasMorePages = False
+                            'Err.Clear()
+                            'Exit Try
 
                             Dim cDialogMultiChoice As New dialogMultiChoice
                             Dim cButtons As New List(Of dialogMultiChoice.clsButton)
@@ -408,33 +478,39 @@ Public Class clsScan
                             cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
                             cDialogMultiChoice = New dialogMultiChoice
                             Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: OUT OF PAPER", cButtons.ToArray())
-                                Case DialogResult.OK
+                                Case DialogResult.OK 'finished
                                     hasMorePages = False
                                     Err.Clear()
                                     Exit Try
-                                Case DialogResult.Retry
+                                Case DialogResult.Retry 'continue scan
                                     hasMorePages = True
                                     Err.Clear()
+                                    'GoTo ContinueSCAN
                                     Exit Try
-                                Case DialogResult.Abort
+                                Case DialogResult.Abort 'backsideStart
                                     If scanBacksideStartIndex < 0 Then
                                         Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
                                             Case MsgBoxResult.Ok
                                                 hasMorePages = True
                                                 scanBacksideStartIndex = images.Count
                                                 Err.Clear()
+                                                'GoTo ContinueSCAN
                                                 Exit Try
                                         End Select
                                     End If
                                     hasMorePages = False
                                     scanBacksideStartIndex = -1
 
-                                Case Else
+                                Case DialogResult.Cancel
+                                    hasMorePages = False
+                                    Return Nothing
+                                Case Else 'cancel
                                     hasMorePages = False
                                     Err.Clear()
                                     Exit Try
                             End Select
                         ElseIf (Math.Abs(ex.ErrorCode) = 2145320954) Then
+                            'Logger.Log("Device is busy, retrying in 2s...")
                             Err.Clear()
                             Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
                             Dim cntr As Integer = 12
@@ -455,27 +531,32 @@ Public Class clsScan
                                     cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
                                     cDialogMultiChoice = New dialogMultiChoice
                                     Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: SCANNER BUSY", cButtons.ToArray())
-                                        Case DialogResult.OK
+                                        Case DialogResult.OK 'finished
                                             hasMorePages = False
                                             Err.Clear()
                                             Exit Try
-                                        Case DialogResult.Retry
+                                        Case DialogResult.Retry 'continue scan
                                             hasMorePages = True
                                             Err.Clear()
+                                            'GoTo ContinueSCAN
                                             Exit Try
-                                        Case DialogResult.Abort
+                                        Case DialogResult.Abort 'backsideStart
                                             If scanBacksideStartIndex < 0 Then
                                                 Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
                                                     Case MsgBoxResult.Ok
                                                         hasMorePages = True
                                                         scanBacksideStartIndex = images.Count
                                                         Err.Clear()
+                                                        'GoTo ContinueSCAN
                                                         Exit Try
                                                 End Select
                                             End If
                                             hasMorePages = False
                                             scanBacksideStartIndex = -1
-                                        Case Else
+                                        Case DialogResult.Cancel
+                                            hasMorePages = False
+                                            Return Nothing
+                                        Case Else 'cancel
                                             hasMorePages = False
                                             Err.Clear()
                                             Exit Try
@@ -484,8 +565,13 @@ Public Class clsScan
                                 End If
                             Loop
                             hasMorePages = True
+                            'GoTo ContinueSCAN
                             Exit Try
                         ElseIf (Math.Abs(ex.ErrorCode) = 2145320957) Then
+                            'Logger.Log("OUT OF PAPER")
+                            'hasMorePages = False
+                            'Err.Clear()
+                            'Exit Try
                             Dim cDialogMultiChoice As New dialogMultiChoice
                             Dim cButtons As New List(Of dialogMultiChoice.clsButton)
                             cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
@@ -499,32 +585,38 @@ Public Class clsScan
                             cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
                             cDialogMultiChoice = New dialogMultiChoice
                             Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: OUT OF PAPER", cButtons.ToArray())
-                                Case DialogResult.OK
+                                Case DialogResult.OK 'finished
                                     hasMorePages = False
                                     Err.Clear()
                                     Exit Try
-                                Case DialogResult.Retry
+                                Case DialogResult.Retry 'continue scan
                                     hasMorePages = True
                                     Err.Clear()
+                                    'GoTo ContinueSCAN
                                     Exit Try
-                                Case DialogResult.Abort
+                                Case DialogResult.Abort 'backsideStart
                                     If scanBacksideStartIndex < 0 Then
                                         Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
                                             Case MsgBoxResult.Ok
                                                 hasMorePages = True
                                                 scanBacksideStartIndex = images.Count
                                                 Err.Clear()
+                                                'GoTo ContinueSCAN
                                                 Exit Try
                                         End Select
                                     End If
                                     hasMorePages = False
                                     scanBacksideStartIndex = -1
-                                Case Else
+                                Case DialogResult.Cancel
+                                    hasMorePages = False
+                                    Return Nothing
+                                Case Else 'cancel
                                     hasMorePages = False
                                     Err.Clear()
                                     Exit Try
                             End Select
                         ElseIf (Math.Abs(ex.ErrorCode) = 2145320954) Then
+                            'Logger.Log("Device is busy, retrying in 2s...")
                             Err.Clear()
                             Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
                             Dim cntr As Integer = 12
@@ -545,27 +637,32 @@ Public Class clsScan
                                     cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
                                     cDialogMultiChoice = New dialogMultiChoice
                                     Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: SCANNER BUSY", cButtons.ToArray())
-                                        Case DialogResult.OK
+                                        Case DialogResult.OK 'finished
                                             hasMorePages = False
                                             Err.Clear()
                                             Exit Try
-                                        Case DialogResult.Retry
+                                        Case DialogResult.Retry 'continue scan
                                             hasMorePages = True
                                             Err.Clear()
+                                            'GoTo ContinueSCAN
                                             Exit Try
-                                        Case DialogResult.Abort
+                                        Case DialogResult.Abort 'backsideStart
                                             If scanBacksideStartIndex < 0 Then
                                                 Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
                                                     Case MsgBoxResult.Ok
                                                         hasMorePages = True
                                                         scanBacksideStartIndex = images.Count
                                                         Err.Clear()
+                                                        'GoTo ContinueSCAN
                                                         Exit Try
                                                 End Select
                                             End If
                                             hasMorePages = False
                                             scanBacksideStartIndex = -1
-                                        Case Else
+                                        Case DialogResult.Cancel
+                                            hasMorePages = False
+                                            Return Nothing
+                                        Case Else 'cancel
                                             hasMorePages = False
                                             Err.Clear()
                                             Exit Try
@@ -578,7 +675,9 @@ Public Class clsScan
                         Else
                             Select Case Math.Abs(CULng(ex.ErrorCode))
                                 Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_PAPER_EMPTY))
+                                    'Logger.Log("Paper feed empty")
                                     If images.Count = 0 AndAlso settings.adf AndAlso settings.tryFlatbed Then
+                                        'if no page scanned try try flatbed 
                                         settings.adf = False
                                     Else
                                         hasMorePages = False
@@ -586,9 +685,11 @@ Public Class clsScan
                                     Exit Select
 
                                 Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_PAPER_JAM))
+                                    'Program.ShowError("Paper jam inside the scanner feeder")
                                     Exit Select
 
                                 Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_BUSY))
+                                    'Logger.Log("Device is busy, retrying in 2s...")
                                     System.Threading.Thread.Sleep(2000)
                                     Exit Select
                                 Case Else
@@ -647,6 +748,8 @@ Public Class clsScan
                 deviceCurrentShared = Nothing
                 If Not settings.frmMain1 Is Nothing Then
                     If settings.frmMain1.GetType Is (frmMain.GetType) Then
+                        'settings.frmMain1.A0_LoadPDF(True, True, True, settings.frmMain1.btnPage.Items.Count, True)
+                        'settings.frmMain1.A0_LoadPDF(True)
                         settings.frmMain1.cUserRect.rect = Nothing
                         settings.frmMain1.cUserRect._highLightFieldName = ""
                         settings.frmMain1.fldNameHighlighted = ""
@@ -661,6 +764,317 @@ Public Class clsScan
                 End If
             End Try
             Return images
+            'Dim manager As New DeviceManager()
+            'Dim images As New List(Of Image)()
+            'Dim hasMorePages As Boolean = True
+            'Dim scan As Item = Nothing
+            'Dim scanBacksideStartIndex As Integer = -1
+            'Dim wiaCommonDialog As ICommonDialog = New CommonDialog()
+            'Try
+            '    While hasMorePages
+            '        Try
+            '            SetDeviceHandling(device, settings)
+            '            scan = TryCast(device.Items(1), Item)
+            '            SetDeviceProperties(device, settings)
+            '        Catch generatedExceptionName As Exception
+            '            Throw New Exception("Cannot connect to scanner, please check your device and try again.")
+            '        End Try
+
+
+
+
+            '        Try
+            '            SetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_PAGES, 1)
+            '            Dim image__1 As ImageFile = DirectCast(wiaCommonDialog.ShowTransfer(scan, wiaFormatBMP, False), ImageFile)
+
+            '            If image__1 IsNot Nothing Then
+            '                Dim imageBytes As [Byte]() = DirectCast(image__1.FileData.BinaryData(), Byte())
+
+
+            '                images.Add(Image.FromStream(New MemoryStream(imageBytes)))
+            '                image__1 = Nothing
+            '                imageBytes = Nothing
+            '            Else
+            '                Exit Try
+            '            End If
+
+            '            hasMorePages = False
+            '            If settings.adf Then
+            '                Try
+            '                    Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
+            '                    hasMorePages = (status And WIA_DPS_DOCUMENT_HANDLING_STATUS.FEED_READY) <> 0
+
+            '                Catch
+            '                End Try
+            '            End If
+            '        Catch ex As System.Runtime.InteropServices.COMException
+            '            If (Math.Abs(ex.ErrorCode) = 2145320957) Then
+
+            '                Dim cDialogMultiChoice As New dialogMultiChoice
+            '                Dim cButtons As New List(Of dialogMultiChoice.clsButton)
+            '                cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
+            '                cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
+            '                If scanBacksideStartIndex < 0 Then
+            '                    cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
+            '                Else
+            '                    cButtons.Add(New dialogMultiChoice.clsButton("ABORT", False, DialogResult.Abort))
+            '                End If
+            '                cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
+            '                cDialogMultiChoice = New dialogMultiChoice
+            '                Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: OUT OF PAPER", cButtons.ToArray())
+            '                    Case DialogResult.OK
+            '                        hasMorePages = False
+            '                        Err.Clear()
+            '                        Exit Try
+            '                    Case DialogResult.Retry
+            '                        hasMorePages = True
+            '                        Err.Clear()
+            '                        Exit Try
+            '                    Case DialogResult.Abort
+            '                        If scanBacksideStartIndex < 0 Then
+            '                            Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
+            '                                Case MsgBoxResult.Ok
+            '                                    hasMorePages = True
+            '                                    scanBacksideStartIndex = images.Count
+            '                                    Err.Clear()
+            '                                    Exit Try
+            '                            End Select
+            '                        End If
+            '                        hasMorePages = False
+            '                        scanBacksideStartIndex = -1
+
+            '                    Case Else
+            '                        hasMorePages = False
+            '                        Err.Clear()
+            '                        Exit Try
+            '                End Select
+            '            ElseIf (Math.Abs(ex.ErrorCode) = 2145320954) Then
+            '                Err.Clear()
+            '                Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
+            '                Dim cntr As Integer = 12
+            '                Do While (status And WIA_DPS_DOCUMENT_HANDLING_STATUS.FEED_READY) <> 0
+            '                    cntr -= 1
+            '                    Threading.Thread.Sleep(5000)
+            '                    If cntr <= 0 Then
+            '                        Dim cDialogMultiChoice As New dialogMultiChoice
+            '                        Dim cButtons As New List(Of dialogMultiChoice.clsButton)
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
+            '                        If scanBacksideStartIndex < 0 Then
+            '                            cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
+            '                        Else
+            '                            cButtons.Add(New dialogMultiChoice.clsButton("ABORT", False, DialogResult.Abort))
+            '                        End If
+
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
+            '                        cDialogMultiChoice = New dialogMultiChoice
+            '                        Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: SCANNER BUSY", cButtons.ToArray())
+            '                            Case DialogResult.OK
+            '                                hasMorePages = False
+            '                                Err.Clear()
+            '                                Exit Try
+            '                            Case DialogResult.Retry
+            '                                hasMorePages = True
+            '                                Err.Clear()
+            '                                Exit Try
+            '                            Case DialogResult.Abort
+            '                                If scanBacksideStartIndex < 0 Then
+            '                                    Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
+            '                                        Case MsgBoxResult.Ok
+            '                                            hasMorePages = True
+            '                                            scanBacksideStartIndex = images.Count
+            '                                            Err.Clear()
+            '                                            Exit Try
+            '                                    End Select
+            '                                End If
+            '                                hasMorePages = False
+            '                                scanBacksideStartIndex = -1
+            '                            Case Else
+            '                                hasMorePages = False
+            '                                Err.Clear()
+            '                                Exit Try
+            '                        End Select
+            '                        Exit Try
+            '                    End If
+            '                Loop
+            '                hasMorePages = True
+            '                Exit Try
+            '            ElseIf (Math.Abs(ex.ErrorCode) = 2145320957) Then
+            '                Dim cDialogMultiChoice As New dialogMultiChoice
+            '                Dim cButtons As New List(Of dialogMultiChoice.clsButton)
+            '                cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
+            '                cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
+            '                If scanBacksideStartIndex < 0 Then
+            '                    cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
+            '                Else
+            '                    cButtons.Add(New dialogMultiChoice.clsButton("ABORT", False, DialogResult.Abort))
+            '                End If
+
+            '                cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
+            '                cDialogMultiChoice = New dialogMultiChoice
+            '                Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: OUT OF PAPER", cButtons.ToArray())
+            '                    Case DialogResult.OK
+            '                        hasMorePages = False
+            '                        Err.Clear()
+            '                        Exit Try
+            '                    Case DialogResult.Retry
+            '                        hasMorePages = True
+            '                        Err.Clear()
+            '                        Exit Try
+            '                    Case DialogResult.Abort
+            '                        If scanBacksideStartIndex < 0 Then
+            '                            Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
+            '                                Case MsgBoxResult.Ok
+            '                                    hasMorePages = True
+            '                                    scanBacksideStartIndex = images.Count
+            '                                    Err.Clear()
+            '                                    Exit Try
+            '                            End Select
+            '                        End If
+            '                        hasMorePages = False
+            '                        scanBacksideStartIndex = -1
+            '                    Case Else
+            '                        hasMorePages = False
+            '                        Err.Clear()
+            '                        Exit Try
+            '                End Select
+            '            ElseIf (Math.Abs(ex.ErrorCode) = 2145320954) Then
+            '                Err.Clear()
+            '                Dim status As Integer = GetDeviceIntProperty(device, WIA_PROPERTIES.WIA_DPS_DOCUMENT_HANDLING_STATUS)
+            '                Dim cntr As Integer = 12
+            '                Do While (status And WIA_DPS_DOCUMENT_HANDLING_STATUS.FEED_READY) <> 0
+            '                    cntr -= 1
+            '                    Threading.Thread.Sleep(5000)
+            '                    If cntr <= 0 Then
+            '                        Dim cDialogMultiChoice As New dialogMultiChoice
+            '                        Dim cButtons As New List(Of dialogMultiChoice.clsButton)
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("FINISHED", True, DialogResult.OK))
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("CONTINUE", True, DialogResult.Retry))
+            '                        If scanBacksideStartIndex < 0 Then
+            '                            cButtons.Add(New dialogMultiChoice.clsButton("FLIP", True, DialogResult.Abort))
+            '                        Else
+            '                            cButtons.Add(New dialogMultiChoice.clsButton("ABORT", False, DialogResult.Abort))
+            '                        End If
+
+            '                        cButtons.Add(New dialogMultiChoice.clsButton("CANCEL", True, DialogResult.Cancel))
+            '                        cDialogMultiChoice = New dialogMultiChoice
+            '                        Select Case cDialogMultiChoice.ShowDialog(settings.frmMain1, "FINISHED SCANNING?", "ERROR: SCANNER BUSY", cButtons.ToArray())
+            '                            Case DialogResult.OK
+            '                                hasMorePages = False
+            '                                Err.Clear()
+            '                                Exit Try
+            '                            Case DialogResult.Retry
+            '                                hasMorePages = True
+            '                                Err.Clear()
+            '                                Exit Try
+            '                            Case DialogResult.Abort
+            '                                If scanBacksideStartIndex < 0 Then
+            '                                    Select Case MsgBox("Flip the paper, and click ok when ready...", MsgBoxStyle.OkCancel + MsgBoxStyle.Information + MsgBoxStyle.ApplicationModal, "READY?")
+            '                                        Case MsgBoxResult.Ok
+            '                                            hasMorePages = True
+            '                                            scanBacksideStartIndex = images.Count
+            '                                            Err.Clear()
+            '                                            Exit Try
+            '                                    End Select
+            '                                End If
+            '                                hasMorePages = False
+            '                                scanBacksideStartIndex = -1
+            '                            Case Else
+            '                                hasMorePages = False
+            '                                Err.Clear()
+            '                                Exit Try
+            '                        End Select
+            '                        Exit Try
+            '                    End If
+            '                Loop
+            '                hasMorePages = True
+
+            '            Else
+            '                Select Case Math.Abs(CULng(ex.ErrorCode))
+            '                    Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_PAPER_EMPTY))
+            '                        If images.Count = 0 AndAlso settings.adf AndAlso settings.tryFlatbed Then
+            '                            settings.adf = False
+            '                        Else
+            '                            hasMorePages = False
+            '                        End If
+            '                        Exit Select
+
+            '                    Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_PAPER_JAM))
+            '                        Exit Select
+
+            '                    Case Math.Abs(CULng(WIA_ERRORS.WIA_ERROR_BUSY))
+            '                        System.Threading.Thread.Sleep(2000)
+            '                        Exit Select
+            '                    Case Else
+            '                        Throw ex
+            '                End Select
+            '            End If
+            '        End Try
+            '    End While
+
+            '    If scanBacksideStartIndex >= 0 And images.Count > 0 Then
+            '        Dim cntr As Integer = -1
+            '        For i As Integer = 0 To scanBacksideStartIndex
+            '            Try
+            '                If i < scanBacksideStartIndex Then
+            '                    cntr += 1
+            '                    Dim img As System.Drawing.Image
+            '                    If Not settings.frmMain1 Is Nothing Then
+            '                        If settings.frmMain1.GetType Is (frmMain.GetType) Then
+            '                            img = images(i)
+            '                            settings.frmMain1.ImportImage(img, False, True)
+            '                        End If
+            '                    End If
+            '                    If Not settings.frmMain1 Is Nothing Then
+            '                        If settings.frmMain1.GetType Is (frmMain.GetType) Then
+            '                            If i < images.Count Then
+            '                                img = images(images.Count - (i) - 1)
+            '                                settings.frmMain1.ImportImage(img, False, True)
+            '                            End If
+            '                        End If
+            '                    End If
+            '                Else
+            '                    Exit For
+            '                End If
+            '            Catch ex As Exception
+            '                Err.Clear()
+            '            End Try
+            '        Next
+            '    ElseIf scanBacksideStartIndex < images.Count And images.Count > 0 Then
+            '        For Each img As System.Drawing.Image In images.ToArray
+            '            Try
+            '                If Not settings.frmMain1 Is Nothing Then
+            '                    If settings.frmMain1.GetType Is (frmMain.GetType) Then
+            '                        settings.frmMain1.ImportImage(img, False, True)
+            '                    End If
+            '                End If
+            '            Catch ex As Exception
+            '                Err.Clear()
+            '            End Try
+            '        Next
+            '    End If
+            '    Return images
+            'Catch exMain As Exception
+            '    settings.frmMain1.TimeStampAdd(exMain, True)
+            '    Err.Clear()
+            'Finally
+            '    deviceCurrentShared = Nothing
+            '    If Not settings.frmMain1 Is Nothing Then
+            '        If settings.frmMain1.GetType Is (frmMain.GetType) Then
+            '            settings.frmMain1.cUserRect.rect = Nothing
+            '            settings.frmMain1.cUserRect._highLightFieldName = ""
+            '            settings.frmMain1.fldNameHighlighted = ""
+            '            settings.frmMain1.LoadPageList(settings.frmMain1.btnPage)
+            '            If settings.frmMain1.pnlFields.Visible Then settings.frmMain1.pnlFields.Visible = False
+            '            settings.frmMain1.ComboBox1_SelectedIndexChanged(settings.frmMain1, New EventArgs())
+            '            settings.frmMain1.A0_PictureBox1.Enabled = True
+            '            settings.frmMain1.A0_PictureBox2.Enabled = True
+            '            settings.frmMain1.btnPage.SelectedIndex = settings.frmMain1.btnPage.Items.Count - 1
+            '            settings.frmMain1.btnPage_SelectedIndexChanged(settings.frmMain1, New EventArgs())
+            '        End If
+            '    End If
+            'End Try
+            'Return images
 
 
 

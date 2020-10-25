@@ -13,7 +13,7 @@ Imports FDFApp.FDFDoc_Class
 Public Class clsPdfEdit
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -118,15 +118,15 @@ Public Class clsPdfEdit
         End If
         Return New iTextSharp.text.BaseColor(red, green, blue, 255)
     End Function
-    Public Function rgbColor(ByVal color As System.Drawing.Color, Optional ByVal name As String = "") As iTextSharp.text.BaseColor
-        dicColors.Add(CStr(IIf(String.IsNullOrEmpty(name & ""), color.Name.ToString & "{" & color.R & "," & color.G & "," & color.B & "," & color.A & "}", name & "")), New iTextSharp.text.BaseColor(color))
+    Public Function rgbColor(ByVal color1 As System.Drawing.Color, Optional ByVal name As String = "") As iTextSharp.text.BaseColor
+        dicColors.Add(CStr(IIf(String.IsNullOrEmpty(name & ""), color1.Name.ToString & "{" & color1.R & "," & color1.G & "," & color1.B & "," & color1.A & "}", name & "")), New iTextSharp.text.BaseColor(color1))
         If Not ColorList Is Nothing Then
             ColorList.Items.Clear()
             For Each dicColor As String In dicColors.Keys
                 ColorList.Items.Add(dicColor)
             Next
         End If
-        Return New iTextSharp.text.BaseColor(color)
+        Return New iTextSharp.text.BaseColor(color1)
     End Function
     Private Sub loadColors()
         dicColors.Clear()

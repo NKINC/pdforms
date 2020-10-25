@@ -7,10 +7,11 @@ Imports iTextSharp.text
 Imports iTextSharp.text.pdf
 Imports iTextSharp.text.pdf.parser
 Imports FreeImageAPI
+Imports ImageMagick
 Public Class clsPDFOptimization
     ''' <summary>
     ''' PdForms.net - An open source pdf form editor
-    ''' Copyright 2018 NK-INC.COM All Rights reserved.
+    ''' Copyright 2018 Nicholas Kowalewicz All Rights reserved.
     ''' PdForms.net utilizes iTextSharp technologies.
     ''' Website: www.pdforms.net (source code), www.pdforms.com (about)
     ''' </summary>
@@ -190,146 +191,180 @@ Public Class clsPDFOptimization
 
             End If
             Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            Dim m As New MemoryStream
+            Select Case format.Guid
+                Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                    OriginalBitmap.Save(m, format)
+                Case Else
+                    OriginalBitmap.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                    format = System.Drawing.Imaging.ImageFormat.Jpeg
+            End Select
+            Dim mLength1 As Integer = m.Length
+            If m.CanSeek Then
+                m.Position = 0
+            End If
+            Dim iMagick As New ImageMagick.MagickImage(m)
+            iMagick.Resize(newWidth, newHeight)
+            Dim m2 As New System.IO.MemoryStream
             Try
-                Select Case OriginalBitmap.PixelFormat
-                    Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
-                        ipixelFormat = PixelFormat.Format24bppRgb
-                        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                        For x As Integer = 0 To objOriginalImage.Width - 1
-                            For y As Integer = 0 To objOriginalImage.Height - 1
-                                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                            Next
-                        Next
-                    Case Else
-                        objOriginalImage = OriginalBitmap.Clone
+                iMagick.Write(m2)
+                If m2.CanSeek Then
+                    m2.Position = 0
+                End If
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
                 End Select
             Catch ex As Exception
-                ipixelFormat = PixelFormat.Format24bppRgb
-                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                For x As Integer = 0 To objOriginalImage.Width - 1
-                    For y As Integer = 0 To objOriginalImage.Height - 1
-                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                    Next
-                Next
-            End Try
-            Try
-                If ipixelFormat = PixelFormat.Format32bppArgb Then
-                    Dim q As New nQuant.WuQuantizer
-                    Using m As New MemoryStream
-                        Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
-                        If Not imageMask Is Nothing Then
-                            imageMask.MakeTransparent(Color.Black)
-                            For x As Integer = 0 To objImageOriginalClone.Width - 1
-                                For y As Integer = 0 To objImageOriginalClone.Height - 1
-                                    Dim c As Color = imageMask.GetPixel(x, y)
-                                    If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    ElseIf c.A < 128 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    End If
-                                Next
-                            Next
-                        End If
-                        Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                        If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                With oGraphic
-                                    .SmoothingMode = SmoothingMode1
-                                    .PixelOffsetMode = PixelOffsetMode.None
-                                    .CompositingQuality = CompositingQuality1
-                                    .InterpolationMode = InterpolationMode1
-                                    .CompositingMode = CompositingMode.SourceCopy
-                                    .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                    oGraphic.Dispose()
-                                End With
-                            End Using
-                            objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        Else
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        End If
-                        objOptImage.Save(m, format)
-                        Return m.ToArray
-                    End Using
-                End If
-            Catch exPNG As Exception
                 Err.Clear()
             End Try
-            Try
-                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
-                    With oGraphic
-                        .SmoothingMode = SmoothingMode.HighQuality
-                        .PixelOffsetMode = PixelOffsetMode.None
-                        .CompositingQuality = CompositingQuality.HighQuality
-                        .InterpolationMode = InterpolationMode.HighQualityBicubic
-                        .CompositingMode = CompositingMode.SourceCopy
-                        If Not imageMask Is Nothing Then
-                            .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                            .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                        Else
-                        End If
-                        oGraphic.Dispose()
-                    End With
-                End Using
-            Catch ex As Exception
-                Err.Clear()
-                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                For x As Integer = 0 To objOriginalImage.Width - 1
-                    For y As Integer = 0 To objOriginalImage.Height - 1
-                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                    Next
-                Next
-            End Try
-            Using objOriginalImage
-                Using m As New MemoryStream
-                    Try
-                        If Not imageMask Is Nothing Then
-                            Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
-                            For x As Long = 0 To objOriginalImage.Width - 1
-                                For y As Long = 0 To objOriginalImage.Height - 1
-                                    Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
-                                    If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
-                                        objOriginalImage.SetPixel(x, y, Color.Transparent)
-                                    Else
-                                        If AveragePixelColor > 0 Then
-                                            c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
-                                        Else
-                                            c = objOriginalImageTemp.GetPixel(x, y)
-                                        End If
-                                        objOriginalImage.SetPixel(x, y, c)
-                                    End If
-                                Next
-                            Next
-                        End If
-                        Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                            With oGraphic
-                                .SmoothingMode = SmoothingMode1
-                                .PixelOffsetMode = PixelOffsetMode.None
-                                .CompositingQuality = CompositingQuality1
-                                .InterpolationMode = InterpolationMode1
-                                .CompositingMode = CompositingMode.SourceCopy
-                                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                oGraphic.Dispose()
-                            End With
-                        End Using
-                        If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                            objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                            objOptImage.Save(m, format)
-                        Else
-                            objOriginalImage.Save(m, format)
-                        End If
-                        If m.CanSeek Then
-                            m.Seek(0, SeekOrigin.Begin)
-                        End If
-                        Return m.ToArray
-                    Catch ex As Exception
-                        Throw ex
-                    End Try
-                End Using
-            End Using
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            Dim mLength2 As Integer = m2.Length
+            Return m2.ToArray
+            'Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            'Try
+            '    Select Case OriginalBitmap.PixelFormat
+            '        Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
+            '            ipixelFormat = PixelFormat.Format24bppRgb
+            '            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '            For x As Integer = 0 To objOriginalImage.Width - 1
+            '                For y As Integer = 0 To objOriginalImage.Height - 1
+            '                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '                Next
+            '            Next
+            '        Case Else
+            '            objOriginalImage = OriginalBitmap.Clone
+            '    End Select
+            'Catch ex As Exception
+            '    ipixelFormat = PixelFormat.Format24bppRgb
+            '    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '    For x As Integer = 0 To objOriginalImage.Width - 1
+            '        For y As Integer = 0 To objOriginalImage.Height - 1
+            '            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '        Next
+            '    Next
+            'End Try
+            'Try
+            '    If ipixelFormat = PixelFormat.Format32bppArgb Then
+            '        Dim q As New nQuant.WuQuantizer
+            '        Using m As New MemoryStream
+            '            Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
+            '            If Not imageMask Is Nothing Then
+            '                imageMask.MakeTransparent(Color.Black)
+            '                For x As Integer = 0 To objImageOriginalClone.Width - 1
+            '                    For y As Integer = 0 To objImageOriginalClone.Height - 1
+            '                        Dim c As Color = imageMask.GetPixel(x, y)
+            '                        If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        ElseIf c.A < 128 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        End If
+            '                    Next
+            '                Next
+            '            End If
+            '            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                    With oGraphic
+            '                        .SmoothingMode = SmoothingMode1
+            '                        .PixelOffsetMode = PixelOffsetMode.None
+            '                        .CompositingQuality = CompositingQuality1
+            '                        .InterpolationMode = InterpolationMode1
+            '                        .CompositingMode = CompositingMode.SourceCopy
+            '                        .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                        oGraphic.Dispose()
+            '                    End With
+            '                End Using
+            '                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            Else
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            End If
+            '            objOptImage.Save(m, format)
+            '            Return m.ToArray
+            '        End Using
+            '    End If
+            'Catch exPNG As Exception
+            '    Err.Clear()
+            'End Try
+            'Try
+            '    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+            '        With oGraphic
+            '            .SmoothingMode = SmoothingMode.HighQuality
+            '            .PixelOffsetMode = PixelOffsetMode.None
+            '            .CompositingQuality = CompositingQuality.HighQuality
+            '            .InterpolationMode = InterpolationMode.HighQualityBicubic
+            '            .CompositingMode = CompositingMode.SourceCopy
+            '            If Not imageMask Is Nothing Then
+            '                .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '            Else
+            '            End If
+            '            oGraphic.Dispose()
+            '        End With
+            '    End Using
+            'Catch ex As Exception
+            '    Err.Clear()
+            '    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '    For x As Integer = 0 To objOriginalImage.Width - 1
+            '        For y As Integer = 0 To objOriginalImage.Height - 1
+            '            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '        Next
+            '    Next
+            'End Try
+            'Using objOriginalImage
+            '    Using m As New MemoryStream
+            '        Try
+            '            If Not imageMask Is Nothing Then
+            '                Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                For x As Long = 0 To objOriginalImage.Width - 1
+            '                    For y As Long = 0 To objOriginalImage.Height - 1
+            '                        Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+            '                        If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+            '                            objOriginalImage.SetPixel(x, y, Color.Transparent)
+            '                        Else
+            '                            If AveragePixelColor > 0 Then
+            '                                c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+            '                            Else
+            '                                c = objOriginalImageTemp.GetPixel(x, y)
+            '                            End If
+            '                            objOriginalImage.SetPixel(x, y, c)
+            '                        End If
+            '                    Next
+            '                Next
+            '            End If
+            '            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                With oGraphic
+            '                    .SmoothingMode = SmoothingMode1
+            '                    .PixelOffsetMode = PixelOffsetMode.None
+            '                    .CompositingQuality = CompositingQuality1
+            '                    .InterpolationMode = InterpolationMode1
+            '                    .CompositingMode = CompositingMode.SourceCopy
+            '                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                    oGraphic.Dispose()
+            '                End With
+            '            End Using
+            '            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                objOptImage.Save(m, format)
+            '            Else
+            '                objOriginalImage.Save(m, format)
+            '            End If
+            '            If m.CanSeek Then
+            '                m.Seek(0, SeekOrigin.Begin)
+            '            End If
+            '            Return m.ToArray
+            '        Catch ex As Exception
+            '            Throw ex
+            '        End Try
+            '    End Using
+            'End Using
         Catch ex As Exception
             Throw ex
         End Try
@@ -356,151 +391,185 @@ Public Class clsPDFOptimization
             If SmoothingMode1 = SmoothingMode.AntiAlias And (originalRectangle.Size.Width > (optRectangle.Width) OrElse originalRectangle.Size.Height > (optRectangle.Height)) Then
 
             End If
+            Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            Dim m As New MemoryStream
+            Select Case format.Guid
+                Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                    OriginalBitmap.Save(m, format)
+                Case Else
+                    OriginalBitmap.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                    format = System.Drawing.Imaging.ImageFormat.Jpeg
+            End Select
+            Dim mLength1 As Integer = m.Length
+            If m.CanSeek Then
+                m.Position = 0
+            End If
+            Dim iMagick As New ImageMagick.MagickImage(m)
+            iMagick.Resize(newWidth, newHeight)
+            Dim m2 As New System.IO.MemoryStream
             Try
-                Dim objOriginalImage As System.Drawing.Bitmap = Nothing
-                Try
-                    Select Case OriginalBitmap.PixelFormat
-                        Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
-                            ipixelFormat = PixelFormat.Format24bppRgb
-                            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                            For x As Integer = 0 To objOriginalImage.Width - 1
-                                For y As Integer = 0 To objOriginalImage.Height - 1
-                                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                                Next
-                            Next
-                        Case Else
-                            objOriginalImage = OriginalBitmap.Clone
-                    End Select
-                Catch ex As Exception
-                    ipixelFormat = PixelFormat.Format24bppRgb
-                    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                    For x As Integer = 0 To objOriginalImage.Width - 1
-                        For y As Integer = 0 To objOriginalImage.Height - 1
-                            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                        Next
-                    Next
-                End Try
-                Try
-                    If ipixelFormat = PixelFormat.Format32bppArgb Then
-                        Dim q As New nQuant.WuQuantizer
-                        Using m As New MemoryStream
-                            Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
-                            If Not imageMask Is Nothing Then
-                                imageMask.MakeTransparent(Color.Black)
-                                For x As Integer = 0 To objImageOriginalClone.Width - 1
-                                    For y As Integer = 0 To objImageOriginalClone.Height - 1
-                                        Dim c As Color = imageMask.GetPixel(x, y)
-                                        If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
-                                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                        ElseIf c.A < 128 Then
-                                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                        End If
-                                    Next
-                                Next
-                            End If
-                            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                    With oGraphic
-                                        .SmoothingMode = SmoothingMode1
-                                        .PixelOffsetMode = PixelOffsetMode.None
-                                        .CompositingQuality = CompositingQuality1
-                                        .InterpolationMode = InterpolationMode1
-                                        .CompositingMode = CompositingMode.SourceCopy
-                                        .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                        oGraphic.Dispose()
-                                    End With
-                                End Using
-                                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                                objOptImage.Save(m, format)
-                                Return m.ToArray
-                            Else
-                                objOptImage.Save(m, format)
-                                Return m.ToArray
-                            End If
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        End Using
-                    End If
-                Catch exPNG As Exception
-                    Err.Clear()
-                End Try
-                Try
-                    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
-                        With oGraphic
-                            .SmoothingMode = SmoothingMode.HighQuality
-                            .PixelOffsetMode = PixelOffsetMode.None
-                            .CompositingQuality = CompositingQuality.HighQuality
-                            .InterpolationMode = InterpolationMode.HighQualityBicubic
-                            .CompositingMode = CompositingMode.SourceCopy
-                            If Not imageMask Is Nothing Then
-                                .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                            Else
-                            End If
-                            oGraphic.Dispose()
-                        End With
-                    End Using
-                Catch ex As Exception
-                    Err.Clear()
-                    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                    For x As Integer = 0 To objOriginalImage.Width - 1
-                        For y As Integer = 0 To objOriginalImage.Height - 1
-                            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                        Next
-                    Next
-                End Try
-                Using objOriginalImage
-                    Using m As New MemoryStream
-                        Try
-                            If Not imageMask Is Nothing Then
-                                Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
-                                For x As Long = 0 To objOriginalImage.Width - 1
-                                    For y As Long = 0 To objOriginalImage.Height - 1
-                                        Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
-                                        If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
-                                            objOriginalImage.SetPixel(x, y, Color.Transparent)
-                                        Else
-                                            If AveragePixelColor > 0 Then
-                                                c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
-                                            Else
-                                                c = objOriginalImageTemp.GetPixel(x, y)
-                                            End If
-                                            objOriginalImage.SetPixel(x, y, c)
-                                        End If
-                                    Next
-                                Next
-                            End If
-                            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                With oGraphic
-                                    .SmoothingMode = SmoothingMode1
-                                    .PixelOffsetMode = PixelOffsetMode.None
-                                    .CompositingQuality = CompositingQuality1
-                                    .InterpolationMode = InterpolationMode1
-                                    .CompositingMode = CompositingMode.SourceCopy
-                                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                    oGraphic.Dispose()
-                                End With
-                            End Using
-                            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                                objOptImage.Save(m, format)
-                            Else
-                                objOriginalImage.Save(m, format)
-                            End If
-                            If m.CanSeek Then
-                                m.Seek(0, SeekOrigin.Begin)
-                            End If
-                            Return m.ToArray
-                        Catch ex As Exception
-                            Throw ex
-                        End Try
-                    End Using
-                End Using
+                iMagick.Write(m2)
+                If m2.CanSeek Then
+                    m2.Position = 0
+                End If
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
+                End Select
             Catch ex As Exception
-                Throw ex
+                Err.Clear()
             End Try
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            Dim mLength2 As Integer = m2.Length
+            Return m2.ToArray
+            'Try
+            '    Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            '    Try
+            '        Select Case OriginalBitmap.PixelFormat
+            '            Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
+            '                ipixelFormat = PixelFormat.Format24bppRgb
+            '                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '                For x As Integer = 0 To objOriginalImage.Width - 1
+            '                    For y As Integer = 0 To objOriginalImage.Height - 1
+            '                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '                    Next
+            '                Next
+            '            Case Else
+            '                objOriginalImage = OriginalBitmap.Clone
+            '        End Select
+            '    Catch ex As Exception
+            '        ipixelFormat = PixelFormat.Format24bppRgb
+            '        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '        For x As Integer = 0 To objOriginalImage.Width - 1
+            '            For y As Integer = 0 To objOriginalImage.Height - 1
+            '                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '            Next
+            '        Next
+            '    End Try
+            '    Try
+            '        If ipixelFormat = PixelFormat.Format32bppArgb Then
+            '            Dim q As New nQuant.WuQuantizer
+            '            Using m As New MemoryStream
+            '                Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
+            '                If Not imageMask Is Nothing Then
+            '                    imageMask.MakeTransparent(Color.Black)
+            '                    For x As Integer = 0 To objImageOriginalClone.Width - 1
+            '                        For y As Integer = 0 To objImageOriginalClone.Height - 1
+            '                            Dim c As Color = imageMask.GetPixel(x, y)
+            '                            If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
+            '                                objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                            ElseIf c.A < 128 Then
+            '                                objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                            End If
+            '                        Next
+            '                    Next
+            '                End If
+            '                Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                        With oGraphic
+            '                            .SmoothingMode = SmoothingMode1
+            '                            .PixelOffsetMode = PixelOffsetMode.None
+            '                            .CompositingQuality = CompositingQuality1
+            '                            .InterpolationMode = InterpolationMode1
+            '                            .CompositingMode = CompositingMode.SourceCopy
+            '                            .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                            oGraphic.Dispose()
+            '                        End With
+            '                    End Using
+            '                    objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                    objOptImage.Save(m, format)
+            '                    Return m.ToArray
+            '                Else
+            '                    objOptImage.Save(m, format)
+            '                    Return m.ToArray
+            '                End If
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            End Using
+            '        End If
+            '    Catch exPNG As Exception
+            '        Err.Clear()
+            '    End Try
+            '    Try
+            '        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+            '            With oGraphic
+            '                .SmoothingMode = SmoothingMode.HighQuality
+            '                .PixelOffsetMode = PixelOffsetMode.None
+            '                .CompositingQuality = CompositingQuality.HighQuality
+            '                .InterpolationMode = InterpolationMode.HighQualityBicubic
+            '                .CompositingMode = CompositingMode.SourceCopy
+            '                If Not imageMask Is Nothing Then
+            '                    .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                Else
+            '                End If
+            '                oGraphic.Dispose()
+            '            End With
+            '        End Using
+            '    Catch ex As Exception
+            '        Err.Clear()
+            '        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '        For x As Integer = 0 To objOriginalImage.Width - 1
+            '            For y As Integer = 0 To objOriginalImage.Height - 1
+            '                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '            Next
+            '        Next
+            '    End Try
+            '    Using objOriginalImage
+            '        Using m As New MemoryStream
+            '            Try
+            '                If Not imageMask Is Nothing Then
+            '                    Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                    For x As Long = 0 To objOriginalImage.Width - 1
+            '                        For y As Long = 0 To objOriginalImage.Height - 1
+            '                            Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+            '                            If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+            '                                objOriginalImage.SetPixel(x, y, Color.Transparent)
+            '                            Else
+            '                                If AveragePixelColor > 0 Then
+            '                                    c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+            '                                Else
+            '                                    c = objOriginalImageTemp.GetPixel(x, y)
+            '                                End If
+            '                                objOriginalImage.SetPixel(x, y, c)
+            '                            End If
+            '                        Next
+            '                    Next
+            '                End If
+            '                Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                    With oGraphic
+            '                        .SmoothingMode = SmoothingMode1
+            '                        .PixelOffsetMode = PixelOffsetMode.None
+            '                        .CompositingQuality = CompositingQuality1
+            '                        .InterpolationMode = InterpolationMode1
+            '                        .CompositingMode = CompositingMode.SourceCopy
+            '                        .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                        oGraphic.Dispose()
+            '                    End With
+            '                End Using
+            '                If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                    objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                    objOptImage.Save(m, format)
+            '                Else
+            '                    objOriginalImage.Save(m, format)
+            '                End If
+            '                If m.CanSeek Then
+            '                    m.Seek(0, SeekOrigin.Begin)
+            '                End If
+            '                Return m.ToArray
+            '            Catch ex As Exception
+            '                Throw ex
+            '            End Try
+            '        End Using
+            '    End Using
+            'Catch ex As Exception
+            '    Throw ex
+            'End Try
         Catch ex As Exception
             Throw ex
         End Try
@@ -567,155 +636,189 @@ Public Class clsPDFOptimization
             If SmoothingMode1 = SmoothingMode.AntiAlias And (originalRectangle.Size.Width > (optRectangle.Width) OrElse originalRectangle.Size.Height > (optRectangle.Height)) Then
 
             End If
+            Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            Dim m As New MemoryStream
+            Select Case format.Guid
+                Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                    OriginalBitmap.Save(m, format)
+                Case Else
+                    OriginalBitmap.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                    format = System.Drawing.Imaging.ImageFormat.Jpeg
+            End Select
+            Dim mLength1 As Integer = m.Length
+            If m.CanSeek Then
+                m.Position = 0
+            End If
+            Dim iMagick As New ImageMagick.MagickImage(m)
+            iMagick.Resize(newWidth, newHeight)
+            Dim m2 As New System.IO.MemoryStream
             Try
-                Dim objOriginalImage As System.Drawing.Bitmap = Nothing
-                Try
-                    Select Case OriginalBitmap.PixelFormat
-                        Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
-                            ipixelFormat = PixelFormat.Format24bppRgb
-                            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                            For x As Integer = 0 To objOriginalImage.Width - 1
-                                For y As Integer = 0 To objOriginalImage.Height - 1
-                                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                                Next
-                            Next
-                        Case Else
-                            objOriginalImage = OriginalBitmap.Clone
-                    End Select
-                Catch ex As Exception
-                    ipixelFormat = PixelFormat.Format24bppRgb
-                    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                    For x As Integer = 0 To objOriginalImage.Width - 1
-                        For y As Integer = 0 To objOriginalImage.Height - 1
-                            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                        Next
-                    Next
-                End Try
-                Try
-                    If ipixelFormat = PixelFormat.Format32bppArgb Then
-                        Dim q As New nQuant.WuQuantizer
-                        Using m As New MemoryStream
-                            Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
-                            If imageMask Is Nothing And imageMaskBytes.Length > 0 Then
-                                imageMask = System.Drawing.Bitmap.FromStream(New MemoryStream(imageMaskBytes), True)
-                                imageMask.MakeTransparent(Color.Black)
-                            ElseIf Not imageMask Is Nothing Then
-                                imageMask.MakeTransparent(Color.Black)
-                            End If
-                            For x As Integer = 0 To objImageOriginalClone.Width - 1
-                                For y As Integer = 0 To objImageOriginalClone.Height - 1
-                                    Dim c As Color = imageMask.GetPixel(x, y)
-                                    If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    ElseIf c.A < 128 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    End If
-                                Next
-                            Next
-                            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                    With oGraphic
-                                        .SmoothingMode = SmoothingMode1
-                                        .PixelOffsetMode = PixelOffsetMode.None
-                                        .CompositingQuality = CompositingQuality1
-                                        .InterpolationMode = InterpolationMode1
-                                        .CompositingMode = CompositingMode.SourceCopy
-                                        .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                        oGraphic.Dispose()
-                                    End With
-                                End Using
-                                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                                objOptImage.Save(m, format)
-                                Return m.ToArray
-                            Else
-                                objOptImage.Save(m, format)
-                                Return m.ToArray
-                            End If
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        End Using
-                    End If
-                Catch exPNG As Exception
-                    Err.Clear()
-                End Try
-                Try
-                    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
-                        With oGraphic
-                            .SmoothingMode = SmoothingMode.HighQuality
-                            .PixelOffsetMode = PixelOffsetMode.None
-                            .CompositingQuality = CompositingQuality.HighQuality
-                            .InterpolationMode = InterpolationMode.HighQualityBicubic
-                            .CompositingMode = CompositingMode.SourceCopy
-                            If Not imageMask Is Nothing Then
-                                .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                            Else
-                            End If
-                            oGraphic.Dispose()
-                        End With
-                    End Using
-                Catch ex As Exception
-                    Err.Clear()
-                    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                    For x As Integer = 0 To objOriginalImage.Width - 1
-                        For y As Integer = 0 To objOriginalImage.Height - 1
-                            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                        Next
-                    Next
-                End Try
-                Using objOriginalImage
-                    Using m As New MemoryStream
-                        Try
-                            If Not imageMask Is Nothing Then
-                                Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
-                                For x As Long = 0 To objOriginalImage.Width - 1
-                                    For y As Long = 0 To objOriginalImage.Height - 1
-                                        Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
-                                        If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
-                                            objOriginalImage.SetPixel(x, y, Color.Transparent)
-                                        Else
-                                            If AveragePixelColor > 0 Then
-                                                c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
-                                            Else
-                                                c = objOriginalImageTemp.GetPixel(x, y)
-                                            End If
-                                            objOriginalImage.SetPixel(x, y, c)
-                                        End If
-                                    Next
-                                Next
-                            End If
-                            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                With oGraphic
-                                    .SmoothingMode = SmoothingMode1
-                                    .PixelOffsetMode = PixelOffsetMode.None
-                                    .CompositingQuality = CompositingQuality1
-                                    .InterpolationMode = InterpolationMode1
-                                    .CompositingMode = CompositingMode.SourceCopy
-                                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                    oGraphic.Dispose()
-                                End With
-                            End Using
-                            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                                objOptImage.Save(m, format)
-                            Else
-                                objOriginalImage.Save(m, format)
-                            End If
-                            If m.CanSeek Then
-                                m.Seek(0, SeekOrigin.Begin)
-                            End If
-                            Return m.ToArray
-                        Catch ex As Exception
-                            Throw ex
-                        End Try
-                    End Using
-
-                End Using
+                iMagick.Write(m2)
+                If m2.CanSeek Then
+                    m2.Position = 0
+                End If
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
+                End Select
             Catch ex As Exception
-                Throw ex
+                Err.Clear()
             End Try
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            Dim mLength2 As Integer = m2.Length
+            Return m2.ToArray
+            'Try
+            '    Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            '    Try
+            '        Select Case OriginalBitmap.PixelFormat
+            '            Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
+            '                ipixelFormat = PixelFormat.Format24bppRgb
+            '                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '                For x As Integer = 0 To objOriginalImage.Width - 1
+            '                    For y As Integer = 0 To objOriginalImage.Height - 1
+            '                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '                    Next
+            '                Next
+            '            Case Else
+            '                objOriginalImage = OriginalBitmap.Clone
+            '        End Select
+            '    Catch ex As Exception
+            '        ipixelFormat = PixelFormat.Format24bppRgb
+            '        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '        For x As Integer = 0 To objOriginalImage.Width - 1
+            '            For y As Integer = 0 To objOriginalImage.Height - 1
+            '                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '            Next
+            '        Next
+            '    End Try
+            '    Try
+            '        If ipixelFormat = PixelFormat.Format32bppArgb Then
+            '            Dim q As New nQuant.WuQuantizer
+            '            Using m As New MemoryStream
+            '                Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
+            '                If imageMask Is Nothing And imageMaskBytes.Length > 0 Then
+            '                    imageMask = System.Drawing.Bitmap.FromStream(New MemoryStream(imageMaskBytes), True)
+            '                    imageMask.MakeTransparent(Color.Black)
+            '                ElseIf Not imageMask Is Nothing Then
+            '                    imageMask.MakeTransparent(Color.Black)
+            '                End If
+            '                For x As Integer = 0 To objImageOriginalClone.Width - 1
+            '                    For y As Integer = 0 To objImageOriginalClone.Height - 1
+            '                        Dim c As Color = imageMask.GetPixel(x, y)
+            '                        If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        ElseIf c.A < 128 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        End If
+            '                    Next
+            '                Next
+            '                Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                        With oGraphic
+            '                            .SmoothingMode = SmoothingMode1
+            '                            .PixelOffsetMode = PixelOffsetMode.None
+            '                            .CompositingQuality = CompositingQuality1
+            '                            .InterpolationMode = InterpolationMode1
+            '                            .CompositingMode = CompositingMode.SourceCopy
+            '                            .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                            oGraphic.Dispose()
+            '                        End With
+            '                    End Using
+            '                    objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                    objOptImage.Save(m, format)
+            '                    Return m.ToArray
+            '                Else
+            '                    objOptImage.Save(m, format)
+            '                    Return m.ToArray
+            '                End If
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            End Using
+            '        End If
+            '    Catch exPNG As Exception
+            '        Err.Clear()
+            '    End Try
+            '    Try
+            '        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+            '            With oGraphic
+            '                .SmoothingMode = SmoothingMode.HighQuality
+            '                .PixelOffsetMode = PixelOffsetMode.None
+            '                .CompositingQuality = CompositingQuality.HighQuality
+            '                .InterpolationMode = InterpolationMode.HighQualityBicubic
+            '                .CompositingMode = CompositingMode.SourceCopy
+            '                If Not imageMask Is Nothing Then
+            '                    .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                Else
+            '                End If
+            '                oGraphic.Dispose()
+            '            End With
+            '        End Using
+            '    Catch ex As Exception
+            '        Err.Clear()
+            '        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '        For x As Integer = 0 To objOriginalImage.Width - 1
+            '            For y As Integer = 0 To objOriginalImage.Height - 1
+            '                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '            Next
+            '        Next
+            '    End Try
+            '    Using objOriginalImage
+            '        Using m As New MemoryStream
+            '            Try
+            '                If Not imageMask Is Nothing Then
+            '                    Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                    For x As Long = 0 To objOriginalImage.Width - 1
+            '                        For y As Long = 0 To objOriginalImage.Height - 1
+            '                            Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+            '                            If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+            '                                objOriginalImage.SetPixel(x, y, Color.Transparent)
+            '                            Else
+            '                                If AveragePixelColor > 0 Then
+            '                                    c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+            '                                Else
+            '                                    c = objOriginalImageTemp.GetPixel(x, y)
+            '                                End If
+            '                                objOriginalImage.SetPixel(x, y, c)
+            '                            End If
+            '                        Next
+            '                    Next
+            '                End If
+            '                Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                    With oGraphic
+            '                        .SmoothingMode = SmoothingMode1
+            '                        .PixelOffsetMode = PixelOffsetMode.None
+            '                        .CompositingQuality = CompositingQuality1
+            '                        .InterpolationMode = InterpolationMode1
+            '                        .CompositingMode = CompositingMode.SourceCopy
+            '                        .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                        oGraphic.Dispose()
+            '                    End With
+            '                End Using
+            '                If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                    objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                    objOptImage.Save(m, format)
+            '                Else
+            '                    objOriginalImage.Save(m, format)
+            '                End If
+            '                If m.CanSeek Then
+            '                    m.Seek(0, SeekOrigin.Begin)
+            '                End If
+            '                Return m.ToArray
+            '            Catch ex As Exception
+            '                Throw ex
+            '            End Try
+            '        End Using
+
+            '    End Using
+            'Catch ex As Exception
+            '    Throw ex
+            'End Try
         Catch ex As Exception
             Throw ex
         Finally
@@ -858,7 +961,6 @@ Public Class clsPDFOptimization
         End Try
         Return Nothing
     End Function
-
     Public Function optimizeBitmap(ByVal OriginalBitmap As System.Drawing.Bitmap, ByVal newWidth As Integer, ByVal newHeight As Integer, ByVal format As System.Drawing.Imaging.ImageFormat, Optional ByVal InterpolationMode1 As Drawing2D.InterpolationMode = InterpolationMode.HighQualityBicubic, Optional ByVal SmoothingMode1 As SmoothingMode = SmoothingMode.HighQuality, Optional ByVal CompositingQuality1 As CompositingQuality = CompositingQuality.HighQuality, Optional ByVal AveragePixelColor As Integer = -1, Optional ByVal imageMask As System.Drawing.Bitmap = Nothing, Optional ByVal autoResizeImages As Boolean = False) As Byte()
         Try
             Dim iwidth As Integer = OriginalBitmap.Width
@@ -881,150 +983,349 @@ Public Class clsPDFOptimization
 
             End If
             Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            Dim m As New MemoryStream
+            Select Case format.Guid
+                Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                    OriginalBitmap.Save(m, format)
+                Case Else
+                    OriginalBitmap.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                    format = System.Drawing.Imaging.ImageFormat.Jpeg
+            End Select
+            Dim mLength1 As Integer = m.Length
+            If m.CanSeek Then
+                m.Position = 0
+            End If
+            Dim iMagick As New ImageMagick.MagickImage(m)
+            iMagick.Resize(newWidth, newHeight)
+            Dim m2 As New System.IO.MemoryStream
             Try
-                Select Case OriginalBitmap.PixelFormat
-                    Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
-                        ipixelFormat = PixelFormat.Format24bppRgb
-                        objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                        For x As Integer = 0 To objOriginalImage.Width - 1
-                            For y As Integer = 0 To objOriginalImage.Height - 1
-                                objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                            Next
-                        Next
-                    Case Else
-                        objOriginalImage = OriginalBitmap.Clone
+                iMagick.Write(m2)
+                If m2.CanSeek Then
+                    m2.Position = 0
+                End If
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
                 End Select
             Catch ex As Exception
-                ipixelFormat = PixelFormat.Format24bppRgb
-                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                For x As Integer = 0 To objOriginalImage.Width - 1
-                    For y As Integer = 0 To objOriginalImage.Height - 1
-                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                    Next
-                Next
-            End Try
-            Try
-                If ipixelFormat = PixelFormat.Format32bppArgb Then
-                    Dim q As New nQuant.WuQuantizer
-                    Using m As New MemoryStream
-                        Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
-                        If Not imageMask Is Nothing Then
-                            imageMask.MakeTransparent(Color.Black)
-                            For x As Integer = 0 To objImageOriginalClone.Width - 1
-                                For y As Integer = 0 To objImageOriginalClone.Height - 1
-                                    Dim c As Color = imageMask.GetPixel(x, y)
-                                    If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    ElseIf c.A < 128 Then
-                                        objImageOriginalClone.SetPixel(x, y, Color.Transparent)
-                                    End If
-                                Next
-                            Next
-                        End If
-                        Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                        If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                                With oGraphic
-                                    .SmoothingMode = SmoothingMode1
-                                    .PixelOffsetMode = PixelOffsetMode.None
-                                    .CompositingQuality = CompositingQuality1
-                                    .InterpolationMode = InterpolationMode1
-                                    .CompositingMode = CompositingMode.SourceCopy
-                                    .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                    oGraphic.Dispose()
-                                End With
-                            End Using
-                            objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        Else
-                            objOptImage.Save(m, format)
-                            Return m.ToArray
-                        End If
-                        objOptImage.Save(m, format)
-                        Return m.ToArray
-                    End Using
-                End If
-            Catch exPNG As Exception
                 Err.Clear()
             End Try
-            Try
-                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
-                    With oGraphic
-                        .SmoothingMode = SmoothingMode.AntiAlias
-                        .PixelOffsetMode = PixelOffsetMode.None
-                        .CompositingQuality = CompositingQuality.HighQuality
-                        .InterpolationMode = InterpolationMode.HighQualityBicubic
-                        .CompositingMode = CompositingMode.SourceCopy
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            Dim mLength2 As Integer = m2.Length
+            Return m2.ToArray
+            'Try
+            '    Select Case OriginalBitmap.PixelFormat
+            '        Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
+            '            ipixelFormat = PixelFormat.Format24bppRgb
+            '            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '            For x As Integer = 0 To objOriginalImage.Width - 1
+            '                For y As Integer = 0 To objOriginalImage.Height - 1
+            '                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '                Next
+            '            Next
+            '        Case Else
+            '            objOriginalImage = OriginalBitmap.Clone
+            '    End Select
+            'Catch ex As Exception
+            '    ipixelFormat = PixelFormat.Format24bppRgb
+            '    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '    For x As Integer = 0 To objOriginalImage.Width - 1
+            '        For y As Integer = 0 To objOriginalImage.Height - 1
+            '            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '        Next
+            '    Next
+            'End Try
+            'Try
+            '    If ipixelFormat = PixelFormat.Format32bppArgb Then
+            '        Dim q As New nQuant.WuQuantizer
+            '        Using m As New MemoryStream
+            '            Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
+            '            If Not imageMask Is Nothing Then
+            '                imageMask.MakeTransparent(Color.Black)
+            '                For x As Integer = 0 To objImageOriginalClone.Width - 1
+            '                    For y As Integer = 0 To objImageOriginalClone.Height - 1
+            '                        Dim c As Color = imageMask.GetPixel(x, y)
+            '                        If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        ElseIf c.A < 128 Then
+            '                            objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+            '                        End If
+            '                    Next
+            '                Next
+            '            End If
+            '            Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '            If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '                    With oGraphic
+            '                        .SmoothingMode = SmoothingMode1
+            '                        .PixelOffsetMode = PixelOffsetMode.None
+            '                        .CompositingQuality = CompositingQuality1
+            '                        .InterpolationMode = InterpolationMode1
+            '                        .CompositingMode = CompositingMode.SourceCopy
+            '                        .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                        oGraphic.Dispose()
+            '                    End With
+            '                End Using
+            '                objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            Else
+            '                objOptImage.Save(m, format)
+            '                Return m.ToArray
+            '            End If
+            '            objOptImage.Save(m, format)
+            '            Return m.ToArray
+            '        End Using
+            '    End If
+            'Catch exPNG As Exception
+            '    Err.Clear()
+            'End Try
+            'Try
+            '    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+            '        With oGraphic
+            '            .SmoothingMode = SmoothingMode.AntiAlias
+            '            .PixelOffsetMode = PixelOffsetMode.None
+            '            .CompositingQuality = CompositingQuality.HighQuality
+            '            .InterpolationMode = InterpolationMode.HighQualityBicubic
+            '            .CompositingMode = CompositingMode.SourceCopy
 
-                        If Not imageMask Is Nothing Then
-                            .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                            .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                        Else
-                        End If
-                        oGraphic.Dispose()
-                    End With
-                End Using
-            Catch ex As Exception
-                Err.Clear()
-                objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
-                For x As Integer = 0 To objOriginalImage.Width - 1
-                    For y As Integer = 0 To objOriginalImage.Height - 1
-                        objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
-                    Next
-                Next
-            End Try
-            Using m As New MemoryStream
-                Try
-                    If Not imageMask Is Nothing Then
-                        Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
-                        For x As Long = 0 To objOriginalImage.Width - 1
-                            For y As Long = 0 To objOriginalImage.Height - 1
-                                Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
-                                If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
-                                    objOriginalImage.SetPixel(x, y, Color.Transparent)
-                                Else
-                                    If AveragePixelColor > 0 Then
-                                        c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
-                                    Else
-                                        c = objOriginalImageTemp.GetPixel(x, y)
-                                    End If
-                                    objOriginalImage.SetPixel(x, y, c)
-                                End If
-                            Next
-                        Next
-                    End If
-                    Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
-                    Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
-                        With oGraphic
-                            .SmoothingMode = SmoothingMode1
-                            .PixelOffsetMode = PixelOffsetMode.None
-                            .CompositingQuality = CompositingQuality1
-                            .InterpolationMode = InterpolationMode1
-                            .CompositingMode = CompositingMode.SourceCopy
-                            .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                            oGraphic.Dispose()
-                        End With
-                    End Using
-                    If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
-                        objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
-                        objOptImage.Save(m, format)
-                    Else
-                        objOriginalImage.Save(m, format)
-                    End If
-                    If m.CanSeek Then
-                        m.Seek(0, SeekOrigin.Begin)
-                    End If
-                    Return m.ToArray
-                Catch ex As Exception
-                    Throw ex
-                End Try
-            End Using
+            '            If Not imageMask Is Nothing Then
+            '                .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '            Else
+            '            End If
+            '            oGraphic.Dispose()
+            '        End With
+            '    End Using
+            'Catch ex As Exception
+            '    Err.Clear()
+            '    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+            '    For x As Integer = 0 To objOriginalImage.Width - 1
+            '        For y As Integer = 0 To objOriginalImage.Height - 1
+            '            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+            '        Next
+            '    Next
+            'End Try
+            'Using m As New MemoryStream
+            '    Try
+            '        If Not imageMask Is Nothing Then
+            '            Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+            '            For x As Long = 0 To objOriginalImage.Width - 1
+            '                For y As Long = 0 To objOriginalImage.Height - 1
+            '                    Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+            '                    If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+            '                        objOriginalImage.SetPixel(x, y, Color.Transparent)
+            '                    Else
+            '                        If AveragePixelColor > 0 Then
+            '                            c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+            '                        Else
+            '                            c = objOriginalImageTemp.GetPixel(x, y)
+            '                        End If
+            '                        objOriginalImage.SetPixel(x, y, c)
+            '                    End If
+            '                Next
+            '            Next
+            '        End If
+            '        Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+            '        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+            '            With oGraphic
+            '                .SmoothingMode = SmoothingMode1
+            '                .PixelOffsetMode = PixelOffsetMode.None
+            '                .CompositingQuality = CompositingQuality1
+            '                .InterpolationMode = InterpolationMode1
+            '                .CompositingMode = CompositingMode.SourceCopy
+            '                .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                oGraphic.Dispose()
+            '            End With
+            '        End Using
+            '        If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+            '            objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+            '            objOptImage.Save(m, format)
+            '        Else
+            '            objOriginalImage.Save(m, format)
+            '        End If
+            '        If m.CanSeek Then
+            '            m.Seek(0, SeekOrigin.Begin)
+            '        End If
+            '        Return m.ToArray
+            '    Catch ex As Exception
+            '        Throw ex
+            '    End Try
+            'End Using
         Catch ex As Exception
             Throw ex
         End Try
         Return Nothing
     End Function
+    'Public Function optimizeBitmap(ByVal OriginalBitmap As System.Drawing.Bitmap, ByVal newWidth As Integer, ByVal newHeight As Integer, ByVal format As System.Drawing.Imaging.ImageFormat, Optional ByVal InterpolationMode1 As Drawing2D.InterpolationMode = InterpolationMode.HighQualityBicubic, Optional ByVal SmoothingMode1 As SmoothingMode = SmoothingMode.HighQuality, Optional ByVal CompositingQuality1 As CompositingQuality = CompositingQuality.HighQuality, Optional ByVal AveragePixelColor As Integer = -1, Optional ByVal imageMask As System.Drawing.Bitmap = Nothing, Optional ByVal autoResizeImages As Boolean = False) As Byte()
+    '    Try
+    '        Dim iwidth As Integer = OriginalBitmap.Width
+    '        Dim iheight As Integer = OriginalBitmap.Height
+    '        Dim ipixelFormat As System.Drawing.Imaging.PixelFormat = OriginalBitmap.PixelFormat
+    '        Dim isAlpha As Boolean = System.Drawing.Bitmap.IsAlphaPixelFormat(OriginalBitmap.PixelFormat)
+    '        If Not imageMask Is Nothing Then
+    '            ipixelFormat = PixelFormat.Format32bppArgb
+    '            format = System.Drawing.Imaging.ImageFormat.Png
+    '        ElseIf isAlpha Then
+    '            ipixelFormat = PixelFormat.Format32bppArgb
+    '            format = System.Drawing.Imaging.ImageFormat.Png
+    '        End If
+    '        Dim ipxfrmt As String = OriginalBitmap.PixelFormat.ToString
+
+    '        Dim iImageFormat As System.Drawing.Imaging.ImageFormat = format
+    '        Dim optRectangle As New System.Drawing.Rectangle(0, 0, newWidth, newHeight)
+    '        Dim originalRectangle As New System.Drawing.Rectangle(0, 0, iwidth, iheight)
+    '        If SmoothingMode1 = SmoothingMode.AntiAlias And (originalRectangle.Size.Width > (optRectangle.Width) OrElse originalRectangle.Size.Height > (optRectangle.Height)) Then
+
+    '        End If
+    '        Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+    '        Try
+    '            Select Case OriginalBitmap.PixelFormat
+    '                Case PixelFormat.Format1bppIndexed, PixelFormat.Format4bppIndexed, PixelFormat.Format8bppIndexed, PixelFormat.Indexed
+    '                    ipixelFormat = PixelFormat.Format24bppRgb
+    '                    objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+    '                    For x As Integer = 0 To objOriginalImage.Width - 1
+    '                        For y As Integer = 0 To objOriginalImage.Height - 1
+    '                            objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+    '                        Next
+    '                    Next
+    '                Case Else
+    '                    objOriginalImage = OriginalBitmap.Clone
+    '            End Select
+    '        Catch ex As Exception
+    '            ipixelFormat = PixelFormat.Format24bppRgb
+    '            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+    '            For x As Integer = 0 To objOriginalImage.Width - 1
+    '                For y As Integer = 0 To objOriginalImage.Height - 1
+    '                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+    '                Next
+    '            Next
+    '        End Try
+    '        Try
+    '            If ipixelFormat = PixelFormat.Format32bppArgb Then
+    '                Dim q As New nQuant.WuQuantizer
+    '                Using m As New MemoryStream
+    '                    Dim objImageOriginalClone As System.Drawing.Bitmap = OriginalBitmap.Clone
+    '                    If Not imageMask Is Nothing Then
+    '                        imageMask.MakeTransparent(Color.Black)
+    '                        For x As Integer = 0 To objImageOriginalClone.Width - 1
+    '                            For y As Integer = 0 To objImageOriginalClone.Height - 1
+    '                                Dim c As Color = imageMask.GetPixel(x, y)
+    '                                If c.A = 0 And c.R = 0 And c.G = 0 And c.B = 0 Then
+    '                                    objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+    '                                ElseIf c.A < 128 Then
+    '                                    objImageOriginalClone.SetPixel(x, y, Color.Transparent)
+    '                                End If
+    '                            Next
+    '                        Next
+    '                    End If
+    '                    Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+    '                    If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+    '                        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+    '                            With oGraphic
+    '                                .SmoothingMode = SmoothingMode1
+    '                                .PixelOffsetMode = PixelOffsetMode.None
+    '                                .CompositingQuality = CompositingQuality1
+    '                                .InterpolationMode = InterpolationMode1
+    '                                .CompositingMode = CompositingMode.SourceCopy
+    '                                .DrawImage(objOriginalImage.Clone, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+    '                                oGraphic.Dispose()
+    '                            End With
+    '                        End Using
+    '                        objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+    '                        objOptImage.Save(m, format)
+    '                        Return m.ToArray
+    '                    Else
+    '                        objOptImage.Save(m, format)
+    '                        Return m.ToArray
+    '                    End If
+    '                    objOptImage.Save(m, format)
+    '                    Return m.ToArray
+    '                End Using
+    '            End If
+    '        Catch exPNG As Exception
+    '            Err.Clear()
+    '        End Try
+    '        Try
+    '            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+    '                With oGraphic
+    '                    .SmoothingMode = SmoothingMode.AntiAlias
+    '                    .PixelOffsetMode = PixelOffsetMode.None
+    '                    .CompositingQuality = CompositingQuality.HighQuality
+    '                    .InterpolationMode = InterpolationMode.HighQualityBicubic
+    '                    .CompositingMode = CompositingMode.SourceCopy
+
+    '                    If Not imageMask Is Nothing Then
+    '                        .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+    '                        .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+    '                    Else
+    '                    End If
+    '                    oGraphic.Dispose()
+    '                End With
+    '            End Using
+    '        Catch ex As Exception
+    '            Err.Clear()
+    '            objOriginalImage = New System.Drawing.Bitmap(originalRectangle.Width, originalRectangle.Height, ipixelFormat)
+    '            For x As Integer = 0 To objOriginalImage.Width - 1
+    '                For y As Integer = 0 To objOriginalImage.Height - 1
+    '                    objOriginalImage.SetPixel(x, y, OriginalBitmap.GetPixel(x, y))
+    '                Next
+    '            Next
+    '        End Try
+    '        Using m As New MemoryStream
+    '            Try
+    '                If Not imageMask Is Nothing Then
+    '                    Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+    '                    For x As Long = 0 To objOriginalImage.Width - 1
+    '                        For y As Long = 0 To objOriginalImage.Height - 1
+    '                            Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+    '                            If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+    '                                objOriginalImage.SetPixel(x, y, Color.Transparent)
+    '                            Else
+    '                                If AveragePixelColor > 0 Then
+    '                                    c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+    '                                Else
+    '                                    c = objOriginalImageTemp.GetPixel(x, y)
+    '                                End If
+    '                                objOriginalImage.SetPixel(x, y, c)
+    '                            End If
+    '                        Next
+    '                    Next
+    '                End If
+    '                Dim objOptImage As System.Drawing.Bitmap = objOriginalImage.Clone
+    '                Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOptImage)
+    '                    With oGraphic
+    '                        .SmoothingMode = SmoothingMode1
+    '                        .PixelOffsetMode = PixelOffsetMode.None
+    '                        .CompositingQuality = CompositingQuality1
+    '                        .InterpolationMode = InterpolationMode1
+    '                        .CompositingMode = CompositingMode.SourceCopy
+    '                        .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+    '                        oGraphic.Dispose()
+    '                    End With
+    '                End Using
+    '                If autoResizeImages OrElse (Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height) Then
+    '                    objOptImage = New System.Drawing.Bitmap(objOptImage.Clone, optRectangle.Width, optRectangle.Height)
+    '                    objOptImage.Save(m, format)
+    '                Else
+    '                    objOriginalImage.Save(m, format)
+    '                End If
+    '                If m.CanSeek Then
+    '                    m.Seek(0, SeekOrigin.Begin)
+    '                End If
+    '                Return m.ToArray
+    '            Catch ex As Exception
+    '                Throw ex
+    '            End Try
+    '        End Using
+    '    Catch ex As Exception
+    '        Throw ex
+    '    End Try
+    '    Return Nothing
+    'End Function
     Public Shared Function optimizeBitmapShared(ByVal OriginalBitmap As System.Drawing.Bitmap, ByVal newWidth As Integer, ByVal newHeight As Integer, ByVal format As System.Drawing.Imaging.ImageFormat, Optional ByVal InterpolationMode1 As Drawing2D.InterpolationMode = InterpolationMode.HighQualityBicubic, Optional ByVal SmoothingMode1 As SmoothingMode = SmoothingMode.HighQuality, Optional ByVal CompositingQuality1 As CompositingQuality = CompositingQuality.HighQuality, Optional ByVal AveragePixelColor As Integer = -1, Optional ByVal imageMask As System.Drawing.Bitmap = Nothing, Optional ByVal autoResizeImages As Boolean = False) As Byte()
         Try
             Dim iwidth As Integer = OriginalBitmap.Width
@@ -1042,58 +1343,92 @@ Public Class clsPDFOptimization
             Dim optRectangle As New System.Drawing.Rectangle(0, 0, newWidth, newHeight)
             Dim originalRectangle As New System.Drawing.Rectangle(0, 0, iwidth, iheight)
             Dim tempStream As New MemoryStream
-            OriginalBitmap.Save(tempStream, System.Drawing.Imaging.ImageFormat.Png)
-            Using objOriginalImage As System.Drawing.Bitmap = System.Drawing.Bitmap.FromStream(tempStream)
-                Using m As New MemoryStream
-                    Try
-                        Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
-                            With oGraphic
-                                .SmoothingMode = SmoothingMode.AntiAlias
-                                .PixelOffsetMode = PixelOffsetMode.None
-                                .CompositingQuality = CompositingQuality.HighQuality
-                                .InterpolationMode = InterpolationMode.HighQualityBicubic
-                                .CompositingMode = CompositingMode.SourceCopy
-                                If Not imageMask Is Nothing Then
-                                    .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                    .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
-                                Else
-                                End If
-                            End With
-                        End Using
-                        If Not imageMask Is Nothing Then
-                            Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
-                            For x As Long = 0 To objOriginalImage.Width - 1
-                                For y As Long = 0 To objOriginalImage.Height - 1
-                                    Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
-                                    If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
-                                        objOriginalImage.SetPixel(x, y, Color.Transparent)
-                                    Else
-                                        If AveragePixelColor > 0 Then
-                                            c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
-                                        Else
-                                            c = objOriginalImageTemp.GetPixel(x, y)
-                                        End If
-                                        objOriginalImage.SetPixel(x, y, c)
-                                    End If
-                                Next
-                            Next
-                        End If
-                        If autoResizeImages And Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height Then
-                            Dim objOptImage As New System.Drawing.Bitmap(objOriginalImage.Clone, optRectangle.Width, optRectangle.Height)
-                            objOptImage.Save(m, format)
-                        Else
-                            objOriginalImage.Save(m, format)
-                        End If
-                        If m.CanSeek Then
-                            m.Seek(0, SeekOrigin.Begin)
-                        End If
-                        Return m.ToArray
-                    Catch ex As Exception
-                        Throw ex
-                    End Try
-                    Return m.ToArray
-                End Using
-            End Using
+            Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+            Dim m As New MemoryStream
+            Select Case format.Guid
+                Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                    OriginalBitmap.Save(m, format)
+                Case Else
+                    OriginalBitmap.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                    format = System.Drawing.Imaging.ImageFormat.Jpeg
+            End Select
+            Dim mLength1 As Integer = m.Length
+            If m.CanSeek Then
+                m.Position = 0
+            End If
+            Dim iMagick As New ImageMagick.MagickImage(m)
+            iMagick.Resize(newWidth, newHeight)
+            Dim m2 As New System.IO.MemoryStream
+            Try
+                iMagick.Write(m2)
+                If m2.CanSeek Then
+                    m2.Position = 0
+                End If
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
+                End Select
+            Catch ex As Exception
+                Err.Clear()
+            End Try
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            Dim mLength2 As Integer = m2.Length
+            Return m2.ToArray
+            'OriginalBitmap.Save(tempStream, System.Drawing.Imaging.ImageFormat.Png)
+            'Using objOriginalImage As System.Drawing.Bitmap = System.Drawing.Bitmap.FromStream(tempStream)
+            '    Using m As New MemoryStream
+            '        Try
+            '            Using oGraphic As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(objOriginalImage)
+            '                With oGraphic
+            '                    .SmoothingMode = SmoothingMode.AntiAlias
+            '                    .PixelOffsetMode = PixelOffsetMode.None
+            '                    .CompositingQuality = CompositingQuality.HighQuality
+            '                    .InterpolationMode = InterpolationMode.HighQualityBicubic
+            '                    .CompositingMode = CompositingMode.SourceCopy
+            '                    If Not imageMask Is Nothing Then
+            '                        .DrawImage(imageMask, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                        .DrawImage(objOriginalImage, originalRectangle, originalRectangle, GraphicsUnit.Pixel)
+            '                    Else
+            '                    End If
+            '                End With
+            '            End Using
+            '            If Not imageMask Is Nothing Then
+            '                Dim objOriginalImageTemp As System.Drawing.Bitmap = objOriginalImage.Clone
+            '                For x As Long = 0 To objOriginalImage.Width - 1
+            '                    For y As Long = 0 To objOriginalImage.Height - 1
+            '                        Dim c As System.Drawing.Color = imageMask.GetPixel(x, y)
+            '                        If (c.R = 0 And c.G = 0 And c.B = 0) Or c.A < 128 Then
+            '                            objOriginalImage.SetPixel(x, y, Color.Transparent)
+            '                        Else
+            '                            If AveragePixelColor > 0 Then
+            '                                c = getAveragePixelColor_Shared(objOriginalImageTemp.Clone(), x, y, AveragePixelColor)
+            '                            Else
+            '                                c = objOriginalImageTemp.GetPixel(x, y)
+            '                            End If
+            '                            objOriginalImage.SetPixel(x, y, c)
+            '                        End If
+            '                    Next
+            '                Next
+            '            End If
+            '            If autoResizeImages And Not optRectangle.Width = originalRectangle.Width And Not optRectangle.Height = originalRectangle.Height Then
+            '                Dim objOptImage As New System.Drawing.Bitmap(objOriginalImage.Clone, optRectangle.Width, optRectangle.Height)
+            '                objOptImage.Save(m, format)
+            '            Else
+            '                objOriginalImage.Save(m, format)
+            '            End If
+            '            If m.CanSeek Then
+            '                m.Seek(0, SeekOrigin.Begin)
+            '            End If
+            '            Return m.ToArray
+            '        Catch ex As Exception
+            '            Throw ex
+            '        End Try
+            '        Return m.ToArray
+            '    End Using
+            'End Using
         Catch ex As Exception
             Throw ex
         End Try
@@ -3271,5 +3606,42 @@ Goto_NextImage:
     End Function
     Public Shared Function ResizeImage(ByVal InputImage As System.Drawing.Image, ByVal newWidth As Integer, ByVal newHeight As Integer) As System.Drawing.Image
         Return New System.Drawing.Bitmap(InputImage, New Size(newWidth, newHeight))
+    End Function
+    Public Shared Function ResizeBitmapMagick(ByVal objOriginalImage As System.Drawing.Bitmap, format As System.Drawing.Imaging.ImageFormat, newWidth As Integer, newHeight As Integer, Optional useLossLessCompression As Boolean = False) As System.Drawing.Bitmap
+        'Dim objOriginalImage As System.Drawing.Bitmap = Nothing
+        Dim m As New MemoryStream
+        Select Case format.Guid
+            Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                objOriginalImage.Save(m, format)
+            Case Else
+                objOriginalImage.Save(m, System.Drawing.Imaging.ImageFormat.Jpeg)
+                format = System.Drawing.Imaging.ImageFormat.Jpeg
+        End Select
+        Dim mLength1 As Integer = m.Length
+        If m.CanSeek Then
+            m.Position = 0
+        End If
+        Dim iMagick As New ImageMagick.MagickImage(m)
+        iMagick.Resize(newWidth, newHeight)
+        Dim m2 As New System.IO.MemoryStream
+        Try
+            iMagick.Write(m2)
+            If m2.CanSeek Then
+                m2.Position = 0
+            End If
+            If useLossLessCompression Then
+                Select Case format.Guid
+                    Case System.Drawing.Imaging.ImageFormat.Jpeg.Guid, System.Drawing.Imaging.ImageFormat.Png.Guid, System.Drawing.Imaging.ImageFormat.Icon.Guid, System.Drawing.Imaging.ImageFormat.Gif.Guid
+                        Dim optimizer As New ImageMagick.ImageOptimizer
+                        optimizer.LosslessCompress(m2)
+                End Select
+            End If
+        Catch ex As Exception
+            Err.Clear()
+        End Try
+        If m2.CanSeek Then
+            m2.Position = 0
+        End If
+        Return System.Drawing.Bitmap.FromStream(m2)
     End Function
 End Class
